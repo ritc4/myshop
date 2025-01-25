@@ -1,0 +1,46 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <title>Homepage</title>
+    <link rel="shortcut icon" href="{% static 'img/logo.png' %}" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- Подключение CSS файла -->
+    <link rel="stylesheet" href="{% static 'bootstrap/css/bootstrap.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'bootstrap-icons/font/bootstrap-icons.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'owlcarousel/css/owl.carousel.min.css' %}">
+    <link rel="stylesheet" href="{% static 'owlcarousel/css/owl.theme.default.min.css' %}">
+    <link rel="stylesheet" href="{% static 'my_css/main.css' %}" />
+  </head>
+
+  <body>
+    <div class="wrapper">
+      <!-- Подключение шапки -->
+      {% include "includes/header.html" %}
+
+      <main class="main bg-light">
+        {% block content %}
+        <!-- Здесь будет контент страницы! -->
+        {% endblock %}
+
+        <!-- Блок пагинации! -->
+        {% include "includes/paginations.html" %}
+      </main>
+
+      <!-- Подключение футера -->
+      {% include "includes/footer.html" %}
+
+    </div>
+    <button id="top">
+      <i class="bi bi-arrow-up-square"></i>
+    </button>
+    <!-- Подключили JS -->
+    <script src="{% static 'bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'jquery/jquery-3.7.1.min.js' %}"></script>
+    <script src="{% static 'owlcarousel/js/owl.carousel.min.js' %}"></script>
+    <script src="{% static 'my_js/main.js' %}"></script>
+  </body>
+</html>

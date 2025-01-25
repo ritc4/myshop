@@ -1,0 +1,370 @@
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+.btn,
+.dropdown-menu,
+.form-control {
+  border-radius: 0;
+}
+
+.form-control:focus {
+  border-color: black;
+  box-shadow: none;
+}
+
+.btn-outline-dark {
+ transition: all .3s;
+}
+
+.btn-outline-dark:hover {
+  background-color: dodgerblue;
+}
+
+/*==========================General rules======================*/
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  min-width: 320px;
+}
+
+.wrapper {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+main.main {
+  flex: 1 1 auto;
+}
+
+section{
+    padding: 50px 0;
+}
+
+.section-title{
+    position:relative;
+    text-transform: uppercase;
+    color: black;
+    font-weight: 700;
+}
+
+
+
+/*==========================Advantages======================*/
+
+.advantages .items{
+    margin-top: 50px;
+}
+
+.advantages .items .item{
+    background-color: #fff;
+    text-align: center;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    transition: all .3s;
+}
+
+.advantages .items .item:hover{
+    box-shadow: 0 15px 30px -20px rgba(0, 0, 0, .6);
+}
+
+
+.advantages i{
+    font-size: 70px;
+    color: black;
+}
+
+
+
+/*==========================Header rules======================*/
+.header-top-phone a {
+  color: #fff;
+  text-decoration: none;
+  transition: all .3s;
+}
+
+.header-top-phone a:hover {
+  text-decoration: underline;
+  color: dodgerblue;
+}
+
+.header-time-work a{
+  color: #fff;
+  text-decoration: none;
+  transition: all .3s;
+}
+
+.header-time-work a:hover{
+  color: dodgerblue;
+  text-decoration: none;
+  transition: all .3s;
+}
+
+.header-top {
+  color: #fff;
+}
+
+.header-top .btn {
+  color: #fff;
+}
+
+.time-work {
+  height: 100%;
+}
+
+.img-logo {
+  width: 100px; /* Установите желаемую ширину */
+  height: auto; /* Высота будет автоматически подстраиваться */
+}
+
+.header-logo .img-logo {
+  transition: filter 0.3s ease; /* Плавный переход */
+}
+
+.header-logo .img-logo:hover {
+  filter: brightness(0) saturate(1000%) invert(50%) sepia(100%)
+    hue-rotate(180deg) brightness(150%); /* Настройка фильтров для голубого цвета */
+}
+
+.header-bottom {
+  border-top: 3px solid dodgerblue;
+  box-shadow: 0 10px 10px rgba(0, 0, 0, 0.3);
+}
+
+.header-bottom .nav-item:first-child .nav-link {
+  padding-left: 0;
+}
+
+.header-bottom .navbar .nav-link {
+  color: #fff;
+  transition: 0.3s all;
+  letter-spacing: 0.1rem;
+}
+
+.header-bottom .navbar .nav-link:hover {
+  color: dodgerblue;
+}
+
+.header-bottom .navbar .dropdown-menu {
+  margin-top: 7px;
+}
+
+
+.headernav-scroll .header-bottom .navbar .offcanvas:not(.show) .nav-link {
+  padding-top: 0.3rem;
+  padding-bottom: 0.3rem;
+}
+
+.cart-buttons-navbar .btn .bi{
+  color: #fff;
+  transition: 0.3s all;
+  letter-spacing: 0.1rem;
+}
+.cart-buttons-navbar .btn .bi:hover {
+  color: dodgerblue;
+}
+
+.offcanvasCart-table .product-img-td{
+  width: 70px;
+  text-align: center;
+
+}
+
+.offcanvasCart-table img{
+  max-width: 50px;
+}
+
+
+.offcanvasCart-table a{
+  text-decoration: none;
+  display: block; 
+}
+
+.offcanvasCart-table a:hover{
+  text-decoration: underline;
+}
+
+/*==========================Featured products======================*/
+
+
+/*==========================Footer======================*/
+
+
+.footer-top{
+  background-color: black;
+  padding: 50px 0;
+  color: #fff;
+}
+
+.footer a{
+  color: #fff;
+  text-decoration: none;
+  transition: all .3s;
+}
+
+.footer a:hover{
+  color: dodgerblue;
+}
+
+.footer-icons {
+  list-style: none;
+  display: flex;
+  gap: 20px;
+  padding: 0;
+  font-size: 20px;
+}
+
+.footer-bottom{
+  background: black;
+  font-size: 16px;
+  color: #fff;
+}
+
+.footer-bottom {
+  padding: 10px 0;
+}
+
+
+/*==========================button-top======================*/
+
+#top{
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: black;
+  opacity: .5;
+  color: #fff;
+  width: 70px;
+  height: 70px;
+  border: 0;
+  font-size: 25px;
+  transition: all .5s;
+  z-index: 10;
+  display: none;
+}
+
+#top:hover{
+  opacity: 1;
+
+}
+
+/*==========================Product card======================*/
+.product-card{
+  transition: all .3s;
+  border: 1px solid black;
+  background-color: #fff;
+  position: relative;
+}
+
+.product-card:hover{
+  box-shadow: 0 10px 20px -15px rgba(0,0,0,0.75);
+}
+
+.product-card-offer{
+  color: #fff;
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  text-transform: uppercase;
+
+}
+
+.product-card-offer>div{
+  border-radius: 50%;
+  width: 40PX;
+  height: 40PX;
+  line-height: 40px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 14px;
+  margin-bottom: 5px;
+}
+
+
+.offer-hit{
+  background-color: red;
+}
+
+.offer-new{
+  background-color: dodgerblue;
+}
+
+.product-thumb img{
+  text-align: center;
+}
+
+.product-details{
+  padding: 10px 20px;
+}
+
+.product-details h4{
+  font-size: 1.2rem;
+}
+
+.product-details h4 a{
+  height: 45px;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  text-decoration: none;
+  transition: all .3s;
+  color: black;
+}
+
+.product-details h4 a:hover{
+  color: dodgerblue;
+}
+
+
+.product-excerpt{
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  height: 45px;
+  overflow: hidden;
+}
+
+
+.product-bottom-details{
+  border-top: 1px solid black;
+  padding-top: 1rem;
+}
+
+.product-price{
+  font-size: 18px;
+  color: green;
+  font-weight: 600;
+}
+
+.product-price small{
+  color: red;
+  font-weight: 400;
+  text-decoration: line-through;
+  font-size: 0.8rem;
+
+}
+
+
+/*==========================Header rules madia======================*/
+@media only screen and (min-width: 992px) {
+  .header-bottom .navbar .dropdown-menu-end {
+    margin-left: 0;
+    border: 0;
+  }
+}
+
+@media only screen and (max-width: 991.98px) {
+  .header-bottom .navbar .dropdown-menu {
+    padding-left: 1rem;
+  }
+}
+
