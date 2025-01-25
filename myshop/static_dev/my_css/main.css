@@ -85,6 +85,7 @@ section{
 
 
 /*==========================Header rules======================*/
+
 .header-top-phone a {
   color: #fff;
   text-decoration: none;
@@ -354,6 +355,13 @@ section{
 }
 
 
+.about-us p {
+  font-weight: bold;
+  overflow: hidden;
+  color: black;
+  font-size: 25px;
+}
+
 /*==========================Header rules madia======================*/
 @media only screen and (min-width: 992px) {
   .header-bottom .navbar .dropdown-menu-end {
@@ -367,4 +375,3 @@ section{
     padding-left: 1rem;
   }
 }
-
