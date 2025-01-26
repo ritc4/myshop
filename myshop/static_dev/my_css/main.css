@@ -458,3 +458,39 @@ section{
 .input-group span{
   border-radius: 0;
 }
+
+
+/* Pagination-Categorypage */
+
+.pagination .page-item .page-link{
+  border-radius: 0;
+}
+
+.page-link{
+  color: black;
+  transition: all .3s;
+}
+
+.page-link:focus{
+  box-shadow: none;
+  border-color: initial;
+}
+.page-link:hover{
+  background-color: dodgerblue;
+  color: #fff;
+}
+
+.active>.page-link, .page-link.active {
+  color: #fff;
+  background-color: dodgerblue;
+}
+
+@media only screen and (min-width: 768px) {
+  
+  .sidebar .collapse-filters{
+    display: block;
+  }
+  .sidebar .collapse-filters-btn {
+    display: none;
+  }
+}

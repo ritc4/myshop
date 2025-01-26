@@ -7,3 +7,7 @@ def home(request):
 def category(request):
     return render(request, 'home/category_page.html')
 
+
+def product(request):
+    return render(request, 'home/product_page.html')
+
