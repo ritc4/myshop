@@ -1,3 +1,5 @@
+/*==========================Home Page======================*/
+
 img {
   max-width: 100%;
   height: auto;
@@ -374,4 +376,85 @@ section{
   .header-bottom .navbar .dropdown-menu {
     padding-left: 1rem;
   }
+}
+
+
+/*==========================Category Page======================*/
+
+.breadcrumbs ul{
+  margin: 30px 0;
+  background-color: #fff;
+  padding: 1rem;
+  list-style: none;
+  display: flex;
+}
+
+.breadcrumbs a{
+  text-decoration: none;
+  color: black;
+  transition: all .5s;
+  margin-right: 0.5rem;
+}
+
+.breadcrumbs a:hover{
+  color: dodgerblue;
+}
+
+.breadcrumbs a::after{
+  content: '/';
+  padding-left: 0.5rem;
+  color: black;
+}
+
+
+.sidebar {
+  background-color: #fff;
+  padding: 0.5rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.sidebar .section-title span{
+  background-color: #fff;
+}
+
+.filter-block:not(:last-child) {
+  margin-bottom: 2rem;
+}
+
+.filter-block .form-check{
+  margin-bottom: 0.5rem;
+}
+
+.form-check-input[type="checkbox"]{
+  border-radius: 0;
+  border-color: var(--gray-color);
+}
+
+.form-check-input:focus{
+  box-shadow: none;
+  border-color: black;
+}
+
+.form-check-input:checked{
+  background-color: black;
+  border-color: black;
+}
+
+.filter-block .badge{
+  color: black;
+}
+
+.form-select {
+  border-radius: 0;
+  border-color: black;
+}
+
+.form-select:focus {
+  outline: none; /* Убираем стандартную рамку фокуса */
+  box-shadow: none; /* Убираем тень вокруг элемента */
+  border-color: initial; /* Убираем изменение цвета границы (если нужно) */
+}
+
+.input-group span{
+  border-radius: 0;
 }
