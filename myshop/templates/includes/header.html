@@ -2,28 +2,28 @@
 <header class="header">
   <div class="header-top bg-black py-1">
     <div class="container-fluid">
-      <div class="row align-items-center">
-        <div class="col-6 col-sm-4 text-start h-100">
-          <div class="header-top-phone d-flex align-items-center h-100 w-100">
+      <div class="row">
+        <div class="col-6 col-sm-4">
+          <div class="header-top-phone d-flex align-items-center justify-content-start">
             <a href="tel:+79187545964">
               <i class="bi bi-telephone me-2"></i>
               <span>+79187545964</span>
             </a>
           </div>
         </div>
-        <div class="col-sm-4 d-none d-sm-flex text-center h-100">
-          <div class="header-time-work d-flex justify-content-center align-items-center h-100 w-100">
+        <div class="col-sm-4 d-none d-sm-flex d-flex align-items-center justify-content-center">
+          <div class="header-time-work">
               <a href="#" class="me-2"><i class="bi bi-twitter"></i></a>
               <a href="#" class="me-2"><i class="bi bi-instagram"></i></a>
               <a href="#" class="me-2"><i class="bi bi-telegram"></i></a>
               <a href="#"><i class="bi bi-whatsapp"></i></a>
           </div>
       </div>
-        <div class="col-6 col-sm-4 text-end h-100">
+        <div class="col-6 col-sm-4">
           <div
-            class="header-top-account h-100 w-100 d-flex align-items-center justify-content-end"
+            class="header-top-account d-flex align-items-center justify-content-end"
           >
-            <div class="btn-group me-2">
+            <div class="btn-group">
               <div class="dropdown">
                 <button
                   class="btn btn-sm dropdown-toggle"
@@ -34,7 +34,8 @@
                   Аккаунт
                 </button>
                 <ul class="dropdown-menu">
-                  <li><a class="dropdown-item" href="#">Вход</a></li>
+                  <li><a class="dropdown-item" href="{% url 'home:registration' %}">Регистрация</a></li>
+                  <li><a class="dropdown-item" href="{% url 'home:login' %}">Вход</a></li>
                   <li><a class="dropdown-item" href="#">Выход</a></li>
                 </ul>
               </div>
@@ -160,34 +161,8 @@
         </table>
       </div>
       <div class="text-end mt-3">
-        <a href="#" class="btn btn-outline-dark">Cart</a>
-        <a href="#" class="btn btn-outline-dark">Checkout</a>
-      </div>
-      <div class="dropdown mt-3">
-        <button
-          class="btn btn-secondary dropdown-toggle"
-          type="button"
-          data-bs-toggle="dropdown"
-        >
-          Dropdown button
-        </button>
-        <ul class="dropdown-menu">
-          <li>
-            <a class="dropdown-item closecart" href="#footer" data-href="footer"
-              >Footer</a
-            >
-          </li>
-          <li>
-            <a class="dropdown-item closecart" href="#about" data-href="about"
-              >About</a
-            >
-          </li>
-          <li>
-            <a class="dropdown-item closecart" href="#map" data-href="map"
-              >Map</a
-            >
-          </li>
-        </ul>
+        <a href="{% url 'home:cart' %}" class="btn btn-outline-dark">Корзина</a>
+        <a href="#" class="btn btn-outline-dark">Оформления заказа</a>
       </div>
     </div>
   </div>

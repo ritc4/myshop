@@ -1,10 +1,199 @@
 {% extends "base.html" %} {% load static %} 
 {% block title%}Productpage{%endblock %} 
 
+{% block content %} 
 
-{% block content %}
 {% include "includes/breadcrumb.html" %}
 
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-md-5 col-lg-4 mb-3">
+      <div class="bg-white h-100">
+        <div
+          id="carouselExampleFade"
+          class="carousel slide carousel-dark"
+          data-bs-ride="carousel"
+        >
+          <div class="carousel-inner">
+            <div class="carousel-item active">
+              <img
+                src="{% static 'img/product/1.jfif' %}"
+                class="d-block w-100"
+                alt="..."
+              />
+            </div>
+            <div class="carousel-item">
+              <img
+                src="{% static 'img/product/2.jfif' %}"
+                class="d-block w-100"
+                alt="..."
+              />
+            </div>
+            <div class="carousel-item">
+              <img
+                src="{% static 'img/product/3.jfif' %}"
+                class="d-block w-100"
+                alt="..."
+              />
+            </div>
+          </div>
+          <button
+            class="carousel-control-prev"
+            type="button"
+            data-bs-target="#carouselExampleFade"
+            data-bs-slide="prev"
+          >
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+          </button>
+          <button
+            class="carousel-control-next"
+            type="button"
+            data-bs-target="#carouselExampleFade"
+            data-bs-slide="next"
+          >
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-7 col-lg-8 mb-3">
+      <div class="bg-white product-content p-3 h-100">
+        <h1 class="section-title h3"><span>Product name</span></h1>
 
+        <div class="product-price">
+          <small>1000 руб.</small>
+          850 руб.
+        </div>
+
+        <p>
+          Lorem ipsum, dolor sit amet consectetur adipisicing elit. Ut ipsam
+          neque nemo consequatur optio, vel consectetur praesentium, ipsa, quod
+          mollitia ad voluptatem totam numquam aperiam soluta necessitatibus
+          magni non inventore.
+        </p>
+        <div class="product-add2cart">
+          <div class="input-group">
+            <input type="number" class="form-control" value="1" min="1" />
+            <button class="btn btn-dark">
+              <i class="bi bi-cart4 me-2"></i>Добавить
+            </button>
+          </div>
+        </div>
+
+        <div class="row mt-3">
+          <div class="col-lg-4 mb-2">
+            <div class="card h-100">
+              <div class="card-body">
+                <h5 class="card-title">
+                  <i class="bi bi-shield-shaded"></i>Гарантия
+                </h5>
+                <ul class="list-unstyled">
+                  <li>Описание</li>
+                  <li></li>
+                  <li></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-4 mb-2">
+            <div class="card h-100">
+              <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-truck"></i>Доставка</h5>
+                <ul class="list-unstyled">
+                  <li>Описание</li>
+                  <li></li>
+                  <li></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-4 mb-2">
+            <div class="card h-100">
+              <div class="card-body">
+                <h5 class="card-title">
+                  <i class="bi bi-credit-card"></i>Оплата
+                </h5>
+                <ul class="list-unstyled">
+                  <li>Описание</li>
+                  <li></li>
+                  <li></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row mt-2">
+          <div class="col-12">
+            <div class="nav-bottom">
+              <ul class="nav nav-tabs w-100" id="myTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                  <button
+                    class="nav-link active"
+                    id="home-tab"
+                    data-bs-toggle="tab"
+                    data-bs-target="#home-tab-pane"
+                    type="button"
+                    role="tab"
+                    aria-controls="home-tab-pane"
+                    aria-selected="true"
+                  >
+                    О таваре
+                  </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button
+                    class="nav-link"
+                    id="profile-tab"
+                    data-bs-toggle="tab"
+                    data-bs-target="#profile-tab-pane"
+                    type="button"
+                    role="tab"
+                    aria-controls="profile-tab-pane"
+                    aria-selected="false"
+                  >
+                    Условия
+                  </button>
+                </li>
+              </ul>
+              <div class="tab-content mt-3" id="myTabContent">
+                <div
+                  class="tab-pane fade show active"
+                  id="home-tab-pane"
+                  role="tabpanel"
+                  aria-labelledby="home-tab"
+                  tabindex="0"
+                >
+                  <p>
+                    Lorem ipsum, dolor sit amet consectetur adipisicing elit. Et
+                    quod fuga, molestiae dolorem, aut eum atque praesentium
+                    commodi possimus dolores ab officiis minima debitis numquam
+                    impedit tempora recusandae, cum sapiente.
+                  </p>
+                </div>
+                <div
+                  class="tab-pane fade"
+                  id="profile-tab-pane"
+                  role="tabpanel"
+                  aria-labelledby="profile-tab"
+                  tabindex="0"
+                >
+                  <p>
+                    Lorem ipsum dolor sit amet, consectetur adipisicing elit.
+                    Velit sequi doloremque, eligendi accusamus itaque aperiam.
+                    Eius ratione tempora, veniam culpa possimus laboriosam enim,
+                    neque non, rem magnam voluptatum odit illo.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
 {% endblock %}

@@ -11,3 +11,11 @@ def category(request):
 def product(request):
     return render(request, 'home/product_page.html')
 
+def registration(request):
+    return render(request, 'home/registration_page.html')
+
+def login(request):
+    return render(request, 'home/login_page.html')
+
+def cart(request):
+    return render(request, 'home/cart_page.html')
