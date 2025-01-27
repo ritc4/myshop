@@ -157,6 +157,20 @@
                     Условия
                   </button>
                 </li>
+                <li class="nav-item" role="presentation">
+                  <button
+                    class="nav-link"
+                    id="reviews-tab"
+                    data-bs-toggle="tab"
+                    data-bs-target="#reviews-tab-pane"
+                    type="button"
+                    role="tab"
+                    aria-controls="reviews-tab-pane"
+                    aria-selected="false"
+                  >
+                    Отзывы (10)
+                  </button>
+                </li>
               </ul>
               <div class="tab-content mt-3" id="myTabContent">
                 <div
@@ -186,6 +200,78 @@
                     Eius ratione tempora, veniam culpa possimus laboriosam enim,
                     neque non, rem magnam voluptatum odit illo.
                   </p>
+                </div>
+                <div class="tab-pane fade" id="reviews-tab-pane"
+                  role="tabpanel"
+                  aria-labelledby="reviews-tab"
+                  tabindex="0">
+                  <button type="button" class="btn btn-dark mb-3" data-bs-toggle="modal" data-bs-target="#reviewsModal">
+                    Написать отзыв
+                  </button>
+                  
+                  <!-- Modal -->
+                  <div class="modal fade" id="reviewsModal" tabindex="-1" aria-labelledby="reviewsModal" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered modal-lg">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <h1 class="modal-title fs-5" id="exampleModalLabel">Написать отзыв</h1>
+                          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <form action="">
+                        <div class="modal-body">
+                          <div class="mb-3">
+                            <label for="exampleFormControlInput1" class="form-label">Email address</label>
+                            <input type="email" class="form-control" id="exampleFormControlInput1" placeholder="name@example.com">
+                          </div>
+                          <div class="mb-3">
+                            <label for="exampleFormControlTextarea1" class="form-label">Example textarea</label>
+                            <textarea class="form-control" id="exampleFormControlTextarea1" rows="3"></textarea>
+                          </div>
+                        </div>
+                        <div class="modal-footer">
+                         <button type="submit" class="btn btn-dark">Отправить отзыв</button>
+                        </div>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div class="card product-reviews mb-3">
+                    <div class="card-body">
+                      <div class="product-reviews-header d-flex justify-content-between">
+                        <h5 class="card-title">Александр</h5>
+                        <h6 class="card-subtitle mb-2 text-muted">27.02.2025</р>
+                      </div>
+                      <div class="card-text">
+                        <p>Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                        <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Dolorem repellendus aperiam voluptas quod minus veniam recusandae possimus consequuntur similique numquam unde, quae velit aliquid maiores illo a, exercitationem aut harum!</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="card product-reviews mb-3">
+                    <div class="card-body">
+                      <div class="product-reviews-header d-flex justify-content-between">
+                        <h5 class="card-title">Светлана</h5>
+                        <h6 class="card-subtitle mb-2 text-muted">27.02.2025</h6>
+                      </div>
+                      <div class="card-text">
+                        <p>Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                        <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Dolorem repellendus aperiam voluptas quod minus veniam recusandae possimus consequuntur similique numquam unde, quae velit aliquid maiores illo a, exercitationem aut harum!</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="card product-reviews mb-3">
+                    <div class="card-body">
+                      <div class="product-reviews-header d-flex justify-content-between">
+                        <h5 class="card-title">Вася</h5>
+                        <h6 class="card-subtitle mb-2 text-muted">27.02.2025</h6>
+                      </div>
+                      <div class="card-text">
+                        <p>Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+                        <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Dolorem repellendus aperiam voluptas quod minus veniam recusandae possimus consequuntur similique numquam unde, quae velit aliquid maiores illo a, exercitationem aut harum!</p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

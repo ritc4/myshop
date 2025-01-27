@@ -1,0 +1,153 @@
+{% extends "base.html" %} {% load static %} 
+{% block title %}Checkoutpage{% endblock %} 
+
+{% block content %} 
+
+{% include "includes/breadcrumb.html" %}
+
+<div class="container-fluid">
+  <form action="" class="needs-validation" novalidate>
+    <div class="row">
+      <div class="col-lg-8 mb-3">
+        <div class="checkout p-3 h-100 bg-white">
+          <h1 class="section-title h5"><span>Оформление заказа</span></h1>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label for="name" class="form-label">Name</label>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                class="form-control"
+                placeholder="Александр"
+                aria-label="name"
+              />
+            </div>
+            <div class="col-md-6">
+              <label for="email" class="form-label">Электронный адрес</label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                class="form-control"
+                placeholder="ivanova@mail.ru"
+                aria-label="email"
+              />
+            </div>
+            <div class="col-md-6">
+              <label for="phone" class="form-label">Телефон</label>
+              <input
+                type="tel"
+                id="phone"
+                name="phone"
+                class="form-control"
+                placeholder="+79182223434"
+                aria-label="phone"
+              />
+            </div>
+            <div class="col-md-6">
+              <label for="region" class="form-label">Регион</label>
+              <input
+                type="text"
+                id="region"
+                name="region"
+                class="form-control"
+                placeholder="Ставропольский край"
+                aria-label="region"
+              />
+            </div>
+            <div class="col-md-6">
+              <label for="city" class="form-label">Город</label>
+              <input
+                type="text"
+                id="city"
+                name="city"
+                class="form-control"
+                placeholder="Ессентуки"
+                aria-label="city"
+              />
+            </div>
+            <div class="col-md-6">
+              <label for="address" class="form-label">Адрес</label>
+              <input
+                type="text"
+                id="address"
+                name="address"
+                class="form-control"
+                placeholder="ул.Московская дом 5 кв 34"
+                aria-label="address"
+              />
+            </div>
+            <div class="col">
+              <label for="comment" class="form-label"
+                >Комментарии к заказу</label
+              >
+              <textarea
+                class="form-control"
+                name="comment"
+                id="comment"
+                rows="3"
+                placeholder="Комментарий"
+              ></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-4 mb-3">
+        <div class="cart-summary p-3 bg-white sidebar h-100">
+          <h5 class="section-title"><span>Общая сумма заказа</span></h5>
+          <div class="table-responsive">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Продукт</th>
+                  <th class="text-end">Цена</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    Product 1 Lorem ipsum, dolor sit amet consectetur
+                    adipisicing. <small>1050 руб. x 3</small>
+                  </td>
+                  <td class="text-end">3150 руб.</td>
+                </tr>
+                <tr>
+                  <td>Product 2 <small>2000 руб. x 1</small></td>
+                  <td class="text-end">2000 руб.</td>
+                </tr>
+                <tr>
+                  <td>Product 3<small>1500 руб. x 2</small></td>
+                  <td class="text-end">3000 руб.</td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="2" class="text-end">
+                    8150 руб.
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+          <div class="form-check">
+            <input name="delivery" class="form-check-input" type="radio" name="delivery-method1" id="delivery-method1" value="delivery-method1">
+            <label class="form-check-label" for="delivery-method1">
+              Почта России
+            </label>
+          </div>
+          <div class="form-check">
+            <input name="delivery" class="form-check-input" type="radio" name="delivery-method2" id="delivery-method2" value="delivery-method2">
+            <label class="form-check-label" for="delivery-method2">
+              Траспортная компания
+            </label>
+          </div>
+          <div class="d-grid mt-3">
+            <button type="submit" href="" class="btn btn-outline-dark">Оформить </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -19,3 +19,6 @@ def login(request):
 
 def cart(request):
     return render(request, 'home/cart_page.html')
+
+def checkout(request):
+    return render(request, 'home/checkout_page.html')
