@@ -128,15 +128,6 @@ section{
   height: auto; /* Высота будет автоматически подстраиваться */
 }
 
-.header-logo .img-logo {
-  transition: filter 0.3s ease; /* Плавный переход */
-}
-
-.header-logo .img-logo:hover {
-  filter: brightness(0) saturate(1000%) invert(50%) sepia(100%)
-    hue-rotate(180deg) brightness(150%); /* Настройка фильтров для голубого цвета */
-}
-
 .header-bottom {
   border-top: 3px solid dodgerblue;
   box-shadow: 0 10px 10px rgba(0, 0, 0, 0.3);
@@ -210,7 +201,20 @@ section{
   color: dodgerblue;
 }
 
+.dropdown-toggle::after{
+  margin: 0;
+}
 
+.dropdown-menu.show {
+            transform: translate(11px,29px) !important; /* Сдвинуть вниз на 50 пикселей */
+        }
+
+/*==========================Header media======================*/
+@media (max-width: 575.98px) {
+  .account-label {
+      display: none; /* Скрываем на экранах меньше 576px */
+  }
+}
 /*==========================Featured products======================*/
 
 

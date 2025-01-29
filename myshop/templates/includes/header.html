@@ -31,13 +31,13 @@
                   data-bs-toggle="dropdown"
                   aria-expanded="false"
                 >
-                  Аккаунт
+                <i class="bi bi-person-circle me-2"></i><span class="account-label">Личный кабинет</span>
                 </button>
                 <ul class="dropdown-menu">
                   <li><a class="dropdown-item" href="{% url 'home:registration' %}">Регистрация</a></li>
                   <li><a class="dropdown-item" href="{% url 'home:login' %}">Вход</a></li>
                   <li><a class="dropdown-item" href="#">Выход</a></li>
-                </ul>
+                </ul>   
               </div>
             </div>
           </div>
@@ -189,7 +189,7 @@
         aria-labelledby="offcanvasNavbarLabel"
       >
         <div class="offcanvas-header">
-          <h5 class="offcanvas-title" id="offcanvasNavbarLabel">Catalog</h5>
+          <h5 class="offcanvas-title" id="offcanvasNavbarLabel">Меню</h5>
           <button
             type="button"
             class="btn-close"
@@ -200,19 +200,22 @@
         <div class="offcanvas-body">
           <ul class="navbar-nav">
             <li class="nav-item">
-              <a class="nav-link active" aria-current="page" href="#">Home</a>
+              <a class="nav-link active" aria-current="page" href="#">Главная</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="#">About</a>
+              <a class="nav-link" href="#">Доставка</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="#">Contact</a>
+              <a class="nav-link" href="#">Каталог</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="#">Payment</a>
+              <a class="nav-link" href="#">Контакты</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="#">Delivery</a>
+              <a class="nav-link" href="{% url 'home:reviews' %}">Отзывы</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#">Войти в ЛК</a>
             </li>
             <li class="nav-item dropdown">
               <a
@@ -223,7 +226,7 @@
                 aria-expanded="false"
                 data-bs-auto-close="outside"
               >
-                Catalog
+                Каталог
               </a>
               <ul class="dropdown-menu dropdown-menu-end">
                 <li><a class="dropdown-item" href="category.html">Shoes</a></li>

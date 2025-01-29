@@ -48,20 +48,3 @@ document.querySelectorAll('.closecart').forEach(item =>{
         document.getElementById(href).scrollIntoView();
     });
 });
-
-
-
-
-// const offcanvasCartEl = document.getElementById("offcanvasCart");
-// const offcanvasCart = new bootstrap.Offcanvas(offcanvasCartEl);
-
-// document.querySelectorAll(".closecart").forEach((item) => {
-//   item.addEventListener("click", (e) => {
-//     e.preventDefault;
-//     offcanvasCart.hide();
-//     let href = item.href.split("#").pop();
-//     offcanvasCartEl.addEventListener("hidden.bs.offcanvas", () => {
-//       document.getElementById(href).scrollIntoView();
-//     });
-//   });
-// });

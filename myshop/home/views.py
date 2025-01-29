@@ -22,3 +22,7 @@ def cart(request):
 
 def checkout(request):
     return render(request, 'home/checkout_page.html')
+
+
+def reviews(request):
+    return render(request, 'home/reviews_page.html')
