@@ -48,3 +48,19 @@ document.querySelectorAll('.closecart').forEach(item =>{
         document.getElementById(href).scrollIntoView();
     });
 });
+
+
+
+/* Показываем дополнительный блок доставки товара*/
+
+function toggleAdditionalCol() {
+    var select = document.getElementById('shipmethod'); // Получаем элемент select
+    var additionalCol = document.getElementById('additionalCol'); // Получаем дополнительный блок
+
+    // Проверяем, выбран ли способ доставки, который требует дополнительной информации
+    if (select.value === "4"|| select.value === "5" || select.value === "6"|| select.value === "7"|| select.value === "8"|| select.value === "9") { // Например, если выбрана СДЭК
+        additionalCol.style.display = 'block'; // Показываем блок
+    } else {
+        additionalCol.style.display = 'none'; // Скрываем блок
+    }
+}
