@@ -1,0 +1,120 @@
+{% extends "base.html" %} {% load static %} 
+{% block title %}Checkoutpage{% endblock %} 
+
+{% block content %} 
+
+{% include "includes/breadcrumb.html" %}
+
+<div class="container-fluid">
+  <form action="" class="needs-validation" novalidate>
+    <div class="row">
+      <div class="col-md-5 offset-md-3 mb-3">
+        <div class="contacts-form p-3 h-100 bg-white">
+          <h1 class="section-title h5"><span>Форма связи</span></h1>
+          <div class="row g-3">           
+            <div class="col-12">
+              <label for="name" class="form-label"></label>
+              <input
+                type="text"
+                id="name"
+                name="name"
+                class="form-control"
+                placeholder="Представьтесь пожалуйста"
+                aria-label="name"
+                autocomplete="name"
+              />
+            </div>
+            <div class="col-12">
+              <label for="email" class="form-label"></label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                class="form-control"
+                placeholder="Электронная почта"
+                aria-label="email"
+                autocomplete="name"
+              />
+            </div>
+            <div class="col-12">
+              <label for="phone" class="form-label"></label>
+              <input
+                type="tel"
+                id="phone"
+                name="phone"
+                class="form-control"
+                placeholder="Телефон"
+                aria-label="phone"
+                autocomplete="name"
+              />
+            </div>
+            <div class="col-12">
+              <label for="message" class="form-label"
+                ></label
+              >
+              <textarea
+                class="form-control"
+                name="message"
+                id="message"
+                rows="3"
+                placeholder="Текст сообщения"
+              ></textarea>
+            </div>
+            <div class="col-12">
+              <div class="polyci">
+              </div>
+              <span for="personal_data">Нажимая на кнопку Отправить, Вы соглашаетесь с <a href="#" id="policyLink" data-bs-toggle="modal" data-bs-target="#privacyPolicyModal">политикой конфиденциальности</a></span>
+            </div>
+            <div class="mt-3">
+              <button type="submit" href="" class="btn btn-outline-dark">Отправить</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      </form>
+      <div class="col-md-4 mb-3">
+        <div class="contacts-link p-3 bg-white h-100">
+          <h1 class="section-title h5"><span>Наши контакты</span></h1>
+          <ul class="list-unstyled">
+            <li><a href="tel:+79187545964"><i class="bi bi-telephone me-2"></i><span>+79187545964</span></a></li>
+            <li><a href="mailto:cozyopt@gmail.com"><i class="bi bi-envelope-at me-2"></i>cozyopt@gmail.com</a></li>
+        </ul>
+        </div>
+      </div>
+    </div>
+</div>
+
+<!-- Модальное окно -->
+<div class="modal fade" id="privacyPolicyModal" data-bs-keyboard="false" tabindex="-1" aria-labelledby="privacyPolicyModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="privacyPolicyModalLabel">Политика конфиденциальности</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="modal__content">
+          <div>
+            <h1 class="title h5">Общие положения</h1>
+            <br>
+            <p>Некоторые объекты, размещенные на сайте, являются интеллектуальной собственностью компании Cozy. Использование таких объектов установлено действующим законодательством РФ.</p>
+            <p>На сайте Cozy имеются ссылки, позволяющие перейти на другие сайты. Компания Cozy не несет ответственности за сведения, публикуемые на этих сайтах и предоставляет ссылки на них только в целях обеспечения удобства для посетителей своего сайта.</p>
+          </div>
+          <br>
+          <div>
+            <h1 class="title h5">Личные сведения и безопасность</h1>
+            <br>
+            <p>Компания Cozy гарантирует, что никакая полученная от Вас информация никогда и ни при каких условиях не будет предоставлена третьим лицам, за исключением случаев, предусмотренных действующим законодательством Российской Федерации.</p>
+            <p>В определенных обстоятельствах компания Cozy может попросить Вас зарегистрироваться и предоставить личные сведения. Предоставленная информация используется исключительно в служебных целях, а также для предоставления доступа к специальной информации.</p>
+            <p>Личные сведения можно изменить, обновить или удалить в любое время в разделе "Аккаунт" &gt; "Профиль".</p>
+            <p>Чтобы обеспечить Вас информацией определенного рода, компания Cozy с Вашего явного согласия может присылать на указанный при регистрации адрес электронный почты информационные сообщения. В любой момент Вы можете изменить тематику такой рассылки или отказаться от нее.</p>
+            <p>Как и многие другие сайты, Cozy использует технологию cookie, которая может быть использована для продвижения нашего продукта и измерения эффективности рекламы. Кроме того, с помощь этой технологии Cozy настраивается на работу лично с Вами. В частности без этой технологии невозможна работа с авторизацией в панели управления.</p>
+            <p>Сведения на данном сайте имеют чисто информативный характер, в них могут быть внесены любые изменения без какого-либо предварительного уведомления.</p>
+            <p>Чтобы отказаться от дальнейших коммуникаций с нашей компанией, изменить или удалить свою личную информацию, напишите нам через форму обратной связи</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

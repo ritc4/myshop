@@ -1,3 +1,4 @@
+{% load static %}
 <div class="footer" id="footer">
   <div class="footer-top">
     <div class="container-fluid">
@@ -44,9 +45,16 @@
   <div class="footer-bottom">
     <div class="container-fluid">
       <div class="row">
-        <div class="copyright">
-          <span>©2025 COZY. Все права защищены.</span>
-          <div></div>
+        <div class="copyright d-flex justify-content-between">
+          <span class="d-flex align-items-end">©2025 COZY. Все права защищены.</span>
+          <div class="footer-logo-main">
+            <a href="#" class="footer-logo"
+              ><img
+                src="{% static 'img/logo.png' %}"
+                class="img-fluid footer-img-logo"
+                alt=""
+            /></a>
+          </div>
         </div>
       </div>
     </div>

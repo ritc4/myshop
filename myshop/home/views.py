@@ -29,3 +29,9 @@ def reviews(request):
 
 def conditions(request):
     return render(request, 'home/conditions_page.html')
+
+def contacts(request):
+    return render(request, 'home/contacts_page.html')
+
+def delivery(request):
+    return render(request, 'home/delivery_page.html')

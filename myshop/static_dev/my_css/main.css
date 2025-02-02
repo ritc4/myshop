@@ -123,7 +123,7 @@ section{
   height: 100%;
 }
 
-.img-logo {
+.header-img-logo {
   width: 100px; /* Установите желаемую ширину */
   height: auto; /* Высота будет автоматически подстраиваться */
 }
@@ -258,6 +258,11 @@ section{
 
 .footer-bottom {
   padding: 10px 0;
+}
+
+.footer-img-logo{
+  width: 100px; /* Установите желаемую ширину */
+  height: auto; /* Высота будет автоматически подстраиваться */
 }
 
 
@@ -610,4 +615,21 @@ section{
 
 textarea{
   resize: none;
+}
+
+.modal-content{
+  border-radius: 0;
+}
+
+
+/*==========================Contacts page======================*/
+
+.contacts-link a{
+  color: black;
+  text-decoration: none;
+  transition: all .3s;
+}
+
+.contacts-link a:hover{
+  color: dodgerblue;
 }
