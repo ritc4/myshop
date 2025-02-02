@@ -184,29 +184,30 @@
       </div>
     </div>
     <div class="col-lg-9 col-md-8">
-      <div class="row mb-3">
-        <div class="col-12">
+      <div class="category-list mb-3">
+        <div class="row mb-3">
+          <div class="col-12">
           <h1 class="section-title"><span>Category name</span></h1>
-        </div>
-        <div class="col-4 col-sm-2">
+          </div>
+          <div class="col-4 col-sm-2">
           <img
             src="{% static 'img/product/3.jfif' %}"
             alt=""
             class="img-thumbnail"
           />
-        </div>
-        <div class="col-8 col-sm-10">
+          </div>
+          <div class="col-8 col-sm-10">
           <p>
             Lorem ipsum dolor sit amet consectetur adipisicing elit. Cum natus
             eaque nemo nihil, sint labore repellendus praesentium illo neque
             dignissimos consequatur harum possimus corrupti? Adipisci, soluta.
             Modi commodi incidunt unde?
           </p>
+          </div>
         </div>
-      </div>
-      <hr />
+        <hr/>
 
-      <div class="row">
+        <div class="row">
         <div class="col-sm-6">
           <div class="input-group mb-3">
             <span class="input-group-text">Сортировать по:</span>
@@ -230,8 +231,8 @@
             </select>
           </div>
         </div>
-      </div>
-      <div class="row">
+        </div>
+        <div class="row">
         <div class="col-lg-4 col-sm-6 mb-3">
           <div class="product-card">
             <div class="product-card-offer">
@@ -574,8 +575,9 @@
             </div>
           </div>
         </div>
+        </div>
+        {% include "includes/pagination.html" %}
       </div>
-      {% include "includes/pagination.html" %}
     </div>
   </div>
 </div>

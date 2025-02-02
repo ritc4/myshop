@@ -205,14 +205,19 @@ section{
   margin: 0;
 }
 
-.dropdown-menu.show {
-            transform: translate(11px,29px) !important; /* Сдвинуть вниз на 50 пикселей */
-        }
-
+        
 /*==========================Header media======================*/
 @media (max-width: 575.98px) {
   .account-label {
       display: none; /* Скрываем на экранах меньше 576px */
+  }
+}
+
+
+@media (max-width: 575.98px) {
+  .header-logo-main {
+      width: 100%; /* Установите желаемую ширину */
+      text-align: center;
   }
 }
 /*==========================Featured products======================*/
@@ -320,7 +325,7 @@ section{
   background-color: dodgerblue;
 }
 
-.product-thumb img{
+.product-thumb img, .pagination{
   text-align: center;
 }
 
@@ -401,6 +406,11 @@ section{
 
 /*==========================Category Page======================*/
 
+.category-list {
+  background-color: #fff;
+  padding: 0.5rem 1rem 0.5rem;
+}
+
 .breadcrumbs ul{
   margin: 30px 0;
   background-color: #fff;
@@ -480,10 +490,15 @@ section{
 }
 
 
-/* Pagination-Categorypage */
+/* ====================Pagination-Categorypage============ */
 
 .pagination .page-item .page-link{
   border-radius: 0;
+  border-color: black;
+}
+
+.pagination{
+  margin-bottom: 8px;
 }
 
 .page-link{

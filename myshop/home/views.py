@@ -26,3 +26,6 @@ def checkout(request):
 
 def reviews(request):
     return render(request, 'home/reviews_page.html')
+
+def conditions(request):
+    return render(request, 'home/conditions_page.html')
