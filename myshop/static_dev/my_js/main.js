@@ -52,7 +52,6 @@ document.querySelectorAll('.closecart').forEach(item =>{
 
 
 /* Показываем дополнительный блок доставки товара*/
-
 function toggleAdditionalCol() {
     var select = document.getElementById('shipmethod'); // Получаем элемент select
     var additionalCol = document.getElementById('additionalCol'); // Получаем дополнительный блок
@@ -64,3 +63,4 @@ function toggleAdditionalCol() {
         additionalCol.style.display = 'none'; // Скрываем блок
     }
 }
+

@@ -171,7 +171,7 @@
           </div>
           <div class="form-input-row checkbox">
             <input id="personal_data" type="checkbox" name="personal_data" value="Y" checked="checked">
-            <span for="personal_data">Я соглашаюсь на обработку моих персональных данных в соответствии с <a target="_blank" href="#"> политикой конфиденциальности</a></ы>
+            <span for="personal_data">Я соглашаюсь на обработку моих персональных данных в соответствии с <a href="#" id="policyLink" data-bs-toggle="modal" data-bs-target="#privacyPolicyModal">политикой конфиденциальности</a></span>
           </div>
           <div class="d-grid mt-3">
             <button type="submit" href="" class="btn btn-outline-dark">Оформить</button>
@@ -180,5 +180,20 @@
       </div>
     </div>
   </form>
+</div>
+
+<!-- Модальное окно -->
+<div class="modal fade" id="privacyPolicyModal" data-bs-keyboard="false" tabindex="-1" aria-labelledby="privacyPolicyModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="privacyPolicyModalLabel">Политика конфиденциальности</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>Здесь будет текст вашей политики конфиденциальности...</p>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}
