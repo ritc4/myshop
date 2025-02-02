@@ -35,3 +35,6 @@ def contacts(request):
 
 def delivery(request):
     return render(request, 'home/delivery_page.html')
+
+def news(request):
+    return render(request, 'home/news_page.html')

@@ -60,29 +60,41 @@
     </div>
     <div class="col-md-7 col-lg-8 mb-3">
       <div class="bg-white product-content p-3 h-100">
-        <h1 class="section-title h3"><span>Product name</span></h1>
+        <h1 class="section-title h3"><span>Название товара</span></h1>
 
         <div class="product-price">
-          <small>1000 руб.</small>
           850 руб.
         </div>
-
-        <p>
-          Lorem ipsum, dolor sit amet consectetur adipisicing elit. Ut ipsam
-          neque nemo consequatur optio, vel consectetur praesentium, ipsa, quod
-          mollitia ad voluptatem totam numquam aperiam soluta necessitatibus
-          magni non inventore.
-        </p>
+        <div class="productView__links">
+          <a href="#" class="btn add-favorites">
+            <i class="bi bi-heart-fill me-2"></i>
+            <span>В избранное</span>
+          </a>
+        </div>
+        <div class="productView__articles">
+          <span>Артикул:</span>
+          <span class="goodsModArtNumber">44153</span>
+        </div>
+        <div class="size-product">
+          <select class="form-select" aria-label="Default select example" id="shipmethod" name="delivery_id" onchange="toggleAdditionalCol()">
+                <option selected>Выберите размер</option>
+                <option value="134" data-type="img">134</option>
+                <option value="140" data-type="img">140</option>
+                <option value="148" data-type="img">148</option>
+                <option value="150" data-type="img">150</option>
+                <option value="162" data-type="img">162</option>
+                <option value="164" data-type="img">164</option>
+          </select>
+        </div>
         <div class="product-add2cart">
           <div class="input-group">
-            <input type="number" class="form-control" value="1" min="1" />
+            <input name="add-cart-quantity-product" type="number" class="form-control" value="1" min="1" />
             <button class="btn btn-dark">
               <i class="bi bi-cart4 me-2"></i>Добавить
             </button>
           </div>
         </div>
-
-        <div class="row mt-3">
+        <!-- <div class="row mt-3">
           <div class="col-lg-4 mb-2">
             <div class="card h-100">
               <div class="card-body">
@@ -123,7 +135,7 @@
               </div>
             </div>
           </div>
-        </div>
+        </div> -->
 
         <div class="row mt-2">
           <div class="col-12">
@@ -167,10 +179,8 @@
                   tabindex="0"
                 >
                   <p>
-                    Lorem ipsum, dolor sit amet consectetur adipisicing elit. Et
-                    quod fuga, molestiae dolorem, aut eum atque praesentium
-                    commodi possimus dolores ab officiis minima debitis numquam
-                    impedit tempora recusandae, cum sapiente.
+                    Ткань: хлопок
+                    Размер : 134, 140, 146, 152, 158
                   </p>
                 </div>
                 <div

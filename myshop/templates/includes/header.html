@@ -50,7 +50,7 @@
     <div class="container-fluid">
       <div class="row align-items-center">
         <div class="col-sm-6 header-logo-main">
-          <a href="#" class="header-logo"
+          <a href="{% url 'home:home' %}" class="header-logo"
             ><img
               src="{% static 'img/logo.png' %}"
               class="img-fluid header-img-logo"
@@ -219,6 +219,9 @@
             </li>
             <li class="nav-item">
               <a class="nav-link" href="{% url 'home:login' %}">Войти в ЛК</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'home:news' %}">Новости</a>
             </li>
             <li class="nav-item dropdown">
               <a
