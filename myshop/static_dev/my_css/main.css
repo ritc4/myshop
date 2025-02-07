@@ -94,6 +94,10 @@ section{
   transition: all .3s;
 }
 
+.header-top span{
+  font-size: 16px;
+}
+
 .header-top-phone a:hover {
   text-decoration: underline;
   color: dodgerblue;
@@ -107,13 +111,8 @@ section{
 
 .header-time-work a:hover{
   color: dodgerblue;
-  text-decoration: none;
-  transition: all .3s;
 }
 
-.header-top {
-  color: #fff;
-}
 
 .header-top .btn {
   color: #fff;
@@ -134,6 +133,12 @@ section{
   transition: 0.3s all;
   letter-spacing: 0.1rem;
 }
+
+
+.cart-buttons-navbar i{
+  font-size: 25px;
+}
+
 
 .cart-buttons-navbar .btn:hover {
   color: dodgerblue;
@@ -193,12 +198,57 @@ section{
 }
 
 
-@media (max-width: 575.98px) {
+@media (max-width: 767.98px) {
   .header-logo-main {
       width: 100%; /* Установите желаемую ширину */
       text-align: center;
+      align-items: center;
+      padding-bottom: 12px;
   }
 }
+
+@media (max-width: 575.98px) {
+  .header-logo-main {
+      width: 50%; /* Установите желаемую ширину */
+      text-align: start;
+      align-items: center;
+      padding-bottom: 12px;
+  }
+}
+
+
+@media (max-width: 767.98px) {
+  .header-search {
+      width: 70%; /* Установите желаемую ширину */
+      text-align: center;
+      align-items: center;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .header-cart-bottom {
+      width: 30%; /* Установите желаемую ширину */
+      align-items: center;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .header-search {
+      width: 100%; /* Установите желаемую ширину */
+      text-align: center;
+      order: 2;
+      align-items: center;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .header-cart-bottom {
+      width: 50%; /* Установите желаемую ширину */
+      order: 1;
+      align-items: center;
+  }
+}
+
 /*==========================Featured products======================*/
 
 
@@ -458,6 +508,16 @@ section{
 }
 
 
+.catalog-item-link a{
+  text-decoration: none;
+  color: black;
+  transition: all .3;
+}
+
+.catalog-item-link a:hover{
+  color: dodgerblue;
+}
+
 /* ====================Pagination-Categorypage============ */
 
 .pagination .page-item .page-link{
@@ -492,11 +552,8 @@ section{
 
 @media only screen and (min-width: 768px) {
   
-  .sidebar .collapse-filters{
+  .sidebar .collapse-category{
     display: block;
-  }
-  .sidebar .collapse-filters-btn {
-    display: none;
   }
 }
 

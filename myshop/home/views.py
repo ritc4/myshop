@@ -6,8 +6,11 @@ def home(request):
     return render(request, 'home/home_page.html', {'categories':Category.objects.all()})
 
 def get_category(request,slug):
-    category = Category.objects.get(slug=slug) 
-    return render(request, 'home/category_page.html', {'category':category,'categories':Category.objects.all()})
+    category = Category.objects.get(slug=slug)
+    categories = Category.objects.all()
+    get_root_cat = category.get_root()
+    get_descendants_cat = categories.get_descendants(include_self=False)
+    return render(request, 'home/category_page.html', {'category':category,'categories':categories,'get_root_cat':get_root_cat,'get_descendants_cat':get_descendants_cat})
 
 
 def product(request):

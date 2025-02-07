@@ -3,9 +3,9 @@
   <div class="header-top bg-black py-1">
     <div class="container-fluid">
       <div class="row">
-        <div class="col-6 col-sm-4">
+        <div class="col-8 col-sm-4">
           <div
-            class="header-top-phone d-flex align-items-center justify-content-start"
+            class="header-top-phone"
           >
             <a href="tel:+79187545964">
               <i class="bi bi-telephone me-2"></i>
@@ -13,9 +13,7 @@
             </a>
           </div>
         </div>
-        <div
-          class="col-sm-4 d-none d-sm-flex d-flex align-items-center justify-content-center"
-        >
+        <div class="col-sm-4 d-none d-sm-flex justify-content-center">
           <div class="header-time-work">
             <a href="#" class="me-2"><i class="bi bi-twitter"></i></a>
             <a href="#" class="me-2"><i class="bi bi-instagram"></i></a>
@@ -23,9 +21,9 @@
             <a href="#"><i class="bi bi-whatsapp"></i></a>
           </div>
         </div>
-        <div class="col-6 col-sm-4">
+        <div class="col-4 col-sm-4">
           <div
-            class="header-top-account d-flex align-items-center justify-content-end"
+            class="header-top-account text-end"
           >
             <div class="btn-group">
               <div class="dropdown">
@@ -64,7 +62,7 @@
   <div class="header-middle bg-light py-3">
     <div class="container-fluid">
       <div class="row align-items-center">
-        <div class="col-sm-6 header-logo-main">
+        <div class="col-md-3 header-logo-main h-100">
           <a href="{% url 'home:home' %}" class="header-logo"
             ><img
               src="{% static 'img/logo.png' %}"
@@ -72,7 +70,7 @@
               alt=""
           /></a>
         </div>
-        <div class="col-sm-6 mt-2 align-self-center">
+        <div class="col-md-6 header-search h-100">
           <form action="">
             <div class="input-group">
               <input
@@ -93,143 +91,141 @@
             </div>
           </form>
         </div>
-      </div>
-    </div>
-  </div>
-  <!--end ./header-middle -->
-  <div class="header-bottom">
-    <div class="container-fluid p-0">
-      <div class="row m-0">
-        <div class="col-12 p-0">
-          <div class="menu-container">
-            <div class="menu">
-              {% load mptt_tags %}
-              <ul>
-                <li><a href="{% url 'home:home' %}">Главная</a></li>
-                <li><a href="{% url 'home:home' %}">Доставка</a></li>
-                <li><a href="{% url 'home:home' %}">Корзина</a></li>
-                {% recursetree categories %}
-                <li>
-                  <a href="{{ node.get_absolute_url }}">{{ node.name }}</a>
-                  <ul class="children">
-                    {{ children }}
-                  </ul>
-                </li>
-                {% endrecursetree %}
-                <li><a href="{% url 'home:home' %}">Контакты</a></li>
-              </ul>
-            </div>
+        <div class="col-md-3 header-cart-bottom text-end h-100">
+          <div class="cart-buttons-navbar h-100">
+            <a href="#" class="btn p-1">
+              <i class="bi bi-heart-fill"></i>
+              <span class="badge text-bg-light cart-badge rounded-circle">1</span>
+            </a>
+            <button
+              class="btn p-1"
+              id="cart-open"
+              type="button"
+              data-bs-toggle="offcanvas2"
+              data-bs-target="#offcanvasCart"
+              aria-controls="offcanvasCart"
+            >
+              <i class="bi bi-cart4"></i>
+              <span class="badge text-bg-light cart-badge rounded-circle">3</span>
+            </button>
           </div>
         </div>
       </div>
     </div>
   </div>
-  <!--end ./header-bottom -->
+  <!--end ./header-middle -->
 </header>
-
-<div
-  class="offcanvas offcanvas-end"
-  tabindex="-1"
-  id="offcanvasCart"
-  aria-labelledby="offcanvasCartLabel"
->
-  <div class="offcanvas-header">
-    <h5 class="offcanvas-title" id="offcanvasCartLabel">Cart</h5>
-    <button
-      type="button"
-      class="btn-close"
-      data-bs-dismiss="offcanvas"
-      aria-label="Close"
-    ></button>
-  </div>
-  <div class="offcanvas-body">
-    <div class="table-responsive">
-      <table class="table offcanvasCart-table">
-        <tbody>
-          <tr>
-            <td class="product-img-td">
-              <a href="#">
-                <img src="{% static 'img/product/1.jfif' %}" alt="" />
-              </a>
-            </td>
-            <td>
-              <a href="#"
-                >Product 1 Lorem ipsum, dolor sit amet consectetur
-                adipisicing.</a
-              >
-            </td>
-            <td>$65</td>
-            <td>&times;1</td>
-            <td>
-              <button class="btn btn-danger">
-                <i class="bi bi-x-square"></i>
-              </button>
-            </td>
-          </tr>
-          <tr>
-            <td class="product-img-td">
-              <a href="#">
-                <img src="{% static 'img/product/2.jfif' %}" alt="" />
-              </a>
-            </td>
-            <td><a href="#">Product 2</a></td>
-            <td>$100</td>
-            <td>&times;2</td>
-            <td>
-              <button class="btn btn-danger">
-                <i class="bi bi-x-square"></i>
-              </button>
-            </td>
-          </tr>
-          <tr>
-            <td class="product-img-td">
-              <a href="#">
-                <img src="{% static 'img/product/3.jfif' %}" alt="" />
-              </a>
-            </td>
-            <td><a href="#">Product 3</a></td>
-            <td>$250</td>
-            <td>&times;3</td>
-            <td>
-              <button class="btn btn-danger">
-                <i class="bi bi-x-square"></i>
-              </button>
-            </td>
-          </tr>
-        </tbody>
-        <tfoot>
-          <tr>
-            <td colspan="4" class="text-end">Total:</td>
-            <td>$415</td>
-          </tr>
-        </tfoot>
-      </table>
-    </div>
-    <div class="text-end mt-3">
-      <a href="{% url 'home:cart' %}" class="btn btn-outline-dark">Корзина</a>
-      <a href="{% url 'home:checkout' %}" class="btn btn-outline-dark"
-        >Оформления заказа</a
-      >
+<div class="header-bottom sticky-top">
+  <div class="container-fluid p-0">
+    <div class="row m-0">
+      <div class="col-12 p-0">
+        <div class="menu-container">
+          <div class="menu">
+            {% load mptt_tags %}
+            <ul>
+              <li><a href="{% url 'home:home' %}">Главная</a></li>
+              <li><a href="{% url 'home:home' %}">Доставка</a></li>
+              <li><a href="{% url 'home:home' %}">Корзина</a></li>
+              {% recursetree categories %}
+              <li>
+                <a href="{{ node.get_absolute_url }}">{{ node.name }}</a>
+                <ul class="children">
+                  {{ children }}
+                </ul>
+              </li>
+              {% endrecursetree %}
+              <li><a href="{% url 'home:home' %}">Контакты</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
+<!--end ./header-bottom -->
 
-<div class="col-6">
-  <div class="cart-buttons-navbar">
-    <a href="#" class="btn p-1">
-      <i class="bi bi-heart-fill"></i>
-      <span class="badge text-bg-light cart-badge rounded-circle">1</span>
-    </a>
-    <button
-      class="btn p-1"
-      id="cart-open"
-      type="button"
-      data-bs-toggle="offcanvas2"
-      data-bs-target="#offcanvasCart"
-      aria-controls="offcanvasCart"
-    >
-      <i class="bi bi-cart4"></i>
-      <span class="badge text-bg-light cart-badge rounded-circle">3</span>
-    </button>
+<div class="offcanvas offcanvas-end"
+tabindex="-1"
+id="offcanvasCart"
+aria-labelledby="offcanvasCartLabel"
+>
+<div class="offcanvas-header">
+  <h5 class="offcanvas-title" id="offcanvasCartLabel">Cart</h5>
+  <button
+    type="button"
+    class="btn-close"
+    data-bs-dismiss="offcanvas"
+    aria-label="Close"
+  ></button>
+</div>
+<div class="offcanvas-body">
+  <div class="table-responsive">
+    <table class="table offcanvasCart-table">
+      <tbody>
+        <tr>
+          <td class="product-img-td">
+            <a href="#">
+              <img src="{% static 'img/product/1.jfif' %}" alt="" />
+            </a>
+          </td>
+          <td>
+            <a href="#"
+              >Product 1 Lorem ipsum, dolor sit amet consectetur
+              adipisicing.</a
+            >
+          </td>
+          <td>$65</td>
+          <td>&times;1</td>
+          <td>
+            <button class="btn btn-danger">
+              <i class="bi bi-x-square"></i>
+            </button>
+          </td>
+        </tr>
+        <tr>
+          <td class="product-img-td">
+            <a href="#">
+              <img src="{% static 'img/product/2.jfif' %}" alt="" />
+            </a>
+          </td>
+          <td><a href="#">Product 2</a></td>
+          <td>$100</td>
+          <td>&times;2</td>
+          <td>
+            <button class="btn btn-danger">
+              <i class="bi bi-x-square"></i>
+            </button>
+          </td>
+        </tr>
+        <tr>
+          <td class="product-img-td">
+            <a href="#">
+              <img src="{% static 'img/product/3.jfif' %}" alt="" />
+            </a>
+          </td>
+          <td><a href="#">Product 3</a></td>
+          <td>$250</td>
+          <td>&times;3</td>
+          <td>
+            <button class="btn btn-danger">
+              <i class="bi bi-x-square"></i>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="4" class="text-end">Total:</td>
+          <td>$415</td>
+        </tr>
+      </tfoot>
+    </table>
   </div>
+  <div class="text-end mt-3">
+    <a href="{% url 'home:cart' %}" class="btn btn-outline-dark">Корзина</a>
+    <a href="{% url 'home:checkout' %}" class="btn btn-outline-dark"
+      >Оформления заказа</a
+    >
+  </div>
+</div>
 </div>
