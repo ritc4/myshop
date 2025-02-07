@@ -4,21 +4,25 @@
     <div class="container-fluid">
       <div class="row">
         <div class="col-6 col-sm-4">
-          <div class="header-top-phone d-flex align-items-center justify-content-start">
+          <div
+            class="header-top-phone d-flex align-items-center justify-content-start"
+          >
             <a href="tel:+79187545964">
               <i class="bi bi-telephone me-2"></i>
               <span>+79187545964</span>
             </a>
           </div>
         </div>
-        <div class="col-sm-4 d-none d-sm-flex d-flex align-items-center justify-content-center">
+        <div
+          class="col-sm-4 d-none d-sm-flex d-flex align-items-center justify-content-center"
+        >
           <div class="header-time-work">
-              <a href="#" class="me-2"><i class="bi bi-twitter"></i></a>
-              <a href="#" class="me-2"><i class="bi bi-instagram"></i></a>
-              <a href="#" class="me-2"><i class="bi bi-telegram"></i></a>
-              <a href="#"><i class="bi bi-whatsapp"></i></a>
+            <a href="#" class="me-2"><i class="bi bi-twitter"></i></a>
+            <a href="#" class="me-2"><i class="bi bi-instagram"></i></a>
+            <a href="#" class="me-2"><i class="bi bi-telegram"></i></a>
+            <a href="#"><i class="bi bi-whatsapp"></i></a>
           </div>
-      </div>
+        </div>
         <div class="col-6 col-sm-4">
           <div
             class="header-top-account d-flex align-items-center justify-content-end"
@@ -31,13 +35,24 @@
                   data-bs-toggle="dropdown"
                   aria-expanded="false"
                 >
-                <i class="bi bi-person-circle me-2"></i><span class="account-label">Личный кабинет</span>
+                  <i class="bi bi-person-circle me-2"></i
+                  ><span class="account-label">Личный кабинет</span>
                 </button>
                 <ul class="dropdown-menu">
-                  <li><a class="dropdown-item" href="{% url 'home:registration' %}">Регистрация</a></li>
-                  <li><a class="dropdown-item" href="{% url 'home:login' %}">Вход</a></li>
+                  <li>
+                    <a
+                      class="dropdown-item"
+                      href="{% url 'home:registration' %}"
+                      >Регистрация</a
+                    >
+                  </li>
+                  <li>
+                    <a class="dropdown-item" href="{% url 'home:login' %}"
+                      >Вход</a
+                    >
+                  </li>
                   <li><a class="dropdown-item" href="#">Выход</a></li>
-                </ul>   
+                </ul>
               </div>
             </div>
           </div>
@@ -57,7 +72,7 @@
               alt=""
           /></a>
         </div>
-        <div class="col-sm-6 mt-2 mt-md-0 align-self-center">
+        <div class="col-sm-6 mt-2 align-self-center">
           <form action="">
             <div class="input-group">
               <input
@@ -82,216 +97,139 @@
     </div>
   </div>
   <!--end ./header-middle -->
-  <div
-    class="offcanvas offcanvas-end"
-    tabindex="-1"
-    id="offcanvasCart"
-    aria-labelledby="offcanvasCartLabel"
-  >
-    <div class="offcanvas-header">
-      <h5 class="offcanvas-title" id="offcanvasCartLabel">Cart</h5>
-      <button
-        type="button"
-        class="btn-close"
-        data-bs-dismiss="offcanvas"
-        aria-label="Close"
-      ></button>
-    </div>
-    <div class="offcanvas-body">
-      <div class="table-responsive">
-        <table class="table offcanvasCart-table">
-          <tbody>
-            <tr>
-              <td class="product-img-td">
-                <a href="#">
-                  <img src="{% static 'img/product/1.jfif' %}" alt="" />
-                </a>
-              </td>
-              <td>
-                <a href="#"
-                  >Product 1 Lorem ipsum, dolor sit amet consectetur
-                  adipisicing.</a
-                >
-              </td>
-              <td>$65</td>
-              <td>&times;1</td>
-              <td>
-                <button class="btn btn-danger">
-                  <i class="bi bi-x-square"></i>
-                </button>
-              </td>
-            </tr>
-            <tr>
-              <td class="product-img-td">
-                <a href="#">
-                  <img src="{% static 'img/product/2.jfif' %}" alt="" />
-                </a>
-              </td>
-              <td><a href="#">Product 2</a></td>
-              <td>$100</td>
-              <td>&times;2</td>
-              <td>
-                <button class="btn btn-danger">
-                  <i class="bi bi-x-square"></i>
-                </button>
-              </td>
-            </tr>
-            <tr>
-              <td class="product-img-td">
-                <a href="#">
-                  <img src="{% static 'img/product/3.jfif' %}" alt="" />
-                </a>
-              </td>
-              <td><a href="#">Product 3</a></td>
-              <td>$250</td>
-              <td>&times;3</td>
-              <td>
-                <button class="btn btn-danger">
-                  <i class="bi bi-x-square"></i>
-                </button>
-              </td>
-            </tr>
-          </tbody>
-          <tfoot>
-            <tr>
-              <td colspan="4" class="text-end">Total:</td>
-              <td>$415</td>
-            </tr>
-          </tfoot>
-        </table>
-      </div>
-      <div class="text-end mt-3">
-        <a href="{% url 'home:cart' %}" class="btn btn-outline-dark">Корзина</a>
-        <a href="{% url 'home:checkout' %}" class="btn btn-outline-dark">Оформления заказа</a>
+  <div class="header-bottom">
+    <div class="container-fluid p-0">
+      <div class="row m-0">
+        <div class="col-12 p-0">
+          <div class="menu-container">
+            <div class="menu">
+              {% load mptt_tags %}
+              <ul>
+                <li><a href="{% url 'home:home' %}">Главная</a></li>
+                <li><a href="{% url 'home:home' %}">Доставка</a></li>
+                <li><a href="{% url 'home:home' %}">Корзина</a></li>
+                {% recursetree categories %}
+                <li>
+                  <a href="{{ node.get_absolute_url }}">{{ node.name }}</a>
+                  <ul class="children">
+                    {{ children }}
+                  </ul>
+                </li>
+                {% endrecursetree %}
+                <li><a href="{% url 'home:home' %}">Контакты</a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
-  <!--end ./header-offcanvas -->
+  <!--end ./header-bottom -->
 </header>
-<div class="header-bottom sticky-top" id="header-nav">
-  <nav class="navbar navbar-expand-lg bg-black" data-bs-theme="dark">
-    <div class="container-fluid">
-      <button
-        class="navbar-toggler"
-        type="button"
-        data-bs-toggle="offcanvas"
-        data-bs-target="#offcanvasNavbar"
-        aria-controls="offcanvasNavbar"
-        aria-expanded="false"
-        aria-label="Toggle navigation"
-      >
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div
-        class="offcanvas offcanvas-start"
-        id="offcanvasNavbar"
-        tabindex="-1"
-        aria-labelledby="offcanvasNavbarLabel"
-      >
-        <div class="offcanvas-header">
-          <h5 class="offcanvas-title" id="offcanvasNavbarLabel">Меню</h5>
-          <button
-            type="button"
-            class="btn-close"
-            data-bs-dismiss="offcanvas"
-            aria-label="Close"
-          ></button>
-        </div>
-        <div class="offcanvas-body">
-          <ul class="navbar-nav">
-            <li class="nav-item">
-              <a class="nav-link active" aria-current="page" href="#">Главная</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'home:delivery' %}">Доставка</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="#">Каталог</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'home:conditions' %}">Условия</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'home:contacts' %}">Контакты</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'home:reviews' %}">Отзывы</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'home:login' %}">Войти в ЛК</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'home:news' %}">Новости</a>
-            </li>
-            <li class="nav-item dropdown">
-              <a
-                class="nav-link dropdown-toggle"
-                href="#"
-                role="button"
-                data-bs-toggle="dropdown"
-                aria-expanded="false"
-                data-bs-auto-close="outside"
-              >
-                Каталог
+
+<div
+  class="offcanvas offcanvas-end"
+  tabindex="-1"
+  id="offcanvasCart"
+  aria-labelledby="offcanvasCartLabel"
+>
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title" id="offcanvasCartLabel">Cart</h5>
+    <button
+      type="button"
+      class="btn-close"
+      data-bs-dismiss="offcanvas"
+      aria-label="Close"
+    ></button>
+  </div>
+  <div class="offcanvas-body">
+    <div class="table-responsive">
+      <table class="table offcanvasCart-table">
+        <tbody>
+          <tr>
+            <td class="product-img-td">
+              <a href="#">
+                <img src="{% static 'img/product/1.jfif' %}" alt="" />
               </a>
-              <ul class="dropdown-menu dropdown-menu-end">
-                <li><a class="dropdown-item" href="category.html">Shoes</a></li>
-                <li><a class="dropdown-item" href="category.html">Jeans</a></li>
-                <li class="nav-item dropend">
-                  <a
-                    class="dropdown-item dropdown-toggle"
-                    href="#"
-                    data-bs-toggle="dropdown"
-                    data-bs-auto-close="outside"
-                    >Sportswear</a
-                  >
-                  <ul class="dropdown-menu dropdown-menu-end">
-                    <li>
-                      <a class="dropdown-item" href="category.html"
-                        >Men's Sportswear</a
-                      >
-                    </li>
-                    <li>
-                      <a class="dropdown-item" href="category.html"
-                        >Women's Sportswear</a
-                      >
-                    </li>
-                    <li>
-                      <a class="dropdown-item" href="category.html"
-                        >Baby's Sportswear</a
-                      >
-                    </li>
-                  </ul>
-                </li>
-                <li>
-                  <a class="dropdown-item" href="category.html">Coat</a>
-                </li>
-                <li>
-                  <a class="dropdown-item" href="category.html">Shirts</a>
-                </li>
-              </ul>
-            </li>
-          </ul>
-        </div>
-      </div>
-      <div class="cart-buttons-navbar">
-        <a href="#" class="btn p-1">
-          <i class="bi bi-heart-fill"></i>
-          <span class="badge text-bg-light cart-badge rounded-circle">1</span>
-        </a>
-        <button
-          class="btn p-1"
-          id="cart-open"
-          type="button"
-          data-bs-toggle="offcanvas2"
-          data-bs-target="#offcanvasCart"
-          aria-controls="offcanvasCart"
-        >
-          <i class="bi bi-cart4"></i>
-          <span class="badge text-bg-light cart-badge rounded-circle">3</span>
-        </button>
-      </div>
+            </td>
+            <td>
+              <a href="#"
+                >Product 1 Lorem ipsum, dolor sit amet consectetur
+                adipisicing.</a
+              >
+            </td>
+            <td>$65</td>
+            <td>&times;1</td>
+            <td>
+              <button class="btn btn-danger">
+                <i class="bi bi-x-square"></i>
+              </button>
+            </td>
+          </tr>
+          <tr>
+            <td class="product-img-td">
+              <a href="#">
+                <img src="{% static 'img/product/2.jfif' %}" alt="" />
+              </a>
+            </td>
+            <td><a href="#">Product 2</a></td>
+            <td>$100</td>
+            <td>&times;2</td>
+            <td>
+              <button class="btn btn-danger">
+                <i class="bi bi-x-square"></i>
+              </button>
+            </td>
+          </tr>
+          <tr>
+            <td class="product-img-td">
+              <a href="#">
+                <img src="{% static 'img/product/3.jfif' %}" alt="" />
+              </a>
+            </td>
+            <td><a href="#">Product 3</a></td>
+            <td>$250</td>
+            <td>&times;3</td>
+            <td>
+              <button class="btn btn-danger">
+                <i class="bi bi-x-square"></i>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="4" class="text-end">Total:</td>
+            <td>$415</td>
+          </tr>
+        </tfoot>
+      </table>
     </div>
-  </nav>
+    <div class="text-end mt-3">
+      <a href="{% url 'home:cart' %}" class="btn btn-outline-dark">Корзина</a>
+      <a href="{% url 'home:checkout' %}" class="btn btn-outline-dark"
+        >Оформления заказа</a
+      >
+    </div>
+  </div>
 </div>
-<!--end ./header-bottom -->
+
+<div class="col-6">
+  <div class="cart-buttons-navbar">
+    <a href="#" class="btn p-1">
+      <i class="bi bi-heart-fill"></i>
+      <span class="badge text-bg-light cart-badge rounded-circle">1</span>
+    </a>
+    <button
+      class="btn p-1"
+      id="cart-open"
+      type="button"
+      data-bs-toggle="offcanvas2"
+      data-bs-target="#offcanvasCart"
+      aria-controls="offcanvasCart"
+    >
+      <i class="bi bi-cart4"></i>
+      <span class="badge text-bg-light cart-badge rounded-circle">3</span>
+    </button>
+  </div>
+</div>

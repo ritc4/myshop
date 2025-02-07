@@ -128,37 +128,9 @@ section{
   height: auto; /* Высота будет автоматически подстраиваться */
 }
 
-.header-bottom {
-  border-top: 3px solid dodgerblue;
-  box-shadow: 0 10px 10px rgba(0, 0, 0, 0.3);
-}
-
-.header-bottom .nav-item:first-child .nav-link {
-  padding-left: 0;
-}
-
-.header-bottom .navbar .nav-link {
-  color: #fff;
-  transition: 0.3s all;
-  letter-spacing: 0.1rem;
-}
-
-.header-bottom .navbar .nav-link:hover {
-  color: dodgerblue;
-}
-
-.header-bottom .navbar .dropdown-menu {
-  margin-top: 7px;
-}
-
-
-.headernav-scroll .header-bottom .navbar .offcanvas:not(.show) .nav-link {
-  padding-top: 0.3rem;
-  padding-bottom: 0.3rem;
-}
 
 .cart-buttons-navbar .btn{
-  color: #fff;
+  color: black;
   transition: 0.3s all;
   letter-spacing: 0.1rem;
 }
@@ -390,16 +362,6 @@ section{
 }
 
 
-
-/* .product-price small{
-  color: red;
-  font-weight: 400;
-  text-decoration: line-through;
-  font-size: 0.8rem;
-
-} */
-
-
 .about-us p {
   font-weight: bold;
   overflow: hidden;
@@ -408,18 +370,6 @@ section{
 }
 
 /*==========================Header rules madia======================*/
-@media only screen and (min-width: 992px) {
-  .header-bottom .navbar .dropdown-menu-end {
-    margin-left: 0;
-    border: 0;
-  }
-}
-
-@media only screen and (max-width: 991.98px) {
-  .header-bottom .navbar .dropdown-menu {
-    padding-left: 1rem;
-  }
-}
 
 
 /*==========================Category Page======================*/
@@ -537,6 +487,8 @@ section{
   color: #fff;
   background-color: dodgerblue;
 }
+
+/* ====================Media-Productpage============ */
 
 @media only screen and (min-width: 768px) {
   

@@ -1,11 +1,13 @@
 from django.shortcuts import render
+from .models import Category
 
 def home(request):
-    return render(request, 'home/home_page.html')
+    categories = Category.objects.all() 
+    return render(request, 'home/home_page.html', {'categories':Category.objects.all()})
 
-
-def category(request):
-    return render(request, 'home/category_page.html')
+def get_category(request,slug):
+    category = Category.objects.get(slug=slug) 
+    return render(request, 'home/category_page.html', {'category':category,'categories':Category.objects.all()})
 
 
 def product(request):
@@ -18,7 +20,8 @@ def login(request):
     return render(request, 'home/login_page.html')
 
 def cart(request):
-    return render(request, 'home/cart_page.html')
+    categories = Category.objects.all() 
+    return render(request, 'home/cart_page.html',{'categories': categories})
 
 def checkout(request):
     return render(request, 'home/checkout_page.html')
