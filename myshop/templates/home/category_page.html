@@ -11,8 +11,8 @@
     <div class="col-lg-3 col-md-4 d-none d-md-block">
       <div class="sidebar">
         <div class="collapse collapse-category" id="sidebar-collapse">
-          <div class="sidebar-title">
-            <h4>{{ get_root_cat }}</h4>
+          <div class="left-sidebar-title">
+            <h4>Категории товаров</h4>
           </div>
           <div class="catalog-item">
             {% for i in get_descendants_cat %}
@@ -28,28 +28,28 @@
     </div>
     <div class="col-lg-9 col-md-8">
       <div class="category-list mb-3">
-        <div class="row mb-3">
+        <div class="row">
           <div class="col-12">
-          <h1 class="section-title"><span>{{ category }}</span></h1>
-          </div>
-          <div class="col-4 col-sm-2">
-          <img
-            src="{% static 'img/product/3.jfif' %}"
-            alt=""
-            class="img-thumbnail"
-          />
-          </div>
-          <div class="col-8 col-sm-10">
-          <p>
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Cum natus
-            eaque nemo nihil, sint labore repellendus praesentium illo neque
-            dignissimos consequatur harum possimus corrupti? Adipisci, soluta.
-            Modi commodi incidunt unde?
-          </p>
-          </div>
+            <h1 class="section-title"><span>{{ category }}</span></h1>
+          </div> 
+          <hr/>
+          {% if get_children_cat %}
+          {% for i in get_children_cat %}     
+            <div class="col-lg-4 col-sm-6 mb-3">
+            <div class="product-card">
+              <div class="product-thumb">
+                  <a><img src="{% static 'img/product/1.jfif' %}" alt=""/></a>
+              </div>
+              <div class="catalog-category text-center">
+                <h4>
+                  <a href="{{ i.get_absolute_url }}">{{ i.name }}</a>
+                </h4>
+              </div>
+            </div>
+            </div>       
+          {% endfor %}
         </div>
-        <hr/>
-
+        {% else %}
         <div class="row">
         <div class="col-sm-6">
           <div class="input-group mb-3">
@@ -73,7 +73,7 @@
           </div>
         </div>
         </div>
-        <div class="row">
+        {% for z in product %}
         <div class="col-lg-4 col-sm-6 mb-3">
           <div class="product-card">
             <div class="product-card-offer">
@@ -81,26 +81,19 @@
               <div class="offer-new">New</div>
             </div>
             <div class="product-thumb">
-              <a href="#"
-                ><img src="{% static 'img/product/1.jfif' %}" alt=""
-              /></a>
+              <a href="#"><img src="{{ z.image.url }}" alt=""/></a>
             </div>
             <div class="product-details">
               <h4>
                 <a href="#"
-                  >Product 1 Lorem ipsum dolor sit amet consectetur
-                  adipisicing.</a
+                  >{{ z.title }}</a
                 >
               </h4>
-              <p class="product-excerpt">
-                Lorem ipsum dolor, sit amet consectetur adipisicing elit.
-                Voluptatibus, odit.
-              </p>
               <div
                 class="product-bottom-details d-flex justify-content-between"
               >
                 <div class="product-price">
-                  850 руб.
+                  {{ z.price }} руб.
                 </div>
                 <div class="product-links">
                   <a href="#" class="btn btn-outline-dark add-to-cart"
@@ -111,309 +104,27 @@
             </div>
           </div>
         </div>
-        <div class="col-lg-4 col-sm-6 mb-3">
-          <div class="product-card">
-            <div class="product-card-offer">
-              <div class="offer-hit">Hit</div>
-              <div class="offer-new">New</div>
-            </div>
-            <div class="product-thumb">
-              <a href="#"
-                ><img src="{% static 'img/product/2.jfif' %}" alt=""
-              /></a>
-            </div>
-            <div class="product-details">
-              <h4>
-                <a href="#"
-                  >Product 1 Lorem ipsum dolor sit amet consectetur
-                  adipisicing.</a
-                >
-              </h4>
-              <p class="product-excerpt">
-                Lorem ipsum dolor, sit amet consectetur adipisicing elit.
-                Voluptatibus, odit.
-              </p>
-              <div
-                class="product-bottom-details d-flex justify-content-between"
-              >
-                <div class="product-price">
-                  920 руб.
-                </div>
-                <div class="product-links">
-                  <a href="#" class="btn btn-outline-dark add-to-cart"
-                    ><i class="bi bi-cart4"></i
-                  ></a>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="col-lg-4 col-sm-6 mb-3">
-          <div class="product-card">
-            <div class="product-card-offer">
-              <div class="offer-hit">Hit</div>
-              <div class="offer-new">New</div>
-            </div>
-            <div class="product-thumb">
-              <a href="#"
-                ><img src="{% static 'img/product/3.jfif' %}" alt=""
-              /></a>
-            </div>
-            <div class="product-details">
-              <h4>
-                <a href="#"
-                  >Product 1 Lorem ipsum dolor sit amet consectetur
-                  adipisicing.</a
-                >
-              </h4>
-              <p class="product-excerpt">
-                Lorem ipsum dolor, sit amet consectetur adipisicing elit.
-                Voluptatibus, odit.
-              </p>
-              <div
-                class="product-bottom-details d-flex justify-content-between"
-              >
-                <div class="product-price">
-                  820 руб.
-                </div>
-                <div class="product-links">
-                  <a href="#" class="btn btn-outline-dark add-to-cart"
-                    ><i class="bi bi-cart4"></i
-                  ></a>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="col-lg-4 col-sm-6 mb-3">
-          <div class="product-card">
-            <div class="product-card-offer">
-              <div class="offer-hit">Hit</div>
-              <div class="offer-new">New</div>
-            </div>
-            <div class="product-thumb">
-              <a href="#"
-                ><img src="{% static 'img/product/1.jfif' %}" alt=""
-              /></a>
-            </div>
-            <div class="product-details">
-              <h4>
-                <a href="#"
-                  >Product 1 Lorem ipsum dolor sit amet consectetur
-                  adipisicing.</a
-                >
-              </h4>
-              <p class="product-excerpt">
-                Lorem ipsum dolor, sit amet consectetur adipisicing elit.
-                Voluptatibus, odit.
-              </p>
-              <div
-                class="product-bottom-details d-flex justify-content-between"
-              >
-                <div class="product-price">
-                  920 руб.
-                </div>
-                <div class="product-links">
-                  <a href="#" class="btn btn-outline-dark add-to-cart"
-                    ><i class="bi bi-cart4"></i
-                  ></a>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="col-lg-4 col-sm-6 mb-3">
-          <div class="product-card">
-            <div class="product-card-offer">
-              <div class="offer-hit">Hit</div>
-              <div class="offer-new">New</div>
-            </div>
-            <div class="product-thumb">
-              <a href="#"
-                ><img src="{% static 'img/product/2.jfif' %}" alt=""
-              /></a>
-            </div>
-            <div class="product-details">
-              <h4>
-                <a href="#"
-                  >Product 1 Lorem ipsum dolor sit amet consectetur
-                  adipisicing.</a
-                >
-              </h4>
-              <p class="product-excerpt">
-                Lorem ipsum dolor, sit amet consectetur adipisicing elit.
-                Voluptatibus, odit.
-              </p>
-              <div
-                class="product-bottom-details d-flex justify-content-between"
-              >
-                <div class="product-price">
-                  3920 руб.
-                </div>
-                <div class="product-links">
-                  <a href="#" class="btn btn-outline-dark add-to-cart"
-                    ><i class="bi bi-cart4"></i
-                  ></a>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="col-lg-4 col-sm-6 mb-3">
-          <div class="product-card">
-            <div class="product-card-offer">
-              <div class="offer-hit">Hit</div>
-              <div class="offer-new">New</div>
-            </div>
-            <div class="product-thumb">
-              <a href="#"
-                ><img src="{% static 'img/product/3.jfif' %}" alt=""
-              /></a>
-            </div>
-            <div class="product-details">
-              <h4>
-                <a href="#"
-                  >Product 1 Lorem ipsum dolor sit amet consectetur
-                  adipisicing.</a
-                >
-              </h4>
-              <p class="product-excerpt">
-                Lorem ipsum dolor, sit amet consectetur adipisicing elit.
-                Voluptatibus, odit.
-              </p>
-              <div
-                class="product-bottom-details d-flex justify-content-between"
-              >
-                <div class="product-price">
-                  1920 руб.
-                </div>
-                <div class="product-links">
-                  <a href="#" class="btn btn-outline-dark add-to-cart"
-                    ><i class="bi bi-cart4"></i
-                  ></a>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="col-lg-4 col-sm-6 mb-3">
-          <div class="product-card">
-            <div class="product-card-offer">
-              <div class="offer-hit">Hit</div>
-              <div class="offer-new">New</div>
-            </div>
-            <div class="product-thumb">
-              <a href="#"
-                ><img src="{% static 'img/product/2.jfif' %}" alt=""
-              /></a>
-            </div>
-            <div class="product-details">
-              <h4>
-                <a href="#"
-                  >Product 1 Lorem ipsum dolor sit amet consectetur
-                  adipisicing.</a
-                >
-              </h4>
-              <p class="product-excerpt">
-                Lorem ipsum dolor, sit amet consectetur adipisicing elit.
-                Voluptatibus, odit.
-              </p>
-              <div
-                class="product-bottom-details d-flex justify-content-between"
-              >
-                <div class="product-price">
-                  3920 руб.
-                </div>
-                <div class="product-links">
-                  <a href="#" class="btn btn-outline-dark add-to-cart"
-                    ><i class="bi bi-cart4"></i
-                  ></a>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="col-lg-4 col-sm-6 mb-3">
-          <div class="product-card">
-            <div class="product-card-offer">
-              <div class="offer-hit">Hit</div>
-              <div class="offer-new">New</div>
-            </div>
-            <div class="product-thumb">
-              <a href="#"
-                ><img src="{% static 'img/product/3.jfif' %}" alt=""
-              /></a>
-            </div>
-            <div class="product-details">
-              <h4>
-                <a href="#"
-                  >Product 1 Lorem ipsum dolor sit amet consectetur
-                  adipisicing.</a
-                >
-              </h4>
-              <p class="product-excerpt">
-                Lorem ipsum dolor, sit amet consectetur adipisicing elit.
-                Voluptatibus, odit.
-              </p>
-              <div
-                class="product-bottom-details d-flex justify-content-between"
-              >
-                <div class="product-price">
-                  2920 руб.
-                </div>
-                <div class="product-links">
-                  <a href="#" class="btn btn-outline-dark add-to-cart"
-                    ><i class="bi bi-cart4"></i
-                  ></a>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="col-lg-4 col-sm-6 mb-3">
-          <div class="product-card">
-            <div class="product-card-offer">
-              <div class="offer-hit">Hit</div>
-              <div class="offer-new">New</div>
-            </div>
-            <div class="product-thumb">
-              <a href="#"
-                ><img src="{% static 'img/product/3.jfif' %}" alt=""
-              /></a>
-            </div>
-            <div class="product-details">
-              <h4>
-                <a href="#"
-                  >Product 1 Lorem ipsum dolor sit amet consectetur
-                  adipisicing.</a
-                >
-              </h4>
-              <p class="product-excerpt">
-                Lorem ipsum dolor, sit amet consectetur adipisicing elit.
-                Voluptatibus, odit.
-              </p>
-              <div
-                class="product-bottom-details d-flex justify-content-between"
-              >
-                <div class="product-price">
-                  2920 руб.
-                </div>
-                <div class="product-links">
-                  <a href="#" class="btn btn-outline-dark add-to-cart"
-                    ><i class="bi bi-cart4"></i
-                  ></a>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        </div>
+        {% endfor %}
         {% include "includes/pagination.html" %}
+        {% endif %} 
       </div>
     </div>
   </div>
 </div>
 {% endblock %}
+
+<!-- <div class="col-4 col-sm-2">
+  <img
+    src="{% static 'img/product/3.jfif' %}"
+    alt=""
+    class="img-thumbnail"
+  />
+  </div>
+  <div class="col-8 col-sm-10">
+  <p>
+    {{ i.name }}
+  </p>
+  </div> -->
 
 <!-- <div class="sidebar">
   <button

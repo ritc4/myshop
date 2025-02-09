@@ -367,6 +367,7 @@ section{
   padding: 10px 20px;
 }
 
+
 .product-details h4{
   font-size: 1.2rem;
 }
@@ -419,6 +420,36 @@ section{
   font-size: 25px;
 }
 
+/*==========================Catalog category product======================*/
+
+.catalog-category{
+  padding: 10px 20px;
+  
+}
+
+.catalog-category h4{
+  margin: 0;
+  text-decoration: none;
+}
+
+.catalog-category a{
+  text-decoration: none;
+  transition: all .3;
+  color: black;
+}
+
+.catalog-category a:hover{
+  color: dodgerblue;
+}
+
+.left-sidebar-title h4{
+      color: black;
+      text-transform: uppercase;
+      position:relative;
+      font-weight: bold;
+      font-size: 16px;
+    }
+    
 /*==========================Header rules madia======================*/
 
 
@@ -517,6 +548,7 @@ section{
 .catalog-item-link a:hover{
   color: dodgerblue;
 }
+
 
 /* ====================Pagination-Categorypage============ */
 
