@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'mptt',
     'home.apps.HomeConfig',
+    'cart.apps.CartConfig',
     
 ]
 
