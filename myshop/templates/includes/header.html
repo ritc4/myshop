@@ -114,34 +114,34 @@
     </div>
   </div>
   <!--end ./header-middle -->
-</header>
-<div class="header-bottom sticky-top">
-  <div class="container-fluid p-0">
-    <div class="row m-0">
-      <div class="col-12 p-0">
-        <div class="menu-container">
-          <div class="menu">
-            {% load mptt_tags %}
-            <ul>
-              <li><a href="{% url 'home:home' %}">Главная</a></li>
-              <li><a href="{% url 'home:home' %}">Доставка</a></li>
-              <li><a href="{% url 'home:home' %}">Корзина</a></li>
-              {% recursetree categories %}
-              <li>
-                <a href="{{ node.get_absolute_url }}">{{ node.name }}</a>
-                <ul class="children">
-                  {{ children }}
-                </ul>
-              </li>
-              {% endrecursetree %}
-              <li><a href="{% url 'home:home' %}">Контакты</a></li>
-            </ul>
+  <div class="header-bottom">
+    <div class="container-fluid p-0">
+      <div class="row m-0">
+        <div class="col-12 p-0">
+          <div class="menu-container">
+            <div class="menu">
+              {% load mptt_tags %}
+              <ul>
+                <li><a href="{% url 'home:home' %}">Главная</a></li>
+                <li><a href="{% url 'home:home' %}">Доставка</a></li>
+                <li><a href="{% url 'home:home' %}">Корзина</a></li>
+                {% recursetree categories %}
+                <li>
+                  <a href="{{ node.get_absolute_url }}">{{ node.name }}</a>
+                  <ul class="children">
+                    {{ children }}
+                  </ul>
+                </li>
+                {% endrecursetree %}
+                <li><a href="{% url 'home:home' %}">Контакты</a></li>
+              </ul>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
-</div>
+</header>
 <!--end ./header-bottom -->
 
 <div class="offcanvas offcanvas-end"

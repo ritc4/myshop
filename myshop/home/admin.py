@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.utils.safestring import mark_safe  # Импортируем mark_safe
 from mptt.admin import MPTTModelAdmin
 from mptt.admin import DraggableMPTTAdmin
 from .models import Category,Size,Product
@@ -11,10 +12,11 @@ class SizeAdmin(admin.ModelAdmin):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('title', 'article_number', 'stock', 'unit', 'is_hidden', 'size',)  # Отображение полей продукта в админке
-    list_filter = ('is_hidden',)
+    list_display = ('title', 'article_number', 'stock', 'unit', 'thumbnail', 'is_hidden', 'get_sizes_display','price','category')  # Отображение полей продукта в админке
+    list_filter = ('is_hidden','category')
     prepopulated_fields = {'slug':('title','article_number',)}
-    autocomplete_fields = ['size']  # Используем автозаполнение для поля size
+    filter_horizontal = ('size',)  # Используем горизонтальный фильтр для выбора 
+    search_fields = ['title']  # Позволяет искать продукты по названию
 
     # Определяем действия для скрытия и показа товаров
     actions = ['hide_products', 'show_products']
@@ -31,6 +33,24 @@ class ProductAdmin(admin.ModelAdmin):
 
     show_products.short_description = "Показать выбранные товары"  # Описание действия
 
+    def get_sizes_display(self, obj):
+        return ", ".join([size.title for size in obj.size.all()])
+    
+    get_sizes_display.short_description = 'size'  # Название колонки в админке
+
+
+    def thumbnail(self, obj):
+        if obj.image:
+            return mark_safe(f'<img src="{obj.image.url}" style="width: 50px; height: auto;" />')
+        return "Нет изображения"
+    
+    thumbnail.short_description = 'Фото'  # Название колонки в админке
+
+
+
+
+
+
 # class CategoryAdmin(MPTTModelAdmin):
 #     Category,
 #     DraggableMPTTAdmin,
@@ -41,12 +61,7 @@ class ProductAdmin(admin.ModelAdmin):
 #         'indented_title',),
 #     prepopulated_fields = {slug:("name")}
 
-admin.site.register(
-    Category,
-    DraggableMPTTAdmin,
-    list_display=(
-        'tree_actions',
-        'indented_title',),
-    list_display_links=(
-        'indented_title',),
+admin.site.register(Category,DraggableMPTTAdmin,
+    list_display=('tree_actions','indented_title','image'),
+    list_display_links=('indented_title',),
     prepopulated_fields = {'slug':('name',)})

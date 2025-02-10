@@ -28,87 +28,95 @@
     </div>
     <div class="col-lg-9 col-md-8">
       <div class="category-list mb-3">
-        <div class="row">
-          <div class="col-12">
-            <h1 class="section-title"><span>{{ category }}</span></h1>
-          </div> 
-          <hr/>
+          <div class="row">
+              <div class="col-12">
+                  <h1 class="section-title"><span>{{ category }}</span></h1>
+              </div>
+          </div>
+          <hr />
+          
           {% if get_children_cat %}
-          {% for i in get_children_cat %}     
-            <div class="col-lg-4 col-sm-6 mb-3">
-            <div class="product-card">
-              <div class="product-thumb">
-                  <a><img src="{% static 'img/product/1.jfif' %}" alt=""/></a>
+              <div class="row">
+                  {% for i in get_children_cat %}
+                      <div class="col-lg-3 col-sm-4 mb-3">
+                          <div class="product-card">
+                              <div class="product-thumb">
+                                  {% if i.image %}
+                                  <a><img src="{{ i.image.url }}" alt=""/></a>
+                                  {% else %}
+                                  <img src="{% static 'path/to/default/image.png' %}" alt="Нет изображения">
+                                  {% endif %}
+                              </div>
+                              <div class="catalog-category text-center">
+                                  <h5>
+                                      <a href="{{ i.get_absolute_url }}">{{ i.name }}</a>
+                                  </h5>
+                              </div>
+                          </div>
+                      </div>
+                  {% endfor %}
               </div>
-              <div class="catalog-category text-center">
-                <h4>
-                  <a href="{{ i.get_absolute_url }}">{{ i.name }}</a>
-                </h4>
+          
+          {% else %}
+              <div class="row mb-3">
+                  <div class="col-sm-6 mb-2 mb-sm-0">
+                      <div class="input-group">
+                          <span class="input-group-text">Сортировать по:</span>
+                          <select class="form-select" aria-label="Default select example" id="name-price">
+                              <option value="1" selected>Name(a-z)</option>
+                              <option value="2">Name(z-a)</option>
+                              <option value="3">Price(high-low)</option>
+                          </select>
+                      </div>
+                  </div>
+                  <div class="col-sm-6">
+                      <div class="input-group">
+                          <span class="input-group-text">Показать:</span>
+                          <select class="form-select" aria-label="Default select example" id="number-show">
+                              <option value="1" selected>9</option>
+                              <option value="2">15</option>
+                              <option value="3">30</option>
+                              <option value="4">45</option>
+                          </select>
+                      </div>
+                  </div>
               </div>
-            </div>
-            </div>       
-          {% endfor %}
-        </div>
-        {% else %}
-        <div class="row">
-        <div class="col-sm-6">
-          <div class="input-group mb-3">
-            <span class="input-group-text">Сортировать по:</span>
-            <select class="form-select" aria-label="Default select example" id="name-price">
-              <option value="1" selected>Name(a-z)</option>
-              <option value="2">Name(z-a)</option>
-              <option value="3">Price(high-low)</option>
-            </select>
-          </div>
-        </div>
-        <div class="col-sm-6">
-          <div class="input-group mb-3">
-            <span class="input-group-text">Показать:</span>
-            <select class="form-select" aria-label="Default select example" id="number-show">
-              <option value="1" selected>9</option>
-              <option value="2">15</option>
-              <option value="3">30</option>
-              <option value="3">45</option>
-            </select>
-          </div>
-        </div>
-        </div>
-        {% for z in product %}
-        <div class="col-lg-4 col-sm-6 mb-3">
-          <div class="product-card">
-            <div class="product-card-offer">
-              <div class="offer-hit">Hit</div>
-              <div class="offer-new">New</div>
-            </div>
-            <div class="product-thumb">
-              <a href="#"><img src="{{ z.image.url }}" alt=""/></a>
-            </div>
-            <div class="product-details">
-              <h4>
-                <a href="#"
-                  >{{ z.title }}</a
-                >
-              </h4>
-              <div
-                class="product-bottom-details d-flex justify-content-between"
-              >
-                <div class="product-price">
-                  {{ z.price }} руб.
-                </div>
-                <div class="product-links">
-                  <a href="#" class="btn btn-outline-dark add-to-cart"
-                    ><i class="bi bi-cart4"></i
-                  ></a>
-                </div>
+  
+              <div class="row">
+                  {% for z in product %}
+                      <div class="col-lg-4 col-sm-6 mb-3">
+                          <div class="product-card">
+                              <div class="product-card-offer">
+                                  <div class="offer-hit">Hit</div>
+                                  <div class="offer-new">New</div>
+                              </div>
+                              <div class="product-thumb">
+                                  <a href="#"><img src="{{ z.image.url }}" alt=""/></a>
+                              </div>
+                              <div class="product-details">
+                                  <h4>
+                                      <a href="{{ z.get_absolute_url }}">{{ z.title }}</a>
+                                  </h4>
+                                  <div class="product-bottom-details d-flex justify-content-between align-items-center">
+                                      <div class="product-price">
+                                          {{ z.price }} руб.
+                                      </div>
+                                      <div class="product-links">
+                                          <a href="#" class="btn btn-outline-dark add-to-cart">
+                                              <i class="bi bi-cart4"></i>
+                                          </a>
+                                      </div>
+                                  </div>
+                              </div>
+                          </div>
+                      </div>
+                  {% endfor %}
               </div>
-            </div>
-          </div>
-        </div>
-        {% endfor %}
-        {% include "includes/pagination.html" %}
-        {% endif %} 
+  
+              {% include "includes/pagination.html" %}
+          {% endif %}
       </div>
-    </div>
+  </div>
   </div>
 </div>
 {% endblock %}

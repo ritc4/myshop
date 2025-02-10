@@ -1,17 +1,19 @@
-from django.shortcuts import render
-from .models import Category
+from django.shortcuts import render,get_object_or_404
+from .models import Category,Product
+
 
 def home(request):
-    categories = Category.objects.all() 
+    categories = Category.objects.all()
     return render(request, 'home/home_page.html', {'categories':categories})
 
 def get_category(request,slug):
-    category = Category.objects.get(slug=slug)
+    category = get_object_or_404(Category, slug=slug)
     categories = Category.objects.all()
     get_root_cat = category.get_root()
     get_children_cat = category.get_children()
     get_descendants_cat = get_root_cat.get_children()
     product = category.cat.filter(is_hidden=False)
+    print(product)
 
     return render(request, 
     'home/category_page.html', {'category':category,
@@ -19,8 +21,14 @@ def get_category(request,slug):
     'get_descendants_cat':get_descendants_cat,'get_children_cat':get_children_cat,'product':product})
 
 
-def product(request):
-    return render(request, 'home/product_page.html')
+def product_details(request,slug):
+    product = get_object_or_404(Product,slug=slug)
+    categories = Category.objects.all()  # Получаем все категории
+    size_product = product.size.all()
+    return render(request, 'home/product_page.html', {'product': product, 'categories': categories,'size_product':size_product})
+
+
+
 
 def registration(request):
     return render(request, 'home/registration_page.html')

@@ -363,6 +363,11 @@ section{
   text-align: center;
 }
 
+.product-thumb img{
+  width: 100%; /* Заполнение ширины контейнера */
+  height: 100%; /* Заполнение высоты контейнера */
+}
+
 .product-details{
   padding: 10px 20px;
 }
@@ -370,10 +375,10 @@ section{
 
 .product-details h4{
   font-size: 1.2rem;
+  text-align: center;
 }
 
 .product-details h4 a{
-  height: 45px;
   overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -406,9 +411,6 @@ section{
   font-size: 18px;
   color: black;
   font-weight: 600;
-  border: 1px dashed black;
-  border-left: 0;
-  border-right: 0;
   padding: 12px 0;
 }
 
@@ -427,9 +429,12 @@ section{
   
 }
 
-.catalog-category h4{
+.catalog-category h5{
   margin: 0;
   text-decoration: none;
+  max-width: 100%; /* Ограничивает ширину заголовка */
+  overflow: hidden; /* Скрывает переполнение */
+  text-overflow: ellipsis; /* Добавляет многоточие, если текст слишком длинный */
 }
 
 .catalog-category a{
@@ -609,7 +614,7 @@ section{
   margin-bottom: 1rem;
 }
 
-.productView__links a{
+.product-title-favorites a{
   padding: 0;
   font-size: 18px;
   color: black;
@@ -620,11 +625,11 @@ section{
   border: none;
 }
 
-.productView__links a:hover{
+.product-title-favorites a:hover{
   color: dodgerblue;
 }
 
-.productView__links a:focus {
+.product-title-favorites a:focus {
   outline: none; /* Убираем обводку при фокусировке */
   border: none; /* Убираем бордер при фокусировке */
 }
@@ -662,6 +667,7 @@ section{
 .product-add2cart{
   margin-bottom: 1rem;
 }
+
 
 /*==========================Cart page======================*/
 

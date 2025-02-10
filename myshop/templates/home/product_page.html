@@ -17,7 +17,7 @@
           <div class="carousel-inner">
             <div class="carousel-item active">
               <img
-                src="{% static 'img/product/1.jfif' %}"
+                src="{{ product.image.url }}"
                 class="d-block w-100"
                 alt="..."
               />
@@ -60,32 +60,36 @@
     </div>
     <div class="col-md-7 col-lg-8 mb-3">
       <div class="bg-white product-content p-3 h-100">
-        <h1 class="section-title h3"><span>Название товара</span></h1>
-
-        <div class="product-price">
-          850 руб.
+        <div class="product-title-favorites mb-0 d-flex justify-content-between align-items-center">
+          <h1 class="section-title h3 mb-0"><span>{{ product.title }}</span></h1>
+            <a href="#" class="btn add-favorites">
+              <i class="bi bi-heart-fill me-2"></i>
+              <span>В избранное</span>
+            </a>
         </div>
-        <div class="productView__links">
-          <a href="#" class="btn add-favorites">
-            <i class="bi bi-heart-fill me-2"></i>
-            <span>В избранное</span>
-          </a>
+        <div class="product-price-article_number d-flex justify-content-between align-items-center">
+          <div class="product-price mb-0">
+            {{ product.price }} руб.
+          </div>
+          <div class="productView__articles mb-0">
+            <span>Артикул:</span>
+            <span class="goodsModArtNumber">{{ product.article_number }}</span>
+          </div>
         </div>
-        <div class="productView__articles">
-          <span>Артикул:</span>
-          <span class="goodsModArtNumber">44153</span>
-        </div>
+        
         <div class="size-product">
-          <select class="form-select" aria-label="Default select example" id="shipmethod" name="delivery_id" onchange="toggleAdditionalCol()">
+          <select class="form-select" aria-label="Default select example" id="shipmethod">
                 <option selected>Выберите размер</option>
-                <option value="134" data-type="img">134</option>
-                <option value="140" data-type="img">140</option>
-                <option value="148" data-type="img">148</option>
-                <option value="150" data-type="img">150</option>
-                <option value="162" data-type="img">162</option>
-                <option value="164" data-type="img">164</option>
+                {% if size_product %}
+                {% for i in size_product %}
+                <option value="134" data-type="img">{{ i }}</option>
+                {% endfor %}
+                {% else %}
+                <option value="" data-type="img">Нет размеров</option>
+                {% endif %}
           </select>
         </div>
+        
         <div class="product-add2cart">
           <div class="input-group">
             <input name="add-cart-quantity-product" type="number" class="form-control" value="1" min="1" />
@@ -93,6 +97,10 @@
               <i class="bi bi-cart4 me-2"></i>Добавить
             </button>
           </div>
+        </div>
+        <div class="productView__stock mb-3">
+          <span>Остаток:</span>
+          <span class="goodsModArtNumber">{{ product.stock }} {{ product.unit }}</span>
         </div>
         <!-- <div class="row mt-3">
           <div class="col-lg-4 mb-2">
@@ -179,8 +187,7 @@
                   tabindex="0"
                 >
                   <p>
-                    Ткань: хлопок
-                    Размер : 134, 140, 146, 152, 158
+                    {{ product.description }}
                   </p>
                 </div>
                 <div
