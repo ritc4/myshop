@@ -128,9 +128,15 @@
                 {% recursetree categories %}
                 <li>
                   <a href="{{ node.get_absolute_url }}">{{ node.name }}</a>
+                  
                   <ul class="children">
-                    {{ children }}
+                    <ul>
+                      {% for child in node.get_children %}
+                        <a href="{{ child.get_absolute_url }}">{{ child.name }}</a>
+                      {% endfor %}
+                    </ul>
                   </ul>
+                  
                 </li>
                 {% endrecursetree %}
                 <li><a href="{% url 'home:home' %}">Контакты</a></li>
