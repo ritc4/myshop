@@ -47,9 +47,8 @@ Screen style's
 
 .menu-container {
     /* width: 80%; */
-    margin: 0 auto;
-    background: #fff;
-    height: 100%;
+    margin: 0;
+    background: #e9e9e9;
 }
 
 .menu-mobile {
@@ -60,7 +59,7 @@ Screen style's
 .menu-mobile:after {
     content: "\f394";
     font-family: "Ionicons";
-    font-size: 2.5rem;
+    font-size: 1.5rem;
     padding: 0;
     float: right;
     position: relative;
@@ -89,6 +88,8 @@ Screen style's
     position: relative;
     /* IF .menu position=relative -> ul = container width, ELSE ul = 100% width */
     box-sizing: border-box;
+    display: flex; /* Используем Flexbox для выравнивания */
+    justify-content: center; /* Центрируем элементы */
 }
 
 .menu > ul:before,
@@ -110,7 +111,7 @@ Screen style's
 
 .menu > ul > li a {
     text-decoration: none;
-    padding: 1.5em 3em;
+    padding: 1em 1em;
     display: block;
 }
 
@@ -189,18 +190,25 @@ Screen style's
 }
 
 .menu > ul > li > ul.normal-sub {
-    width: 300px;
+    width: 200px;
     left: auto;
     padding: 10px 20px;
 }
 
 .menu > ul > li > ul.normal-sub > li {
     width: 100%;
+
 }
 
 .menu > ul > li > ul.normal-sub > li a {
     border: 0;
-    padding: 1em 0;
+    /* padding: 1em 0; */
+    transition: all .3s;
+    color: black;
+}
+
+.menu > ul > li > ul.normal-sub > li a:hover {
+    color: dodgerblue;
 }
 
 

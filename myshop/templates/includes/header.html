@@ -124,21 +124,20 @@
               <ul>
                 <li><a href="{% url 'home:home' %}">Главная</a></li>
                 <li><a href="{% url 'home:home' %}">Доставка</a></li>
-                <li><a href="{% url 'cart:cart' %}">Корзина</a></li>
+                <li><a href="{% url 'cart:cart_detail' %}">Корзина</a></li>
                 {% recursetree categories %}
                 <li>
-                  <a href="{{ node.get_absolute_url }}">{{ node.name }}</a>
-                  
+                  <a href="{{ node.get_absolute_url }}">{{ node.name }}</a>                  
                   <ul class="children">
-                    <ul>
                       {% for child in node.get_children %}
+                        <li>
                         <a href="{{ child.get_absolute_url }}">{{ child.name }}</a>
+                        </li>
                       {% endfor %}
-                    </ul>
-                  </ul>
-                  
+                  </ul>                 
                 </li>
                 {% endrecursetree %}
+                <li><a href="{% url 'home:home' %}">Размерная таблица</a></li>
                 <li><a href="{% url 'home:home' %}">Контакты</a></li>
               </ul>
             </div>
@@ -228,7 +227,7 @@ aria-labelledby="offcanvasCartLabel"
     </table>
   </div>
   <div class="text-end mt-3">
-    <a href="{% url 'cart:cart' %}" class="btn btn-outline-dark">Корзина</a>
+    <a href="{% url 'cart:cart_detail' %}" class="btn btn-outline-dark">Корзина</a>
     <a href="{% url 'home:checkout' %}" class="btn btn-outline-dark"
       >Оформления заказа</a
     >

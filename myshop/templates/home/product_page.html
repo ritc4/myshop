@@ -1,5 +1,5 @@
 {% extends "base.html" %} {% load static %} 
-{% block title%}Productpage{%endblock %} 
+{% block title%}{{ product.title }}{%endblock %} 
 
 {% block content %} 
 
@@ -92,10 +92,14 @@
         
         <div class="product-add2cart">
           <div class="input-group">
-            <input name="add-cart-quantity-product" type="number" class="form-control" value="1" min="1" />
-            <button class="btn btn-dark">
+            <form action="{% url "cart:cart_add" product.id %}" method="post">
+            {% csrf_token %}
+            <!-- <input name="add-cart-quantity-product" type="number" class="form-control" value="1" min="1"/> -->
+            {{ cart_product_form.quantity }}
+            <button type="submit" class="btn btn-dark" value="Add to cart">
               <i class="bi bi-cart4 me-2"></i>Добавить
             </button>
+            </form>
           </div>
         </div>
         <div class="productView__stock mb-3">

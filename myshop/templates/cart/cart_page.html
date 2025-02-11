@@ -20,63 +20,43 @@
               </tr>
             </thead>
             <tbody>
-              <tr>
+              {% for item in cart %}
+              {% with product=item.product %}
+                <tr>
                 <td class="product-img-td">
-                  <a href="#">
-                    <img src="{% static 'img/product/1.jfif' %}" alt="" />
+                  <a href="{{ product.get_absolute_url }}">
+                    <img src="{% if product.image %}{{ product.image.url }} 
+                    {% else %}{% static 'img/no_image.png' %}{% endif %}">
                   </a>
                 </td>
-                <td>
-                  <a href="#" class="cart-content-title"
-                    >Product 1 Lorem ipsum, dolor sit amet consectetur
-                    adipisicing.</a
-                  >
-                </td>
-                <td>$65</td>
-                <td><input type="number" value="1" class="form-control cart-qty"></td>
-                <td>
-                  <button class="btn btn-danger">
-                    <i class="bi bi-x-square"></i>
-                  </button>
-                </td>
-              </tr>
-              <tr>
-                <td class="product-img-td">
-                  <a href="#">
-                    <img src="{% static 'img/product/2.jfif' %}" alt="" />
-                  </a>
-                </td>
-                <td><a href="#" class="cart-content-title">Product 2</a></td>
-                <td>$100</td>
-                <td><input type="number" value="2" class="form-control cart-qty"></td>
-                <td>
-                  <button class="btn btn-danger">
-                    <i class="bi bi-x-square"></i>
-                  </button>
-                </td>
-              </tr>
-              <tr>
-                <td class="product-img-td">
-                  <a href="#">
-                    <img src="{% static 'img/product/3.jfif' %}" alt="" />
-                  </a>
-                </td>
-                <td><a href="#" class="cart-content-title">Product 3</a></td>
-                <td>$250</td>
+                <td><a href="{{ product.get_absolute_url }}" class="cart-content-title">{{ product.name }}<</a></td>
+                <td>{{ item.quantity }}</td>
                 <td><input type="number" value="3" class="form-control cart-qty"></td>
                 <td>
+                <form action="{% url "cart:cart_remove" product.id %}" 
+                  method="post">  
                   <button class="btn btn-danger">
-                    <i class="bi bi-x-square"></i>
+                    <i type="submit" class="bi bi-x-square" value="Remove"></i>
                   </button>
+                  {% csrf_token %}
+                </form>
+                <td class="num">${{ item.price }}</td> 
+                <td class="num">${{ item.total_price }}</td> 
                 </td>
-              </tr>
+                </tr>
             </tbody>
             <tfoot>
               <tr>
                 <td colspan="5" class="text-end">
                   <button class="btn btn-outline-dark">Обновить корзину</button>
                 </td>
+                <p class="text-right">
+                  <a href="{% url 'home:product_list' product.slug %}" 
+                  class="button light">Continue shopping</a>
+                </p>
               </tr>
+              {% endwith %} 
+              {% endfor %}
             </tfoot>
           </table>
         </div>

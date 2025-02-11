@@ -135,3 +135,10 @@ STATICFILES_DIRS = [
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+
+TIME_ZONE = 'Europe/Moscow'  # Установите нужный вам часовой пояс
+USE_TZ = True  # Убедитесь, что использование временных зон включено
+
+
+CART_SESSION_ID = 'cart'

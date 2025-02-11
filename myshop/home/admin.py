@@ -1,5 +1,4 @@
 from django.contrib import admin
-from django.utils.safestring import mark_safe  # Импортируем mark_safe
 from mptt.admin import MPTTModelAdmin
 from mptt.admin import DraggableMPTTAdmin
 from .models import Category,Size,Product
@@ -12,11 +11,12 @@ class SizeAdmin(admin.ModelAdmin):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('title', 'article_number', 'stock', 'unit', 'thumbnail', 'is_hidden', 'get_sizes_display','price','category')  # Отображение полей продукта в админке
-    list_filter = ('is_hidden','category')
+    list_display = ('title', 'article_number', 'stock', 'unit', 'image', 'is_hidden', 'get_sizes_display','price','category','created','updated')  # Отображение полей продукта в админке
+    list_filter = ('is_hidden','category','created','updated')
     prepopulated_fields = {'slug':('title','article_number',)}
     filter_horizontal = ('size',)  # Используем горизонтальный фильтр для выбора 
     search_fields = ['title']  # Позволяет искать продукты по названию
+    list_editable = ['price', 'is_hidden']
 
     # Определяем действия для скрытия и показа товаров
     actions = ['hide_products', 'show_products']
@@ -39,27 +39,6 @@ class ProductAdmin(admin.ModelAdmin):
     get_sizes_display.short_description = 'size'  # Название колонки в админке
 
 
-    def thumbnail(self, obj):
-        if obj.image:
-            return mark_safe(f'<img src="{obj.image.url}" style="width: 50px; height: auto;" />')
-        return "Нет изображения"
-    
-    thumbnail.short_description = 'Фото'  # Название колонки в админке
-
-
-
-
-
-
-# class CategoryAdmin(MPTTModelAdmin):
-#     Category,
-#     DraggableMPTTAdmin,
-#     list_display=(
-#         'tree_actions',
-#         'indented_title',),
-#     list_display_links=(
-#         'indented_title',),
-#     prepopulated_fields = {slug:("name")}
 
 admin.site.register(Category,DraggableMPTTAdmin,
     list_display=('tree_actions','indented_title','image'),
