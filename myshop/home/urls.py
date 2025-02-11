@@ -5,8 +5,7 @@ app_name = 'home'
 
 urlpatterns = [
     path('', home, name='home'),
-    path('product_list/', product_list, name='product_list'),
-    path('category/<str:slug>/', product_list, name='product_list_by_category'),
+    path('category/<str:slug>/', product_list, name='category'),
     path('<int:id>/<slug:slug>/', product_detail, name='product_detail'),
     path('registration/', registration, name='registration'),
     path('login/', login, name='login'),

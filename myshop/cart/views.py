@@ -27,7 +27,6 @@ def cart_remove(request, product_id):
 
 
 def cart_detail(request):
-    categories = Category.objects.all() 
+    categories = Category.objects.all()
     cart = Cart(request)
-    print(cart)
     return render(request, 'cart/cart_page.html', {'cart': cart,'categories':categories})

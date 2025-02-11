@@ -13,7 +13,7 @@ class Category(MPTTModel):
     image = models.ImageField(upload_to='categories/%Y/%m/%d', blank=True, null=True,verbose_name='Фото')  # Поле для изображения категории
 
     def get_absolute_url(self):
-        return reverse("home:product_list_by_category", kwargs={"slug": self.slug})
+        return reverse("home:category", kwargs={"slug": self.slug})
     
     def __str__(self):
         return self.name
