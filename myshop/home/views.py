@@ -7,6 +7,9 @@ def home(request):
     categories = Category.objects.all()
     return render(request, 'home/home_page.html', {'categories':categories})
 
+
+
+
 def product_list(request, slug):
     categories = Category.objects.all()  # Получаем все категории
     category = get_object_or_404(Category, slug=slug)  # Получаем категорию по слагу

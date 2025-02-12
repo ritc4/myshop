@@ -1,4 +1,6 @@
+{% load custom_filters %}
 {% load static %}
+
 <header class="header">
   <div class="header-top bg-black py-1">
     <div class="container-fluid">
@@ -106,7 +108,19 @@
               aria-controls="offcanvasCart"
             >
               <i class="bi bi-cart4"></i>
-              <span class="badge text-bg-light cart-badge rounded-circle">3</span>
+              <span class="badge text-bg-light cart-badge rounded-circle">
+                <div class="cart">
+                  {% with total_items=cart|length %}
+                    {% if total_items > 0 %}
+                    В корзине:
+                        {{ total_items|pluralize:"товар, товара, товаров" }}
+                        на {{ cart.get_total_price }} ₽
+                    {% else %}
+                      Ваша корзина пуста.
+                    {% endif %}
+                  {% endwith %}
+                 </div>  
+              </span>
             </button>
           </div>
         </div>
@@ -155,7 +169,17 @@ id="offcanvasCart"
 aria-labelledby="offcanvasCartLabel"
 >
 <div class="offcanvas-header">
-  <h5 class="offcanvas-title" id="offcanvasCartLabel">Cart</h5>
+  <h5 class="offcanvas-title" id="offcanvasCartLabel">
+    {% with total_items=cart|length %}
+    {% if total_items > 0 %}
+    В корзине:
+        {{ total_items|pluralize:"товар, товара, товаров"}}
+        на {{ cart.get_total_price }} ₽
+    {% else %}
+      Ваша корзина пуста.
+    {% endif %}
+    {% endwith %}
+  </h5>
   <button
     type="button"
     class="btn-close"
@@ -167,61 +191,34 @@ aria-labelledby="offcanvasCartLabel"
   <div class="table-responsive">
     <table class="table offcanvasCart-table">
       <tbody>
+        {% for item in cart %} 
+        {% with product=item.product %} 
         <tr>
           <td class="product-img-td">
-            <a href="#">
-              <img src="{% static 'img/product/1.jfif' %}" alt="" />
+            <a href="{{ product.get_absolute_url }}">
+              <img src="{% if product.image %}{{ product.image.url }} 
+            {% else %}{% static "img/no_image.png" %}{% endif %}"> 
             </a>
           </td>
-          <td>
-            <a href="#"
-              >Product 1 Lorem ipsum, dolor sit amet consectetur
-              adipisicing.</a
-            >
-          </td>
-          <td>$65</td>
-          <td>&times;1</td>
-          <td>
-            <button class="btn btn-danger">
+          <td class="product-img-td"><a href="{{ product.get_absolute_url }}">{{ product.title }}</a></td>
+          <td class="num">{{ item.price }} ₽</td> 
+          <td class="item-quantity">&times;{{ item.quantity }}</td>
+          <td class="form-remove"><form action="{% url "cart:cart_remove" product.id %}" 
+            method="post">
+            <button class="btn btn-danger" type="submit">
               <i class="bi bi-x-square"></i>
             </button>
-          </td>
+                {% csrf_token %}
+            </form> 
+        </td> 
         </tr>
-        <tr>
-          <td class="product-img-td">
-            <a href="#">
-              <img src="{% static 'img/product/2.jfif' %}" alt="" />
-            </a>
-          </td>
-          <td><a href="#">Product 2</a></td>
-          <td>$100</td>
-          <td>&times;2</td>
-          <td>
-            <button class="btn btn-danger">
-              <i class="bi bi-x-square"></i>
-            </button>
-          </td>
-        </tr>
-        <tr>
-          <td class="product-img-td">
-            <a href="#">
-              <img src="{% static 'img/product/3.jfif' %}" alt="" />
-            </a>
-          </td>
-          <td><a href="#">Product 3</a></td>
-          <td>$250</td>
-          <td>&times;3</td>
-          <td>
-            <button class="btn btn-danger">
-              <i class="bi bi-x-square"></i>
-            </button>
-          </td>
-        </tr>
+        {% endwith %} 
+        {% endfor %}
       </tbody>
       <tfoot>
         <tr>
-          <td colspan="4" class="text-end">Total:</td>
-          <td>$415</td>
+          <td colspan="4" class="text-end">Итого:</td>
+          <td>{{ cart.get_total_price }} ₽</td>
         </tr>
       </tfoot>
     </table>

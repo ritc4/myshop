@@ -92,7 +92,7 @@
         
         <div class="product-add2cart">
           <div class="input-group">
-            <form action="{% url "cart:cart_add" product.id %}" method="post">
+            <form action="{% url 'cart:cart_add' product.id %}" method="post">
             {% csrf_token %}
             <!-- <input name="add-cart-quantity-product" type="number" class="form-control" value="1" min="1"/> -->
             {{ cart_product_form.quantity }}

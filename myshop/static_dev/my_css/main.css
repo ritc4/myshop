@@ -139,6 +139,10 @@ section{
   font-size: 25px;
 }
 
+/* .cart-buttons-navbar span{
+  font-size: 1px;
+} */
+
 
 .cart-buttons-navbar .btn:hover {
   color: dodgerblue;
@@ -154,6 +158,10 @@ section{
   width: 70px;
   text-align: center;
 
+}
+
+.offcanvasCart-table .cart-qty {
+  text-align: right; /* Для выравнивания текста вправо */
 }
 
 .offcanvasCart-table img{
@@ -681,7 +689,9 @@ section{
 
 .cart-content table td{
   padding: 1rem;
+  text-align: center;
 }
+
 
 .cart-content-title {
   text-decoration: none;
@@ -690,17 +700,9 @@ section{
 
 .cart-qty{
   width: 70px;
+  margin: 0 auto; /* Центрирование */
 }
 
-.btn-coupon{
-  color: red;
-  transition: all .3s;
-  text-decoration: none;
-}
-
-.btn-coupon:hover{
-  color: dodgerblue;
-}
 
 .cart-summary .btn{
   padding: 1rem;

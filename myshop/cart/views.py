@@ -29,4 +29,8 @@ def cart_remove(request, product_id):
 def cart_detail(request):
     categories = Category.objects.all()
     cart = Cart(request)
-    return render(request, 'cart/cart_page.html', {'cart': cart,'categories':categories})
+    get_root_catalog = categories.first().get_absolute_url()
+    for item in cart:
+        item['update_quantity_form'] = CartAddProductForm(
+            initial={'quantity': item['quantity'], 'override': True})
+    return render(request, 'cart/cart_page.html', {'cart': cart,'categories':categories,'get_root_catalog':get_root_catalog})
