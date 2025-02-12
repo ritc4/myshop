@@ -27,7 +27,7 @@ class Cart:
             self.cart[product_id] = {
                 'quantity': 0,
                 'price': str(product.price),
-                'size': str(product.size)
+                'size': [str (i) for i in product.size.all()]
             }
         if override_quantity:
             self.cart[product_id]['quantity'] = quantity

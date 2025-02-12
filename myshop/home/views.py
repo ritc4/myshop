@@ -20,6 +20,7 @@ def product_list(request, slug):
     get_root_cat = category.get_root()  # Получаем корневую категорию
     get_children_cat = category.get_children()  # Получаем дочерние категории
     get_descendants_cat = get_root_cat.get_children()  # Получаем все дочерние категории корня
+    cart_product_form = CartAddProductForm()
 
     return render(request,'home/category_page.html', 
                   {
@@ -28,8 +29,8 @@ def product_list(request, slug):
                       'get_root_cat': get_root_cat,
                       'get_descendants_cat': get_descendants_cat,
                       'get_children_cat': get_children_cat,
-                      'product': products  # Изменено с 'product' на 'products'
-                  })
+                      'product': products,  # Изменено с 'product' на 'products'
+                      'cart_product_form':cart_product_form})
 
 
 def product_detail(request,id,slug):
@@ -48,18 +49,21 @@ def product_detail(request,id,slug):
 
 
 
+
+
 def registration(request):
     return render(request, 'home/registration_page.html')
 
 def login(request):
     return render(request, 'home/login_page.html')
 
-def cart(request):
-    categories = Category.objects.all() 
-    return render(request, 'home/cart_page.html',{'categories': categories})
+# def cart(request):
+#     categories = Category.objects.all() 
+#     return render(request, 'home/cart_page.html',{'categories': categories})
 
 def checkout(request):
-    return render(request, 'home/checkout_page.html')
+    categories = Category.objects.all()  # Получаем все категории
+    return render(request, 'home/checkout_page.html',{'categories': categories})
 
 
 def reviews(request):

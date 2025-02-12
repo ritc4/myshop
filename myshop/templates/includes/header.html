@@ -218,14 +218,14 @@ aria-labelledby="offcanvasCartLabel"
       <tfoot>
         <tr>
           <td colspan="4" class="text-end">Итого:</td>
-          <td>{{ cart.get_total_price }} ₽</td>
+          <td class="text-end">{{ cart.get_total_price }} ₽</td>
         </tr>
       </tfoot>
     </table>
   </div>
   <div class="text-end mt-3">
     <a href="{% url 'cart:cart_detail' %}" class="btn btn-outline-dark">Корзина</a>
-    <a href="{% url 'home:checkout' %}" class="btn btn-outline-dark"
+    <a href="{% url 'orders:order_create' %}" class="btn btn-outline-dark"
       >Оформления заказа</a
     >
   </div>

@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'mptt',
     'home.apps.HomeConfig',
     'cart.apps.CartConfig',
+    'orders.apps.OrdersConfig',
     
 ]
 

@@ -6,37 +6,28 @@
 {% include "includes/breadcrumb.html" %}
 
 <div class="container-fluid">
-  <form action="" class="needs-validation" novalidate>
+    <form method="post" class="order-form"> 
+    {% csrf_token %}
     <div class="row">
       <div class="col-lg-8 mb-3">
         <div class="checkout p-3 h-100 bg-white">
           <h1 class="section-title h5"><span>Оформление заказа</span></h1>
           <div class="row g-3">           
             <div class="col-md-6">
-              <label for="name" class="form-label">Доставка</label>
-              <select class="form-select" aria-label="Default select example" id="shipmethod" name="delivery_id" onchange="toggleAdditionalCol()">
-                <option selected>Выберите способ доставки</option>
-                <option value="1" data-type="img">Почта России (russianpost.ru)</option>
-                <option value="2" data-type="img">EMS Почта России</option>
-                <option value="4" data-type="img">Байкал сервис</option>
-                <option value="5" data-type="img">Деловые линии</option>
-                <option value="6" data-type="img">ЖелДор Экспедиция</option>
-                <option value="7" data-type="img">ПЭК</option>
-                <option value="8" data-type="img">Кит - транспортная компания</option>
-                <option value="9" data-type="img">Энергия</option>
-                <option value="10" data-type="map">СДЭК</option>
-              </select>
+              <label for="shipmethod" class="form-label">Доставка</label>
+              {{ form.delivery_method }}
             </div>
             <div class="col-md-6">
-              <label for="name" class="form-label">Фамилия Имя Отчество</label>
+              <label for="full_name" class="form-label">Фамилия Имя Отчество</label>
               <input
                 type="text"
                 id="name"
-                name="name"
+                name="full_name"
                 class="form-control"
-                placeholder="Иванов Иван Иванович"
-                aria-label="name"
+                placeholder="full_name"
+                aria-label="full_name"
                 autocomplete="name"
+                value="{{ form.full_name.value|default:'' }}"
               />
             </div>
             <div class="col-md-6">
@@ -48,20 +39,22 @@
                 class="form-control"
                 placeholder="ivanov@mail.ru"
                 aria-label="email"
-                autocomplete="name"
+                autocomplete="email"
+                value="{{ form.email.value|default:'' }}"
               />
             </div>
             <div class="col-md-6">
               <label for="phone" class="form-label">Телефон</label>
               <input
-                type="tel"
-                id="phone"
-                name="phone"
-                class="form-control"
-                placeholder="+79182223434"
-                aria-label="phone"
-                autocomplete="name"
-              />
+                    type="tel"
+                    id="phone"
+                    name="phone"
+                    class="form-control"
+                    placeholder="+79182223434"
+                    aria-label="phone"
+                    autocomplete="tel"
+                    value="{{ form.phone.value|default:'' }}"
+                />
             </div>
             <div class="col-md-6">
               <label for="region" class="form-label">Регион</label>
@@ -70,9 +63,10 @@
                 id="region"
                 name="region"
                 class="form-control"
-                placeholder="Ставропольский край"
+                placeholder="region"
                 aria-label="region"
                 autocomplete="name"
+                value="{{ form.region.value|default:'' }}"
               />
             </div>
             <div class="col-md-6">
@@ -82,9 +76,10 @@
                 id="city"
                 name="city"
                 class="form-control"
-                placeholder="Ессентуки"
+                placeholder="city"
                 aria-label="city"
                 autocomplete="name"
+                value="{{ form.city.value|default:'' }}"
               />
             </div>
             <div class="col-md-6">
@@ -94,14 +89,24 @@
                 id="address"
                 name="address"
                 class="form-control"
-                placeholder="ул.Московская дом 5 кв 34"
+                placeholder="address"
                 aria-label="address"
                 autocomplete="name"
+                value="{{ form.address.value|default:'' }}"
               />
             </div>
             <div class="col-md-6" id="additionalCol" style="display: none;">
-              <label for="pasport_info" class="form-label">Паспортные данные</label>
-              <input type="text" id="pasport_info" name="pasport_info" class="form-control" placeholder="Серия и номер" aria-label="pasport_info">
+              <label for="passport_number" class="form-label">Паспортные данные</label>
+              <input
+                type="text"
+                id="passport_number"
+                name="passport_number"
+                class="form-control"
+                placeholder="passport_number"
+                aria-label="passport_number"
+                autocomplete="name"
+                value="{{ form.passport_number.value|default:'' }}"
+              />
             </div>
             <div class="col-12">
               <label for="comment" class="form-label"
@@ -113,16 +118,15 @@
                 id="comment"
                 rows="3"
                 placeholder="Комментарий"
+                value="{{ form.comment.value|default:'' }}"
               ></textarea>
             </div>
             <div class="col-md-6">
               <div class="form-input-row checkbox">
-                <input id="no_replace_products" type="checkbox" name="no_replace_products" value="true">
-                <span for="no_replace_products">Не предлагать замену товаров</span>
+                {{ form.strahovat_gruz }} <label for="no_replace_products">Не предлагать замену товаров</label>
               </div>
               <div class="form-input-row checkbox">
-                <input id="not_insure_cargo_products" type="checkbox" name="not_insure_cargo_products" value="true">
-                <span for="not_insure_cargo_products">Cтраховать груз</span>
+                {{ form.zamena_product }} <label for="not_insure_cargo_products">Cтраховать груз</label>
               </div>
             </div>
           </div>
@@ -139,27 +143,20 @@
                   <th class="text-end">Цена</th>
                 </tr>
               </thead>
+              {% for item in cart %}
               <tbody>
                 <tr>
                   <td>
-                    Product 1 Lorem ipsum, dolor sit amet consectetur
-                    adipisicing. <small>1050 руб. x 3</small>
+                    {{ item.product.title }} <small> {{ item.total_price }} ₽ x {{ item.quantity }}</small>
                   </td>
-                  <td class="text-end">3150 руб.</td>
-                </tr>
-                <tr>
-                  <td>Product 2 <small>2000 руб. x 1</small></td>
-                  <td class="text-end">2000 руб.</td>
-                </tr>
-                <tr>
-                  <td>Product 3<small>1500 руб. x 2</small></td>
-                  <td class="text-end">3000 руб.</td>
+                  <td class="text-end"> {{ item.total_price }} ₽</td>
                 </tr>
               </tbody>
+              {% endfor %}
               <tfoot>
                 <tr>
                   <td colspan="2" class="text-end">
-                    8150 руб.
+                    {{ cart.get_total_price }} ₽
                   </td>
                 </tr>
               </tfoot>
@@ -174,12 +171,12 @@
             <span for="personal_data">Я соглашаюсь на обработку моих персональных данных в соответствии с <a href="#" id="policyLink" data-bs-toggle="modal" data-bs-target="#privacyPolicyModal">политикой конфиденциальности</a></span>
           </div>
           <div class="d-grid mt-3">
-            <button type="submit" href="" class="btn btn-outline-dark">Оформить</button>
+            <button type="submit" class="btn btn-outline-dark">Оформить</button>
           </div>
         </div>
       </div>
     </div>
-  </form>
+</form>
 </div>
 
 <!-- Модальное окно -->
