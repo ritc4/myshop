@@ -33,24 +33,21 @@
         </td>
         <td class="product-img-td"><a href="{{ product.get_absolute_url }}">{{ product.title }}</a></td>
         <td>
-          {% for sizes in item.size %}
-            {{ sizes }}
-          {% empty %}
-              ----
-          {% endfor %}
+          {{item.size}}
       </td> 
         <td class="num">{{ item.price }} ₽</td> 
         <td>
-          <form action="{% url 'cart:cart_add' product.id %}" method="post">
-            {% csrf_token %}
-            {{ item.update_quantity_form.quantity }} 
-            <input type="hidden" name="override" value="true">
-            <input type="submit" value="Обновить"> 
-          </form> 
+            <form action="{% url 'cart:cart_add' product.id %}" method="post" class="update-form">
+              {% csrf_token %}
+                <input type="number" name="quantity" value="{{ item.update_quantity_form.quantity.value}}" min="1" class="form-control cart-qty quantity-input"> 
+                {{ item.update_quantity_form.override }}
+                <input type="hidden" name="size" value="{{ item.size }}">  
+            </form> 
         </td>
         <td class="num">{{ item.total_price }} ₽</td>
-        <td><form action="{% url "cart:cart_remove" product.id %}" 
+        <td><form action="{% url 'cart:cart_remove' product.id %}" 
             method="post">
+            <input type="hidden" name="size" value="{{ item.size }}">
             <button class="btn btn-danger" type="submit">
               <i class="bi bi-x-square"></i>
             </button>

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Order, OrderItem 
+from .models import Order, OrderItem,DeliveryMethod
 
 
 
@@ -13,7 +13,7 @@ class OrderItemInline(admin.TabularInline):
 class OrderAdmin(admin.ModelAdmin):
     list_display = [
         'id',
-        'delivery', 
+        'delivery_method', 
         'first_name_last_name',
         'email',
         'phone',
@@ -27,3 +27,11 @@ class OrderAdmin(admin.ModelAdmin):
     ]
     list_filter = ['paid', 'created', 'updated'] 
     inlines = [OrderItemInline]
+
+
+@admin.register(DeliveryMethod)
+class DeliveryMethodAdmin(admin.ModelAdmin):
+    list_display =[
+        'title',
+        ]
+

@@ -8,6 +8,14 @@
 <div class="container-fluid">
     <form method="post" class="order-form"> 
     {% csrf_token %}
+    {% for field in form %}
+     {% for error in field.errors %}
+      <li>{{ field.label }}: {{ error }}</li>
+      {% endfor %}
+      {% endfor %}
+      {% for error in form.non_field_errors %}
+      <li>{{ error }}</li>
+      {% endfor %}
     <div class="row">
       <div class="col-lg-8 mb-3">
         <div class="checkout p-3 h-100 bg-white">
@@ -18,16 +26,15 @@
               {{ form.delivery_method }}
             </div>
             <div class="col-md-6">
-              <label for="full_name" class="form-label">Фамилия Имя Отчество</label>
+              <label for="first_name_last_name" class="form-label">Фамилия Имя Отчество</label>
               <input
                 type="text"
-                id="name"
-                name="full_name"
+                id="first_name_last_name"
+                name="first_name_last_name"
                 class="form-control"
-                placeholder="full_name"
-                aria-label="full_name"
+                aria-label="first_name_last_name"
                 autocomplete="name"
-                value="{{ form.full_name.value|default:'' }}"
+                value="{{ form.first_name_last_name.value|default:'' }}"
               />
             </div>
             <div class="col-md-6">
@@ -37,7 +44,6 @@
                 id="email"
                 name="email"
                 class="form-control"
-                placeholder="ivanov@mail.ru"
                 aria-label="email"
                 autocomplete="email"
                 value="{{ form.email.value|default:'' }}"
@@ -50,7 +56,6 @@
                     id="phone"
                     name="phone"
                     class="form-control"
-                    placeholder="+79182223434"
                     aria-label="phone"
                     autocomplete="tel"
                     value="{{ form.phone.value|default:'' }}"
@@ -63,7 +68,6 @@
                 id="region"
                 name="region"
                 class="form-control"
-                placeholder="region"
                 aria-label="region"
                 autocomplete="name"
                 value="{{ form.region.value|default:'' }}"
@@ -76,7 +80,6 @@
                 id="city"
                 name="city"
                 class="form-control"
-                placeholder="city"
                 aria-label="city"
                 autocomplete="name"
                 value="{{ form.city.value|default:'' }}"
@@ -89,7 +92,6 @@
                 id="address"
                 name="address"
                 class="form-control"
-                placeholder="address"
                 aria-label="address"
                 autocomplete="name"
                 value="{{ form.address.value|default:'' }}"
@@ -102,7 +104,6 @@
                 id="passport_number"
                 name="passport_number"
                 class="form-control"
-                placeholder="passport_number"
                 aria-label="passport_number"
                 autocomplete="name"
                 value="{{ form.passport_number.value|default:'' }}"
@@ -123,10 +124,10 @@
             </div>
             <div class="col-md-6">
               <div class="form-input-row checkbox">
-                {{ form.strahovat_gruz }} <label for="no_replace_products">Не предлагать замену товаров</label>
+                {{ form.strahovat_gruz }} <label for="{{ form.strahovat_gruz.id_for_label }}">Не предлагать замену товаров</label>
               </div>
               <div class="form-input-row checkbox">
-                {{ form.zamena_product }} <label for="not_insure_cargo_products">Cтраховать груз</label>
+                {{ form.zamena_product }} <label for="{{ form.zamena_product.id_for_label }}">Cтраховать груз</label>
               </div>
             </div>
           </div>

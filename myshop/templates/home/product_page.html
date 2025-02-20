@@ -76,36 +76,46 @@
             <span class="goodsModArtNumber">{{ product.article_number }}</span>
           </div>
         </div>
-        
-        <div class="size-product">
-          <select class="form-select" aria-label="Default select example" id="shipmethod">
-                <option selected>Выберите размер</option>
-                {% if size_product %}
-                {% for i in size_product %}
-                <option value="134" data-type="img">{{ i }}</option>
-                {% endfor %}
-                {% else %}
-                <option value="" data-type="img">Нет размеров</option>
-                {% endif %}
-          </select>
-        </div>
-        
+               
         <div class="product-add2cart">
           <div class="input-group">
-            <form action="{% url 'cart:cart_add' product.id %}" method="post">
-            {% csrf_token %}
-            <!-- <input name="add-cart-quantity-product" type="number" class="form-control" value="1" min="1"/> -->
-            {{ cart_product_form.quantity }}
-            <button type="submit" class="btn btn-dark" value="Add to cart">
-              <i class="bi bi-cart4 me-2"></i>Добавить
-            </button>
-            </form>
+            <!-- <form action="{% url 'cart:cart_add' product.id %}" method="post">
+              {% csrf_token %}
+              <input name="quantity" type="number" class="form-control" 
+                     value="{{ cart_product_form.quantity.value|default:1 }}" min="1"/>
+              
+              <select name="size" class="form-select" required>
+                  <option value="" disabled selected>Выберите размер</option>
+                  {% for size in product.size.all %}
+                      <option value="{{ size.id }}">{{ size.title }}</option>
+                  {% endfor %}
+              </select>
+              
+              <input type="hidden" name="override" value="true">
+              
+              <button type="submit" class="btn btn-dark">
+                  <i class="bi bi-cart4 me-2"></i>Добавить
+              </button>
+          </form> -->
+                <form action="{% url "cart:cart_add" product.id %}" method="post"> 
+                  {% csrf_token %}
+                  <input name="quantity" type="number" class="form-control" value="{{ cart_product_form.quantity.value|default:1 }}" min="1"/>
+                  <select name="size" class="form-control custom-select" id="size-select" aria-label="Выберите размер"
+                    {% if cart_product_form.fields.size.required %}required{% endif %}>
+                    
+                    <option value="" disabled selected>Выберите размер</option>
+                    {% for value, label in cart_product_form.fields.size.choices %}
+                        <option value="{{ value }}" {% if cart_product_form.size.value == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                  </select>
+                  {{ cart_product_form.override }}
+                  <button type="submit" class="btn btn-dark" value="Add to cart">
+                    <i class="bi bi-cart4 me-2"></i>Добавить
+                  </button>
+                </form>
           </div>
         </div>
-        <div class="productView__stock mb-3">
-          <span>Остаток:</span>
-          <span class="goodsModArtNumber">{{ product.stock }} {{ product.unit }}</span>
-        </div>
+
         <!-- <div class="row mt-3">
           <div class="col-lg-4 mb-2">
             <div class="card h-100">

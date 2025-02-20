@@ -57,10 +57,25 @@ function toggleAdditionalCol() {
     var additionalCol = document.getElementById('additionalCol'); // Получаем дополнительный блок
 
     // Проверяем, выбран ли способ доставки, который требует дополнительной информации
-    if (select.value === "4"|| select.value === "5" || select.value === "6"|| select.value === "7"|| select.value === "8"|| select.value === "9") { // Например, если выбрана СДЭК
+    if (select.value === "3"|| select.value === "4" || select.value === "5"|| select.value === "6"|| select.value === "7"|| select.value === "8") { // Например, если выбрана СДЭК
         additionalCol.style.display = 'block'; // Показываем блок
     } else {
         additionalCol.style.display = 'none'; // Скрываем блок
     }
 }
 
+
+
+// /* Функция автоматической отправки формы выбора количества товара в корзине */
+document.addEventListener('DOMContentLoaded', function() {
+  const quantityInputs = document.querySelectorAll('.quantity-input');
+  
+  quantityInputs.forEach(function(quantityInput) {
+      const updateForm = quantityInput.closest('.update-form'); // Найти ближайшую форму
+      
+      quantityInput.addEventListener('input', function() {
+          console.log("Изменение значения: ", this.value); // Проверяем, срабатывает ли событие
+          updateForm.submit(); // Отправляем форму
+      });
+  });
+});

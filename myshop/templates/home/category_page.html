@@ -102,13 +102,15 @@
                                           {{ z.price }} руб.
                                       </div>
                                       <div class="product-links">
-                                        <form action="{% url 'cart:cart_add' z.id %}" method="post">
+                                        <!-- <form action="{% url 'cart:cart_add' z.id %}" method="post">
                                           {% csrf_token %}
                                           <input type="hidden" name="quantity" value="1">
+                                        </form>  -->
+                                        <a href="">
                                           <button type="submit" class="btn btn-outline-dark add-to-cart">
                                             <i class="bi bi-cart4"></i>
                                         </button>
-                                        </form> 
+                                        </a>
                                       </div>
                                   </div>
                               </div>

@@ -4,24 +4,27 @@ from home.models import Product
 
 
 class DeliveryMethod(models.Model):
-    title = models.CharField(max_length=255)
-    # Вы можете добавить другие поля, если необходимо, например, URL для логотипа или дополнительную информацию
-    # image_url = models.URLField(null=True, blank=True)
+    title = models.CharField(max_length=255, verbose_name="Способ доставки")
+
+    class Meta:
+        verbose_name = 'Способ доставки'
+        verbose_name_plural = 'Способы доставки'
 
     def __str__(self):
         return self.title
 
 
 
+
 class Order(models.Model):
-    delivery = models.CharField(max_length=255, verbose_name="Доставка")
+    delivery_method = models.ForeignKey(DeliveryMethod, on_delete=models.PROTECT, null=True, verbose_name="Способ доставки", blank=False,default=0)
     first_name_last_name = models.CharField(max_length=255, verbose_name="Фамилия Имя Отчество") 
     email = models.EmailField(unique=True, verbose_name="Электронная почта")
     phone = models.CharField(max_length=12, verbose_name="Телефон")
     region = models.CharField(max_length=250, verbose_name="Регион")
     city = models.CharField(max_length=100, verbose_name="Город")
     address = models.CharField(max_length=250, verbose_name="Адрес") 
-    passport_number = models.CharField(max_length=50, verbose_name="Паспортные данные",blank=True,null=True)
+    passport_number = models.CharField(max_length=50, verbose_name="Паспортные данные",blank=False,null=True)
     comment = models.TextField(blank=True, null=True, verbose_name="Комментарий")
     created = models.DateTimeField(auto_now_add=True) 
     updated = models.DateTimeField(auto_now=True) 

@@ -203,7 +203,7 @@ aria-labelledby="offcanvasCartLabel"
           <td class="product-img-td"><a href="{{ product.get_absolute_url }}">{{ product.title }}</a></td>
           <td class="num">{{ item.price }} ₽</td> 
           <td class="item-quantity">&times;{{ item.quantity }}</td>
-          <td class="form-remove"><form action="{% url "cart:cart_remove" product.id %}" 
+          <td class="form-remove"><form action="{% url 'cart:cart_remove' product.id %}" 
             method="post">
             <button class="btn btn-danger" type="submit">
               <i class="bi bi-x-square"></i>

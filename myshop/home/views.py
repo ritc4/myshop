@@ -36,12 +36,10 @@ def product_list(request, slug):
 def product_detail(request,id,slug):
     product = get_object_or_404(Product,id=id,slug=slug,is_hidden=False)
     categories = Category.objects.all()  # Получаем все категории
-    size_product = product.size.all()
-    cart_product_form = CartAddProductForm()
+    cart_product_form = CartAddProductForm(product=product)
 
     return render(request, 'home/product_page.html', 
         {'product': product, 'categories': categories,
-         'size_product':size_product,
          'cart_product_form':cart_product_form})
 
 
