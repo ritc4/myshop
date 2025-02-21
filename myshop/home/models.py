@@ -5,7 +5,6 @@ from django.core.validators import MinValueValidator
 
 
 
-
 class Category(MPTTModel):
     name = models.CharField(max_length=255, unique=True,verbose_name='Категория')
     parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children',verbose_name='Подкатегория')
@@ -40,6 +39,8 @@ class Size(models.Model):
         verbose_name_plural = 'Размеры'
 
 
+
+
 class Product(models.Model):
     title = models.CharField(max_length=255,verbose_name='Название товара')
     description = models.TextField(max_length=255,blank=True,verbose_name='Описание')
@@ -49,7 +50,6 @@ class Product(models.Model):
     old_price = models.DecimalField(max_digits=10, decimal_places=0,verbose_name='Цена старая')
     stock = models.IntegerField(default=100, validators=[MinValueValidator(0)],verbose_name='Остаток')  # Остаток товара в штуках
     unit = models.CharField(max_length=10, default='шт',verbose_name='Единица измерения')  # Единица измерения, по умолчанию 'шт'
-    image = models.ImageField(upload_to='products/%Y/%m/%d', blank=True, null=True,verbose_name='Фото')  # Поле для изображения
     is_hidden = models.BooleanField(default=False,verbose_name='Скрыть товар')  # Поле для скрытия товара
     mesto = models.CharField(max_length=20,blank=True,null=True,verbose_name='Место')
     created = models.DateTimeField(auto_now_add=True)
@@ -75,7 +75,25 @@ class Product(models.Model):
     def get_absolute_url(self):
         return reverse("home:product_detail", kwargs={"slug": self.slug, "id":self.id})
     
+    def product_image(self):
+        # Возвращаем все изображения, связанные с продуктом
+        return self.product.images.all()
+    
 
     class Meta:
         verbose_name = 'Товар'
         verbose_name_plural = 'Товары'
+
+    
+
+class ProductImage(models.Model):
+    product = models.ForeignKey(Product, related_name='images', on_delete=models.CASCADE)
+    image = models.ImageField(upload_to='products/%Y/%m/%d', blank=True, null=True, verbose_name='Изображение')
+    
+    def __str__(self):
+        return f"Image {self.id}"
+    
+
+    def image_tag(self):
+        # Возвращаем все изображения, связанные с продуктом
+        return self.product.image.all()

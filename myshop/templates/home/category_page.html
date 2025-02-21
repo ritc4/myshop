@@ -44,7 +44,7 @@
                                   {% if i.image %}
                                   <a><img src="{{ i.image.url }}" alt=""/></a>
                                   {% else %}
-                                  <img src="{% static 'path/to/default/image.png' %}" alt="Нет изображения">
+                                  <img src="{% static 'img/no_image.png' %}" alt="Нет изображения">
                                   {% endif %}
                               </div>
                               <div class="catalog-category text-center">
@@ -84,6 +84,7 @@
   
               <div class="row">
                   {% for z in product %}
+                  {% with first_image=z.images.first %}
                       <div class="col-lg-4 col-sm-6 mb-3">
                           <div class="product-card">
                               <div class="product-card-offer">
@@ -91,7 +92,7 @@
                                   <div class="offer-new">New</div>
                               </div>
                               <div class="product-thumb">
-                                  <a href="#"><img src="{{ z.image.url }}" alt=""/></a>
+                                  <a href="#"><img src="{{ first_image.image.url }}" alt=""/></a>
                               </div>
                               <div class="product-details">
                                   <h4>
@@ -102,10 +103,6 @@
                                           {{ z.price }} руб.
                                       </div>
                                       <div class="product-links">
-                                        <!-- <form action="{% url 'cart:cart_add' z.id %}" method="post">
-                                          {% csrf_token %}
-                                          <input type="hidden" name="quantity" value="1">
-                                        </form>  -->
                                         <a href="">
                                           <button type="submit" class="btn btn-outline-dark add-to-cart">
                                             <i class="bi bi-cart4"></i>
@@ -116,6 +113,7 @@
                               </div>
                           </div>
                       </div>
+                      {% endwith %}
                   {% endfor %}
               </div>
   

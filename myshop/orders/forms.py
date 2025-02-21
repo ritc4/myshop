@@ -31,3 +31,8 @@ class OrderCreateForm(forms.ModelForm):
             'zamena_product',
             'strahovat_gruz'
         ]
+    
+
+        # def __init__(self, *args, **kwargs):
+        #     super().__init__(*args, **kwargs)
+        #     self.fields['size'].widget = forms.HiddenInput()  # Скрываем поле

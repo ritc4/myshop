@@ -1,5 +1,6 @@
 from django.db import models
 from home.models import Product
+from django.utils.safestring import mark_safe
 
 
 
@@ -17,7 +18,7 @@ class DeliveryMethod(models.Model):
 
 
 class Order(models.Model):
-    delivery_method = models.ForeignKey(DeliveryMethod, on_delete=models.PROTECT, null=True, verbose_name="Способ доставки", blank=False,default=0)
+    delivery_method = models.ForeignKey(DeliveryMethod, blank=False,on_delete=models.SET_NULL, null=True, verbose_name="Способ доставки")
     first_name_last_name = models.CharField(max_length=255, verbose_name="Фамилия Имя Отчество") 
     email = models.EmailField(unique=True, verbose_name="Электронная почта")
     phone = models.CharField(max_length=12, verbose_name="Телефон")
@@ -34,31 +35,31 @@ class Order(models.Model):
 
 
     class Meta:
-            ordering = ['-created'] 
-            indexes = [
-                models.Index(fields=['-created']), 
-            ]
-
-    class Meta:
         verbose_name = 'Заказ'
         verbose_name_plural = 'Заказы'
+        ordering = ['-created'] 
+        indexes = [
+            models.Index(fields=['-created']), 
+        ]
     
     def __str__(self):
-        return f'Order {self.id}' 
+        return f"Заказ №{self.id} от {self.first_name_last_name}"
     
     
+    # def get_total_cost(self):
+    #     return sum(item.get_cost() for item in self.items.all())
+
     def get_total_cost(self):
-        return sum(item.get_cost() for item in self.items.all())
+        return sum(item.get_cost() for item in self.items.all() if item.get_cost() is not None)
     
-
-
 
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order,related_name='items',on_delete=models.CASCADE) 
     product = models.ForeignKey(Product,related_name='order_items', on_delete=models.CASCADE,verbose_name="Название товара") 
-    price = models.DecimalField(max_digits=10,decimal_places=2, verbose_name="Цена") 
+    price = models.DecimalField(max_digits=10,decimal_places=0, verbose_name="Цена") 
     quantity = models.PositiveIntegerField(default=1,verbose_name="Количество")
+    size = models.CharField(max_length=50, verbose_name="Размер", blank=True, null=True)  # Поле для размера
 
     
     def __str__(self):
@@ -66,28 +67,13 @@ class OrderItem(models.Model):
 
 
     def get_cost(self):
-        return self.price * self.quantity
-    
+        if self.price is not None and self.quantity is not None:
+            return self.price * self.quantity
+        return 0  # Возвращаем 0, если одно из значений отсутствует
 
-    # def save(self, *args, **kwargs):
-    #     # При сохранении OrderItem, копируем данные из связанного продукта
-    #     if self.product:
-    #         self.product_image = self.product.image
-    #         self.product_zacup_price = self.product.zacup_price
-    #         self.product_mesto = self.product.mesto
-    #         self.product_article_number = self.product.article_number
-    #         self.product_article_number = self.product.article_number
-    #     super().save(*args, **kwargs)
-
-
-    def product_image(self):
-        return self.product.image
     
     def product_article_number(self):
         return self.product.article_number
-    
-    def product_size(self):
-        return self.product.size
     
     def product_mesto(self):
         return self.product.mesto
@@ -95,6 +81,16 @@ class OrderItem(models.Model):
     def product_zacup_price(self):
         return self.product.zacup_price
     
+    
+    def product_image(self):
+        # Получаем первое изображение, если оно существует
+        first_image = self.product.images.first()  # Здесь используем related_name 'images'
+        if first_image:
+            return mark_safe(f"<img src='{first_image.image.url}' width='50'>")
+        else:
+            return 'Нет фото'
+
+    product_image.short_description = 'Фото товара'
     
     
     class Meta:
