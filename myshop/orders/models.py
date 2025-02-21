@@ -24,7 +24,7 @@ class Order(models.Model):
     region = models.CharField(max_length=250, verbose_name="Регион")
     city = models.CharField(max_length=100, verbose_name="Город")
     address = models.CharField(max_length=250, verbose_name="Адрес") 
-    passport_number = models.CharField(max_length=50, verbose_name="Паспортные данные",blank=False,null=True)
+    passport_number = models.CharField(max_length=50, verbose_name="Паспортные данные",blank=True,null=True)
     comment = models.TextField(blank=True, null=True, verbose_name="Комментарий")
     created = models.DateTimeField(auto_now_add=True) 
     updated = models.DateTimeField(auto_now=True) 
@@ -49,6 +49,8 @@ class Order(models.Model):
     
     def get_total_cost(self):
         return sum(item.get_cost() for item in self.items.all())
+    
+
 
 
 
@@ -65,6 +67,34 @@ class OrderItem(models.Model):
 
     def get_cost(self):
         return self.price * self.quantity
+    
+
+    # def save(self, *args, **kwargs):
+    #     # При сохранении OrderItem, копируем данные из связанного продукта
+    #     if self.product:
+    #         self.product_image = self.product.image
+    #         self.product_zacup_price = self.product.zacup_price
+    #         self.product_mesto = self.product.mesto
+    #         self.product_article_number = self.product.article_number
+    #         self.product_article_number = self.product.article_number
+    #     super().save(*args, **kwargs)
+
+
+    def product_image(self):
+        return self.product.image
+    
+    def product_article_number(self):
+        return self.product.article_number
+    
+    def product_size(self):
+        return self.product.size
+    
+    def product_mesto(self):
+        return self.product.mesto
+    
+    def product_zacup_price(self):
+        return self.product.zacup_price
+    
     
     
     class Meta:

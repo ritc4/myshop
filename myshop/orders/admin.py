@@ -6,6 +6,26 @@ from .models import Order, OrderItem,DeliveryMethod
 class OrderItemInline(admin.TabularInline):
     model = OrderItem
     raw_id_fields = ['product']
+    fields = ['product_image','product_article_number','product', 'product_size','product_mesto','product_zacup_price','quantity', 'price',]  # Добавьте поле product_image
+    readonly_fields = ['product_image','product_article_number','product_size','product_mesto','product_zacup_price',]  # Убедитесь, что это поле только для чтения
+
+    def product_article_number(self, obj):
+        return obj.product_article_number()  # Вызов метода product_image из модели
+    
+    def product_image(self, obj):
+        return obj.product_image()  # Вызов метода product_image из модели
+    
+    def product_size(self, obj):
+        return obj.product_size()  # Вызов метода product_image из модели
+    
+    def product_mesto(self, obj):
+        return obj.product_mesto()  # Вызов метода product_image из модели
+    
+    def product_mesto(self, obj):
+        return obj.product_mesto()  # Вызов метода product_image из модели
+    
+    def product_zacup_price(self, obj):
+        return obj.product_zacup_price()  # Вызов метода product_image из модели
  
  
  
@@ -23,10 +43,14 @@ class OrderAdmin(admin.ModelAdmin):
         'comment',   
         'paid', 
         'created',
-        'updated'
+        'updated',
+        
     ]
     list_filter = ['paid', 'created', 'updated'] 
     inlines = [OrderItemInline]
+
+
+
 
 
 @admin.register(DeliveryMethod)

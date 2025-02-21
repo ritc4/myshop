@@ -51,6 +51,7 @@ class Product(models.Model):
     unit = models.CharField(max_length=10, default='шт',verbose_name='Единица измерения')  # Единица измерения, по умолчанию 'шт'
     image = models.ImageField(upload_to='products/%Y/%m/%d', blank=True, null=True,verbose_name='Фото')  # Поле для изображения
     is_hidden = models.BooleanField(default=False,verbose_name='Скрыть товар')  # Поле для скрытия товара
+    mesto = models.CharField(max_length=20,blank=True,null=True,verbose_name='Место')
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     slug = models.SlugField(max_length=200, unique=True)  # Поле slug
@@ -69,7 +70,7 @@ class Product(models.Model):
     
     
     def __str__(self):
-        return f"{self.title} ({self.stock} {self.unit}, Размеры: {self.size})"
+        return f"{self.title}"
     
     def get_absolute_url(self):
         return reverse("home:product_detail", kwargs={"slug": self.slug, "id":self.id})

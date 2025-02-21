@@ -11,12 +11,12 @@ class SizeAdmin(admin.ModelAdmin):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('title', 'article_number', 'stock', 'unit', 'image', 'is_hidden', 'get_sizes_display','price','category','created','updated')  # Отображение полей продукта в админке
-    list_filter = ('is_hidden','category','created','updated')
+    list_display = ('title', 'article_number', 'stock', 'unit', 'image', 'is_hidden', 'get_sizes_display','price','category','created','updated','mesto')  # Отображение полей продукта в админке
+    list_filter = ('is_hidden','category','created','updated','mesto')
     prepopulated_fields = {'slug':('title','article_number',)}
     filter_horizontal = ('size',)  # Используем горизонтальный фильтр для выбора 
     search_fields = ['title']  # Позволяет искать продукты по названию
-    list_editable = ['price', 'is_hidden']
+    list_editable = ['price', 'is_hidden','mesto']
 
     # Определяем действия для скрытия и показа товаров
     actions = ['hide_products', 'show_products']
