@@ -1,6 +1,7 @@
 from django.contrib import admin
 from .models import Order, OrderItem,DeliveryMethod
 from django.utils.safestring import mark_safe
+from django.db.models import Q
 
 
 
@@ -50,17 +51,34 @@ class OrderAdmin(admin.ModelAdmin):
         'created',
         'updated',
         'get_total_cost',
-        
-    ]
+        'get_total_zakup_cost', 
+        ]
     
-    
+    readonly_fields = ['get_total_zakup_cost','get_total_cost']
     list_filter = ['paid', 'created', 'updated'] 
     inlines = [OrderItemInline]
+    # search_fields = ['get_article_number',]
+    search_fields = ['items__product__article_number','first_name_last_name', 'email', 'phone',]  # Поля для поиска
 
     def get_total_cost(self, obj):
         return obj.get_total_cost()
     get_total_cost.short_description = 'Общая стоимость'
 
+
+    def get_total_zakup_cost(self, obj):
+        return obj.get_total_zakup_cost()
+    get_total_zakup_cost.short_description = 'Общая закупочная стоимость'
+
+
+    def get_search_results(self, request, queryset, search_term):
+        if search_term:
+            queryset = queryset.filter(
+                Q(items__product__article_number__icontains=search_term) | 
+                Q(first_name_last_name__icontains=search_term) | 
+                Q(email__icontains=search_term) |
+                Q(phone__icontains=search_term)
+            ).distinct()
+        return super().get_search_results(request, queryset, search_term)
 
 
 @admin.register(DeliveryMethod)

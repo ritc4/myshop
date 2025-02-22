@@ -103,27 +103,68 @@
                                           {{ z.price }} руб.
                                       </div>
                                       <div class="product-links">
-                                        <a href="">
-                                          <button type="submit" class="btn btn-outline-dark add-to-cart">
+                                          <button type="submit" class="btn btn-outline-dark add-to-cart" data-bs-toggle="modal" data-bs-target="#product_Link_add_Modal">
                                             <i class="bi bi-cart4"></i>
-                                        </button>
-                                        </a>
+                                          </button>
+                                          <!-- Модальное окно -->
+                                          <div class="modal fade" id="product_Link_add_Modal" data-bs-keyboard="false" tabindex="-1" aria-labelledby="product_Link_add_ModalLabel" aria-hidden="true">
+                                            <div class="modal-dialog modal-dialog-centered">
+                                              <div class="modal-content">
+                                              <div class="modal-header">
+                                                <h5 class="modal-title fs-5" id="product_Link_add_Modal">Добавить в корзину</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                              </div>
+                                                <div class="modal-body">
+                                                  <h1 class="productView__name" itemprop="name">{{ z.title }}</h1>
+                                                  <div class="productView__articles">
+                                                    <label>Артикул:</label>
+                                                    <span class="article_number">{{ z.article_number }}</span>
+                                                  </div>
+                                                  <div class="price__now RUB" itemprop="price">
+                                                    <label for="quantity" class="form-label">Цена:</label>
+                                                    <span>{{ z.price }} ₽</span>
+                                                  </div>
+                                                  <form action="{% url 'cart:cart_add' z.id %}" method="post">
+                                                    {% csrf_token %}
+                                                    <div class="col-sm-5 quantity-product-modal">
+                                                      <label for="quantity" class="form-label">Количество:</label>
+                                                      <input name="quantity" type="number" class="form-control" value="1" min="1"/>
+                                                    </div>
+                                                      <br>
+                                                    <div class="col-sm-5 select-size">
+                                                      <label for="quantity" class="form-label">Размер:</label>
+                                                    <select name="size" class="form-control custom-select" required>
+                                                          <option value="" disabled selected>Выберите размер</option>
+                                                          {% for size in z.size.all %}
+                                                          <option value="{{ size.title }}">{{ size.title }}</option>
+                                                            {% endfor %}
+                                                      </select>
+                                                    </div>
+                                                    <br>
+                                                    <button type="submit" class="btn btn-dark">
+                                                      <i class="bi bi-cart4 me-2"></i>Добавить
+                                                        </button>
+                                                </form>
+                                                </div>
+                                              </div>
+                                            </div>
+                                            </div>
                                       </div>
                                   </div>
                               </div>
                           </div>
                       </div>
-                      {% endwith %}
+                  {% endwith %}
                   {% endfor %}
               </div>
-  
-              {% include "includes/pagination.html" %}
+          {% include "includes/pagination.html" %}
           {% endif %}
       </div>
   </div>
-  </div>
+</div>
 </div>
 {% endblock %}
+
 
 <!-- <div class="col-4 col-sm-2">
   <img

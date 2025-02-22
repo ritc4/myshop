@@ -46,12 +46,18 @@ class Order(models.Model):
         return f"Заказ №{self.id} от {self.first_name_last_name}"
     
     
-    # def get_total_cost(self):
-    #     return sum(item.get_cost() for item in self.items.all())
-
     def get_total_cost(self):
-        return sum(item.get_cost() for item in self.items.all() if item.get_cost() is not None)
+        return sum(item.get_cost() for item in self.items.all())
+
     
+    def get_total_zakup_cost(self):
+        print(self.items.all())
+        return sum(item.product.zacup_price * item.quantity for item in self.items.all() if item.product.zacup_price is not None)
+
+
+    def get_article_numbers(self):
+        return [item.product.article_number for item in self.items.all() if item.product.article_number]
+
 
 
 class OrderItem(models.Model):
@@ -61,10 +67,10 @@ class OrderItem(models.Model):
     quantity = models.PositiveIntegerField(default=1,verbose_name="Количество")
     size = models.CharField(max_length=50, verbose_name="Размер", blank=True, null=True)  # Поле для размера
 
-    
-    def __str__(self):
-        return str(self.id) 
 
+    def __str__(self):
+        return str(self.product.title) 
+    
 
     def get_cost(self):
         if self.price is not None and self.quantity is not None:
@@ -91,8 +97,8 @@ class OrderItem(models.Model):
             return 'Нет фото'
 
     product_image.short_description = 'Фото товара'
-    
-    
+
+      
     class Meta:
         verbose_name = 'Заказанный товар'
         verbose_name_plural = 'Заказанные товары'

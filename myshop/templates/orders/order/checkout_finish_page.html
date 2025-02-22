@@ -9,7 +9,27 @@
     <div class="row">
       <div class="col-lg-8 mb-3">
         <div class="checkout p-3 h-100 bg-white">
-          <h1 class="section-title h5"><span>принят</span></h1>
+          <h1 class="section-title h5">
+            <h1>Спасибо за ваш заказ!</h1>
+    <p>Ваш заказ был успешно оформлен. Вы будете перенаправлены на главную страницу через <span id="countdown">10</span> секунд.</p>
+          {% block scripts %} 
+            <script>
+              // Установите время ожидания в секундах
+        let countdownTime = 10; // Время в секундах
+        const countdownElement = document.getElementById('countdown');
+
+        // Функция для обновления обратного отсчета
+        const countdown = setInterval(function() {
+            countdownTime--;
+            countdownElement.textContent = countdownTime; // Обновляем текст в элементе
+
+            if (countdownTime <= 0) {
+                clearInterval(countdown); // Останавливаем таймер
+                window.location.href = "{% url 'home:home' %}"; // Перенаправление
+            }
+        }, 1000); // Обновляем каждую секунду (1000 миллисекунд)
+            </script>
+        {% endblock %}
       </div>
     </div>
   </div>

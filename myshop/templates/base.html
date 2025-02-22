@@ -27,8 +27,8 @@
         {% block content %}
         <!-- Здесь будет контент страницы! -->
         {% endblock %}
+        {% block scripts %} {% endblock %}
       </main>
-
       <!-- Подключение футера -->
       {% include "includes/footer.html" %}
 
@@ -37,8 +37,8 @@
       <i class="bi bi-arrow-up-square"></i>
     </button>
     <!-- Подключили JS -->
-    <script src="{% static 'bootstrap/js/bootstrap.bundle.min.js' %}"></script>
     <script src="{% static 'jquery/jquery-3.7.1.min.js' %}"></script>
+    <script src="{% static 'bootstrap/js/bootstrap.bundle.min.js' %}"></script>
     <script src="{% static 'megamenu/js/megamenu.js' %}"></script>
     <script src="{% static 'owlcarousel/js/owl.carousel.min.js' %}"></script>
     <script src="{% static 'my_js/main.js' %}"></script>

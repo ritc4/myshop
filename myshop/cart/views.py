@@ -20,7 +20,10 @@ def cart_add(request, product_id):
         print("Форма не валидна:", form.errors)  # Вывод ошибок формы для отладки
         # print(f"Форма валидна: {form.is_valid()}, данные: {cd}")
 
-    return redirect('cart:cart_detail')
+    # Получаем URL страницы, с которой был запрос
+    referer = request.META.get('HTTP_REFERER', 'cart:cart_detail')
+
+    return redirect(referer)
 
 
 @require_POST
@@ -30,7 +33,10 @@ def cart_remove(request, product_id):
     # Получаем размер из POST-запроса
     size = request.POST.get('size')  # Убедитесь, что размер передается
     cart.remove(product, size)
-    return redirect('cart:cart_detail')
+
+    # Получаем URL страницы, с которой был запрос
+    referer = request.META.get('HTTP_REFERER', 'cart:cart_detail')
+    return redirect(referer)
 
 
 def cart_detail(request):

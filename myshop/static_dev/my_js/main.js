@@ -79,3 +79,19 @@ document.addEventListener('DOMContentLoaded', function() {
       });
   });
 });
+
+
+  // // Получаем модальное окно для быстрой доставки в категориях продуктов
+  // const modal = document.getElementById('product_Link_add_Modal');
+  
+  // // Добавляем обработчик события для открытия модального окна
+  // modal.addEventListener('show.bs.modal', function (event) {
+  //   // Получаем кнопку, которая открыла модальное окно
+  //   const button = event.relatedTarget; 
+  //   // Извлекаем идентификатор продукта из кнопки
+  //   const productId = button.getAttribute('data-product-id'); 
+
+  //   // Обновляем форму с идентификатором продукта
+  //   const form = modal.querySelector('form');
+  //   form.action = "{% url 'cart:cart_add' 0 %}".replace('0', productId);
+  // });

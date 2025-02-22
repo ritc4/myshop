@@ -16,7 +16,6 @@ def product_list(request, slug):
 
     # Фильтруем продукты по выбранной категории
     products = Product.objects.filter(category=category, is_hidden=False)
-
     get_root_cat = category.get_root()  # Получаем корневую категорию
     get_children_cat = category.get_children()  # Получаем дочерние категории
     get_descendants_cat = get_root_cat.get_children()  # Получаем все дочерние категории корня
@@ -30,7 +29,8 @@ def product_list(request, slug):
                       'get_descendants_cat': get_descendants_cat,
                       'get_children_cat': get_children_cat,
                       'product': products,  # Изменено с 'product' на 'products'
-                      'cart_product_form':cart_product_form})
+                      'cart_product_form':cart_product_form,
+                      })
 
 
 def product_detail(request,id,slug):

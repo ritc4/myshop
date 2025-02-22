@@ -63,28 +63,9 @@
             <span>Артикул:</span>
             <span class="goodsModArtNumber">{{ product.article_number }}</span>
           </div>
-        </div>
-               
+        </div>        
         <div class="product-add2cart">
           <div class="input-group">
-            <!-- <form action="{% url 'cart:cart_add' product.id %}" method="post">
-              {% csrf_token %}
-              <input name="quantity" type="number" class="form-control" 
-                     value="{{ cart_product_form.quantity.value|default:1 }}" min="1"/>
-              
-              <select name="size" class="form-select" required>
-                  <option value="" disabled selected>Выберите размер</option>
-                  {% for size in product.size.all %}
-                      <option value="{{ size.id }}">{{ size.title }}</option>
-                  {% endfor %}
-              </select>
-              
-              <input type="hidden" name="override" value="true">
-              
-              <button type="submit" class="btn btn-dark">
-                  <i class="bi bi-cart4 me-2"></i>Добавить
-              </button>
-          </form> -->
                 <form action="{% url "cart:cart_add" product.id %}" method="post"> 
                   {% csrf_token %}
                   <input name="quantity" type="number" class="form-control" value="{{ cart_product_form.quantity.value|default:1 }}" min="1"/>

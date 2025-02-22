@@ -29,7 +29,7 @@ class Category(MPTTModel):
 
 
 class Size(models.Model):
-    title = models.CharField(max_length=10, unique=True,verbose_name="Размеры")  # Название размера
+    title = models.CharField(max_length=50, unique=True,verbose_name="Размеры")  # Название размера
 
     def __str__(self):
         return self.title
@@ -60,7 +60,7 @@ class Product(models.Model):
 
     
     class Meta:
-        ordering = ['name']
+        ordering = ['title']
         indexes = [
             models.Index(fields=['id', 'slug']),
             models.Index(fields=['title']),
@@ -91,9 +91,13 @@ class ProductImage(models.Model):
     image = models.ImageField(upload_to='products/%Y/%m/%d', blank=True, null=True, verbose_name='Изображение')
     
     def __str__(self):
-        return f"Image {self.id}"
+        return f"Изображение {self.id}"
     
 
     def image_tag(self):
         # Возвращаем все изображения, связанные с продуктом
         return self.product.image.all()
+    
+    class Meta:
+        verbose_name = 'Изображение товара'
+        verbose_name_plural = 'Изображения товаров'
