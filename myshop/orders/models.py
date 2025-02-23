@@ -51,8 +51,15 @@ class Order(models.Model):
 
     
     def get_total_zakup_cost(self):
-        print(self.items.all())
-        return sum(item.product.zacup_price * item.quantity for item in self.items.all() if item.product.zacup_price is not None)
+        total_zakup_cost = 0
+        for item in self.items.all():
+            # Получаем все цены для текущего продукта
+            product_prices = item.product.product_prices.all()  # Получаем все связанные ProductPrice
+            if product_prices.exists():
+                # Получаем первую цену (или используйте другую логику для выбора нужной цены)
+                zacup_price = product_prices.first().zacup_price
+                total_zakup_cost += zacup_price * item.quantity  # Умножаем на количество
+        return total_zakup_cost
 
 
     def get_article_numbers(self):
@@ -61,7 +68,7 @@ class Order(models.Model):
 
 
 class OrderItem(models.Model):
-    order = models.ForeignKey(Order,related_name='items',on_delete=models.CASCADE) 
+    order = models.ForeignKey(Order,related_name='items',on_delete=models.CASCADE,verbose_name="Заказ") 
     product = models.ForeignKey(Product,related_name='order_items', on_delete=models.CASCADE,verbose_name="Название товара") 
     price = models.DecimalField(max_digits=10,decimal_places=0, verbose_name="Цена") 
     quantity = models.PositiveIntegerField(default=1,verbose_name="Количество")
@@ -85,7 +92,11 @@ class OrderItem(models.Model):
         return self.product.mesto
     
     def product_zacup_price(self):
-        return self.product.zacup_price
+        # Получаем все цены для текущего продукта
+        product_prices = self.product.product_prices.all()  # Получаем все связанные ProductPrice
+        if product_prices.exists():
+            return product_prices.first().zacup_price  # Возвращаем первую цену
+        return None  # Если цен нет, возвращаем None
     
     
     def product_image(self):

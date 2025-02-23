@@ -1,6 +1,6 @@
 from decimal import Decimal
 from django.conf import settings
-from home.models import Product
+from home.models import Product,ProductPrice,Size
 
 
 
@@ -21,19 +21,29 @@ class Cart:
     def add(self, product, quantity=1, override_quantity=False, size=None):
         """Добавить товар в корзину либо обновить его количество."""
         product_id = str(product.id)
-        sizes = str(size)
         unique_key = f"{product_id}_{size}"
 
         print(f"Добавление товара: {product_id}, размер: {size}, количество: {quantity}, переопределить: {override_quantity}")
 
+        # Получаем объект Size
+        try:
+            size_object = Size.objects.get(title=size)  # Получаем объект Size по title
+            product_price = product.product_prices.get(size=size_object)  # Используем size
+        except Size.DoesNotExist:
+            print(f"Размер {size} не найден.")
+            return
+        except ProductPrice.DoesNotExist:
+            print(f"Цена для размера {size} не найдена.")
+            return
+
         if unique_key not in self.cart:
             self.cart[unique_key] = {
                 'quantity': 0,
-                'price': str(product.price),
-                'size': sizes,
+                'price': str(product_price.price),
+                'size': size,
             }
-        
-        # Если товар уже есть в корзине, обновляем его количество
+
+        # Обновление количества товара в корзине
         if override_quantity:
             self.cart[unique_key]['quantity'] = quantity
         else:
@@ -41,7 +51,6 @@ class Cart:
 
         print("Текущая корзина:", self.cart)
         self.save()
-
         
         
     

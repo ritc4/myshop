@@ -83,80 +83,91 @@
               </div>
   
               <div class="row">
-                  {% for z in product %}
-                  {% with first_image=z.images.first %}
-                      <div class="col-lg-4 col-sm-6 mb-3">
-                          <div class="product-card">
-                              <div class="product-card-offer">
-                                  <div class="offer-hit">Hit</div>
-                                  <div class="offer-new">New</div>
-                              </div>
-                              <div class="product-thumb">
-                                  <a href="#"><img src="{{ first_image.image.url }}" alt=""/></a>
-                              </div>
-                              <div class="product-details">
-                                  <h4>
-                                      <a href="{{ z.get_absolute_url }}">{{ z.title }}</a>
-                                  </h4>
-                                  <div class="product-bottom-details d-flex justify-content-between align-items-center">
-                                      <div class="product-price">
-                                          {{ z.price }} руб.
-                                      </div>
-                                      <div class="product-links">
-                                          <button type="submit" class="btn btn-outline-dark add-to-cart" data-bs-toggle="modal" data-bs-target="#product_Link_add_Modal">
-                                            <i class="bi bi-cart4"></i>
-                                          </button>
-                                          <!-- Модальное окно -->
-                                          <div class="modal fade" id="product_Link_add_Modal" data-bs-keyboard="false" tabindex="-1" aria-labelledby="product_Link_add_ModalLabel" aria-hidden="true">
-                                            <div class="modal-dialog modal-dialog-centered">
-                                              <div class="modal-content">
-                                              <div class="modal-header">
-                                                <h5 class="modal-title fs-5" id="product_Link_add_Modal">Добавить в корзину</h5>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                              </div>
-                                                <div class="modal-body">
-                                                  <h1 class="productView__name" itemprop="name">{{ z.title }}</h1>
-                                                  <div class="productView__articles">
-                                                    <label>Артикул:</label>
-                                                    <span class="article_number">{{ z.article_number }}</span>
-                                                  </div>
-                                                  <div class="price__now RUB" itemprop="price">
-                                                    <label for="quantity" class="form-label">Цена:</label>
-                                                    <span>{{ z.price }} ₽</span>
-                                                  </div>
-                                                  <form action="{% url 'cart:cart_add' z.id %}" method="post">
-                                                    {% csrf_token %}
-                                                    <div class="col-sm-5 quantity-product-modal">
-                                                      <label for="quantity" class="form-label">Количество:</label>
-                                                      <input name="quantity" type="number" class="form-control" value="1" min="1"/>
+                {% for z in products %}
+                    {% with first_image=z.images.first %}
+                        <div class="col-lg-4 col-sm-6 mb-3">
+                            <div class="product-card">
+                                <div class="product-card-offer">
+                                    <div class="offer-hit">Hit</div>
+                                    <div class="offer-new">New</div>
+                                </div>
+                                <div class="product-thumb">
+                                    <a href="#"><img src="{{ first_image.image.url }}" alt=""/></a>
+                                </div>
+                                <div class="product-details">
+                                    <h4>
+                                        <a href="{{ z.get_absolute_url }}">{{ z.title }}</a>
+                                    </h4>
+                                    <div class="product-bottom-details d-flex justify-content-between align-items-center">
+                                        <div class="product-price">
+                                            {% if z.min_price %}
+                                                {{ z.min_price }} ₽
+                                            {% else %}
+                                                Цена не указана
+                                            {% endif %}
+                                        </div>
+                                        <div class="product-links">
+                                            <button type="button" class="btn btn-outline-dark add-to-cart" data-bs-toggle="modal" data-bs-target="#product_Link_add_Modal_{{ z.id }}" data-product-id="{{ z.id }}" data-product-price="{{ z.min_price }}" data-product-title="{{ z.title }}">
+                                                <i class="bi bi-cart4"></i>
+                                            </button>
+                                            
+                                            <!-- Модальное окно -->
+                                            <div class="modal fade" id="product_Link_add_Modal_{{ z.id }}" data-bs-keyboard="false" tabindex="-1" aria-labelledby="product_Link_add_ModalLabel" aria-hidden="true">
+                                                <div class="modal-dialog modal-dialog-centered">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title fs-5" id="product_Link_add_ModalLabel">Добавить в корзину</h5>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <h1 class="productView__name" itemprop="name">{{ z.title }}</h1>
+                                                            <div class="productView__articles">
+                                                                <label>Артикул:</label>
+                                                                <span class="article_number">{{ z.article_number }}</span>
+                                                            </div>
+                                                            <div class="price__now RUB" itemprop="price">
+                                                                <label for="price-display" class="form-label">Цена:</label>
+                                                                <span id="price-display" name="price-display">
+                                                                    {% if z.min_price %}
+                                                                        {{ z.min_price }} ₽
+                                                                    {% else %}
+                                                                        Цена не указана
+                                                                    {% endif %}
+                                                                </span>
+                                                            </div>
+                                                            <form action="{% url 'cart:cart_add' z.id %}" method="post">
+                                                                {% csrf_token %}
+                                                                <div class="col-sm-5 quantity-product-modal">
+                                                                    <label for="quantity" class="form-label">Количество:</label>
+                                                                    <input name="quantity" id="quantity" type="number" class="form-control" value="1" min="1"/>
+                                                                </div>
+                                                                <br>
+                                                                <div class="col-sm-5 select-size">
+                                                                    <label for="size" class="form-label">Размер:</label>
+                                                                    <select name="size" class="form-control custom-select" required id="size-select-{{ z.id }}">
+                                                                        <option value="" disabled selected>Выберите размер</option>
+                                                                        {% for price in z.product_prices.all %}
+                                                                            <option value="{{ price.size.title }}" data-price="{{ price.price }}">{{ price.size.title }}</option>
+                                                                        {% endfor %}
+                                                                    </select>
+                                                                </div>
+                                                                <br>
+                                                                <button type="submit" class="btn btn-dark">
+                                                                    <i class="bi bi-cart4 me-2"></i>Добавить
+                                                                </button>
+                                                            </form>
+                                                        </div>
                                                     </div>
-                                                      <br>
-                                                    <div class="col-sm-5 select-size">
-                                                      <label for="quantity" class="form-label">Размер:</label>
-                                                    <select name="size" class="form-control custom-select" required>
-                                                          <option value="" disabled selected>Выберите размер</option>
-                                                          {% for size in z.size.all %}
-                                                          <option value="{{ size.title }}">{{ size.title }}</option>
-                                                            {% endfor %}
-                                                      </select>
-                                                    </div>
-                                                    <br>
-                                                    <button type="submit" class="btn btn-dark">
-                                                      <i class="bi bi-cart4 me-2"></i>Добавить
-                                                        </button>
-                                                </form>
                                                 </div>
-                                              </div>
                                             </div>
-                                            </div>
-                                      </div>
-                                  </div>
-                              </div>
-                          </div>
-                      </div>
-                  {% endwith %}
-                  {% endfor %}
-              </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endwith %}
+                {% endfor %}
+            </div>
           {% include "includes/pagination.html" %}
           {% endif %}
       </div>

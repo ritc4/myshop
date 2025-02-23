@@ -81,17 +81,54 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 
-  // // Получаем модальное окно для быстрой доставки в категориях продуктов
-  // const modal = document.getElementById('product_Link_add_Modal');
-  
-  // // Добавляем обработчик события для открытия модального окна
-  // modal.addEventListener('show.bs.modal', function (event) {
-  //   // Получаем кнопку, которая открыла модальное окно
-  //   const button = event.relatedTarget; 
-  //   // Извлекаем идентификатор продукта из кнопки
-  //   const productId = button.getAttribute('data-product-id'); 
+// Обработчик события изменения для выпадающего списка Modal окна category_page.html
+ document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.select-size select').forEach(select => {
+      select.addEventListener('change', function() {
+          const selectedOption = this.options[this.selectedIndex];
+          const selectedPrice = selectedOption.getAttribute('data-price');
+          const productId = this.id.split('-')[2]; // Получаем ID продукта из ID элемента
 
-  //   // Обновляем форму с идентификатором продукта
-  //   const form = modal.querySelector('form');
-  //   form.action = "{% url 'cart:cart_add' 0 %}".replace('0', productId);
-  // });
+          console.log("Выбранный товар ID:", productId); // Отладочное сообщение
+          // Обновляем цену в модальном окне
+          const modal = document.getElementById('product_Link_add_Modal_' + productId);
+          if (modal) {
+              modal.querySelector('#price-display').textContent = selectedPrice + ' ₽';
+          } else {
+              console.error("Модальное окно не найдено для ID:", productId);
+          }
+          console.log("Выбранная цена:", selectedPrice);
+      });
+  });
+});
+
+
+// Обработчик события изменения для выпадающего списка окна product_page.html
+document.addEventListener('DOMContentLoaded', function() {
+  // Инициализация отображения цены при загрузке страницы
+  var sizeSelect = document.getElementById('size-select_product');
+  var priceDisplay = document.getElementById('price-display');
+
+  if (sizeSelect && priceDisplay) {
+      // Получаем выбранный элемент и его цену
+      var selectedOption = sizeSelect.options[sizeSelect.selectedIndex];
+      var price = selectedOption ? selectedOption.getAttribute('data-price') : null;
+
+      // Устанавливаем начальное значение цены
+      priceDisplay.innerText = price ? price + ' ₽' : 'Цена недоступна';
+  }
+
+  // Добавляем общий обработчик событий для изменения размера
+  document.addEventListener('change', function(event) {
+      if (event.target.id === 'size-select_product') {
+          var selectedOption = event.target.options[event.target.selectedIndex];
+          var price = selectedOption ? selectedOption.getAttribute('data-price') : null;
+
+          // Получаем элемент для отображения цены по его ID
+          if (priceDisplay) {
+              // Проверяем, есть ли выбранная опция и выводим соответствующую цену
+              priceDisplay.innerText = price ? price + ' ₽' : 'Цена недоступна';
+          }
+      }
+  });
+});

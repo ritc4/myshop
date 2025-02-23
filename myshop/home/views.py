@@ -15,11 +15,21 @@ def product_list(request, slug):
     category = get_object_or_404(Category, slug=slug)  # Получаем категорию по слагу
 
     # Фильтруем продукты по выбранной категории
-    products = Product.objects.filter(category=category, is_hidden=False)
+    products = Product.objects.filter(category=category, is_hidden=False).prefetch_related('product_prices__size')
     get_root_cat = category.get_root()  # Получаем корневую категорию
     get_children_cat = category.get_children()  # Получаем дочерние категории
     get_descendants_cat = get_root_cat.get_children()  # Получаем все дочерние категории корня
     cart_product_form = CartAddProductForm()
+
+    # Обрабатываем продукты для нахождения минимальной цены и получения размеров
+    for product in products:
+        prices = product.product_prices.all()  # Получаем все цены для продукта
+        if prices.exists():
+            product.min_price = min(prices, key=lambda x: x.price).price
+            product.min_price_size = min(prices, key=lambda x: x.price).size  # Получаем размер с минимальной ценой
+        else:
+            product.min_price = None
+            product.min_price_size = None
 
     return render(request,'home/category_page.html', 
                   {
@@ -28,7 +38,7 @@ def product_list(request, slug):
                       'get_root_cat': get_root_cat,
                       'get_descendants_cat': get_descendants_cat,
                       'get_children_cat': get_children_cat,
-                      'product': products,  # Изменено с 'product' на 'products'
+                      'products': products,  # Изменено с 'product' на 'products'
                       'cart_product_form':cart_product_form,
                       })
 
@@ -39,7 +49,8 @@ def product_detail(request,id,slug):
     cart_product_form = CartAddProductForm(product=product)
 
     return render(request, 'home/product_page.html', 
-        {'product': product, 'categories': categories,
+        {'product': product, 
+         'categories': categories,
          'cart_product_form':cart_product_form})
 
 

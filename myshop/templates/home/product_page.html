@@ -56,8 +56,8 @@
             </a>
         </div>
         <div class="product-price-article_number d-flex justify-content-between align-items-center">
-          <div class="product-price mb-0">
-            {{ product.price }} руб.
+          <div class="product-price mb-0" id="price-display">
+                {{ price }} ₽ <!-- Устанавливаем цену по умолчанию из первого элемента -->
           </div>
           <div class="productView__articles mb-0">
             <span>Артикул:</span>
@@ -66,22 +66,20 @@
         </div>        
         <div class="product-add2cart">
           <div class="input-group">
-                <form action="{% url "cart:cart_add" product.id %}" method="post"> 
-                  {% csrf_token %}
-                  <input name="quantity" type="number" class="form-control" value="{{ cart_product_form.quantity.value|default:1 }}" min="1"/>
-                  <select name="size" class="form-control custom-select" id="size-select" aria-label="Выберите размер"
-                    {% if cart_product_form.fields.size.required %}required{% endif %}>
-                    
+            <form action="{% url "cart:cart_add" product.id %}" method="post"> 
+              {% csrf_token %}
+              <input name="quantity" type="number" class="form-control" value="{{ cart_product_form.quantity.value|default:1 }}" min="1"/>
+                <select name="size" class="form-control custom-select" id="size-select_product" aria-label="Выберите размер" {% if cart_product_form.fields.size.required %}required{% endif %}>
                     <option value="" disabled selected>Выберите размер</option>
-                    {% for value, label in cart_product_form.fields.size.choices %}
-                        <option value="{{ value }}" {% if cart_product_form.size.value == value %}selected{% endif %}>{{ label }}</option>
+                    {% for value, price in cart_product_form.fields.size.choices %}
+                      <option value="{{ value }}" {% if cart_product_form.size.value == value %}selected{% endif %} data-price="{{ price }}">{{ value }}</option>
                     {% endfor %}
-                  </select>
-                  {{ cart_product_form.override }}
-                  <button type="submit" class="btn btn-dark" value="Add to cart">
-                    <i class="bi bi-cart4 me-2"></i>Добавить
-                  </button>
-                </form>
+                </select>
+              {{ cart_product_form.override }}
+              <button type="submit" class="btn btn-dark" value="Add to cart">
+                <i class="bi bi-cart4 me-2"></i>Добавить
+              </button>
+            </form>
           </div>
         </div>
 

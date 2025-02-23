@@ -1,9 +1,10 @@
 from django.contrib import admin
 from mptt.admin import MPTTModelAdmin
 from mptt.admin import DraggableMPTTAdmin
-from .models import Category,Size,Product,ProductImage
+from .models import Category,Size,Product,ProductImage,ProductPrice
 from django.utils.safestring import mark_safe
 from slugify import slugify
+from django.utils.html import format_html
 
 @admin.register(Size)
 class SizeAdmin(admin.ModelAdmin):
@@ -14,48 +15,106 @@ class SizeAdmin(admin.ModelAdmin):
 
 class ProductImageInline(admin.TabularInline):
     model = ProductImage
-    extra = 1  # Количество пустых форм для добавления новых изображений
-    readonly_fields = ('image_tag',)  # Делаем поле для изображения только для чтения
-    fields = ('image_tag', 'image')  # Указываем, какие поля отображать
-
+    extra = 1
+    readonly_fields = ('image_tag',)
+    fields = ('image_tag', 'image')
 
     def image_tag(self, obj):
-        # Получаем первое изображение, если оно существует
-        image = obj.image  # Здесь используем related_name 'images'
-        if image:
-            return mark_safe(f"<img src='{image.url}' width='75'>")
-        else:
-            return 'Нет фото' 
-
-    image_tag.short_description = 'Фото'
+        if obj.image:
+            return mark_safe(f"<img src='{obj.image.url}' width='75'>")
+        return 'Нет фото'
+    image_tag.short_description = "Фото"
 
 
 @admin.register(ProductImage)
 class ProductImageAdmin(admin.ModelAdmin):
-    list_display = ('image',)
+    list_display = ('product','image',)
 
-    
+
+@admin.register(ProductPrice)
+class ProductPriceAdmin(admin.ModelAdmin):
+    list_display = ('product','size', 'price','old_price','zacup_price',)
+
+
+
+class ProductPriceInline(admin.TabularInline):
+    model = ProductPrice
+    extra = 1  # Количество пустых форм для добавления новых записей
+    fields = ('size', 'price','zacup_price','old_price',)
+
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    inlines = [ProductImageInline]  # Подключаем инлайн для изображений
-    list_display = ('get_image','title', 'article_number', 'stock', 'unit', 'is_hidden', 'get_sizes_display','price','category','created','updated','mesto')  # Отображение полей продукта в админке
+    inlines = [ProductImageInline, ProductPriceInline]  # Подключаем инлайн для изображений
+    list_display = ('get_image','title', 'article_number', 'stock', 'unit','get_prices_and_sizes' ,'get_zacup_prices_and_sizes','get_old_prices_and_sizes','is_hidden','category','mesto')  # Отображение полей продукта в админке
     list_filter = ('is_hidden','category','created','updated','mesto')
     prepopulated_fields = {'slug':('title','article_number',)}
-    filter_horizontal = ('size',)  # Используем горизонтальный фильтр для выбора 
     search_fields = ['title','article_number',]  # Позволяет искать продукты по названию
-    list_editable = ['price', 'is_hidden','mesto',]
+    list_editable = ['is_hidden','mesto']
     actions = ['hide_products', 'show_products','duplicate_product',]
 
 
+    def get_prices_and_sizes(self, obj):
+        prices = obj.product_prices.select_related('size')  # Оптимизация запросов
+        price_size_list = [f"{price.size.title if price.size else 'Без размера'} - {price.price}" for price in prices]
+        if price_size_list:
+            return format_html('<br>'.join(price_size_list))  # Используем <br> для разделения строк
+        return 'Нет цен'
+    
+    get_prices_and_sizes.short_description = 'Размер и цена'  # Размер и цена:
+
+    def get_zacup_prices_and_sizes(self, obj):
+        prices = obj.product_prices.select_related('size')  # Оптимизация запросов
+        price_list = [f"{price.zacup_price}" for price in prices]  # Выводим только цену закупки
+
+        if price_list:
+            return format_html('<br>'.join(price_list))  # Используем <br> для разделения строк
+        return 'Нет цен'
+
+    get_zacup_prices_and_sizes.short_description = 'Цена закупки'  # Цена закупки:
+
+    def get_old_prices_and_sizes(self, obj):
+        prices = obj.product_prices.select_related('size')  # Оптимизация запросов
+        price_list = [f"{price.old_price}" for price in prices]  # Выводим только старую цену
+
+        if price_list:
+            return format_html('<br>'.join(price_list))  # Используем <br> для разделения строк
+        return 'Нет цен'
+
+    get_old_prices_and_sizes.short_description = 'Старая цена'  # Старая цена:
+    
+
     def duplicate_product(self, request, queryset):
         for product in queryset:
-            product.pk = None  # Сбрасываем первичный ключ, чтобы создать новый объект
-            product.title = f"Копия {product.title}"  # Изменяем название
-            product.slug = self.generate_unique_slug(product.title, product.article_number)  # Генерируем уникальный slug
-            product.article_number = self.generate_unique_article_number(product.article_number)  # Генерируем новый уникальный артикул
-            product.save()  # Сохраняем новый объект
-        self.message_user(request, "Товары успешно скопированы.")
+            print(f"Дублируем продукт: {product.title}")
+            try:
+                # Получаем цены для исходного продукта
+                prices = product.product_prices.all()
+                print(f"Количество цен для исходного продукта {product.title}: {prices.count()}")
+
+                # Создаем новый продукт
+                new_product = product
+                new_product.pk = None  # Сбрасываем первичный ключ
+                new_product.title = f"{product.title}"
+                new_product.slug = self.generate_unique_slug(product.title, product.article_number)
+                new_product.article_number = self.generate_unique_article_number(product.article_number)
+                new_product.save()
+                print(f"Создан новый продукт: {new_product.title} с slug: {new_product.slug} и article_number: {new_product.article_number}")
+
+                # Копируем цены из исходного продукта
+                for price in prices:
+                    print(f"Копируем цену: {price.price} для размера: {price.size.title}")
+                    new_price = ProductPrice()  # Создаем новый объект цены
+                    new_price.price = price.price  # Копируем цену
+                    new_price.size = price.size  # Копируем размер
+                    new_price.zacup_price = price.zacup_price  # Копируем zacup_price
+                    new_price.old_price = price.old_price  # Копируем old_price
+                    new_price.product = new_product  # Привязываем цену к новому продукту
+                    new_price.save()  # Сохраняем новый объект
+                    print(f"Создана новая цена: {new_price.price} для продукта: {new_product.title} с размером: {new_price.size.title}")
+
+            except Exception as e:
+                print(f"Ошибка при дублировании продукта {product.title}: {e}")
 
     def generate_unique_slug(self, title, article_number):
         base_slug = slugify(f"{title}-{article_number}")  # Создаем базовый slug
@@ -67,16 +126,16 @@ class ProductAdmin(admin.ModelAdmin):
         return unique_slug
 
     def generate_unique_article_number(self, article_number):
-        # Преобразуем article_number в число
-        unique_article_number = int(article_number)
+        # Преобразуем article_number в строку, чтобы избежать проблем с нечисловыми значениями
+        base_article_number = int(article_number)  # Приводим к числу
+        unique_article_number = base_article_number
         counter = 1
         while Product.objects.filter(article_number=unique_article_number).exists():  # Проверяем на уникальность
-            unique_article_number = int(article_number) + counter  # Увеличиваем на 1
+            unique_article_number = base_article_number + counter  # Добавляем счетчик как число
             counter += 1
         return unique_article_number
-    
-    duplicate_product.short_description = "Скопировать выбранные товары"
 
+    duplicate_product.short_description = "Скопировать выбранные товары"
 
 
     def hide_products(self, request, queryset):
@@ -89,20 +148,13 @@ class ProductAdmin(admin.ModelAdmin):
         self.message_user(request, f"{queryset.count()} товаров успешно показано.")
     show_products.short_description = "Показать выбранные товары"  # Описание действия
 
-    def get_sizes_display(self, obj):
-        return ", ".join([size.title for size in obj.size.all()]) 
-    get_sizes_display.short_description = 'Размер'  # Название колонки в админке
-
 
     def get_image(self, obj):
-        # Получаем первое изображение, если оно существует
-        first_image = obj.images.first()  # Здесь используем related_name 'images'
+        first_image = obj.images.first()
         if first_image:
             return mark_safe(f"<img src='{first_image.image.url}' width='50'>")
-        else:
-            return 'Нет фото' 
-
-    get_image.short_description = 'Фото'
+        return 'Нет фото'
+    get_image.short_description = "Фото"
 
 
 admin.site.register(Category,DraggableMPTTAdmin,

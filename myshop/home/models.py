@@ -40,14 +40,25 @@ class Size(models.Model):
 
 
 
+class ProductPrice(models.Model):
+    product = models.ForeignKey('Product', related_name='product_prices', on_delete=models.CASCADE)
+    size = models.ForeignKey(Size, related_name='product_size', on_delete=models.CASCADE,verbose_name='Размер')
+    price = models.DecimalField(max_digits=10, decimal_places=0,verbose_name='Цена продажи')
+    old_price = models.DecimalField(max_digits=10, decimal_places=0, verbose_name='Цена старая ', null=True, blank=True)
+    zacup_price = models.DecimalField(max_digits=10, decimal_places=0,verbose_name='Цена закупки')
+    
+    def __str__(self):
+        return f"{self.product.title}"
+    
+    class Meta:
+        verbose_name = 'Размер и Цена товара'
+        verbose_name_plural = 'Размеры и Цены товара'
+    
 
 class Product(models.Model):
     title = models.CharField(max_length=255,verbose_name='Название товара')
     description = models.TextField(max_length=255,blank=True,verbose_name='Описание')
     article_number = models.IntegerField(unique=True,verbose_name='Артикул')
-    price = models.DecimalField(max_digits=10, decimal_places=0,verbose_name='Цена продажи')
-    zacup_price = models.DecimalField(max_digits=10, decimal_places=0,verbose_name='Цена закупки')
-    old_price = models.DecimalField(max_digits=10, decimal_places=0,verbose_name='Цена старая')
     stock = models.IntegerField(default=100, validators=[MinValueValidator(0)],verbose_name='Остаток')  # Остаток товара в штуках
     unit = models.CharField(max_length=10, default='шт',verbose_name='Единица измерения')  # Единица измерения, по умолчанию 'шт'
     is_hidden = models.BooleanField(default=False,verbose_name='Скрыть товар')  # Поле для скрытия товара
@@ -55,9 +66,7 @@ class Product(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     slug = models.SlugField(max_length=200, unique=True)  # Поле slug
-    size = models.ManyToManyField(Size, blank=True,related_name='size',verbose_name='Размер') # Связь с моделью Size
     category = TreeForeignKey(Category, on_delete=models.PROTECT,related_name='cat',verbose_name='Категория')  
-
     
     class Meta:
         ordering = ['title']
@@ -68,16 +77,11 @@ class Product(models.Model):
         ]
     
     
-    
     def __str__(self):
         return f"{self.title}"
     
     def get_absolute_url(self):
         return reverse("home:product_detail", kwargs={"slug": self.slug, "id":self.id})
-    
-    def product_image(self):
-        # Возвращаем все изображения, связанные с продуктом
-        return self.product.images.all()
     
 
     class Meta:
@@ -97,7 +101,8 @@ class ProductImage(models.Model):
     def image_tag(self):
         # Возвращаем все изображения, связанные с продуктом
         return self.product.image.all()
+    image_tag.short_description = "Фото"
     
     class Meta:
-        verbose_name = 'Изображение товара'
-        verbose_name_plural = 'Изображения товаров'
+        verbose_name = 'Фото товара'
+        verbose_name_plural = 'Фото товаров'

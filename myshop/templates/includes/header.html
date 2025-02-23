@@ -195,10 +195,12 @@ aria-labelledby="offcanvasCartLabel"
         {% with product=item.product %} 
         <tr>
           <td class="product-img-td">
+            {% with first_image=product.images.first %}
             <a href="{{ product.get_absolute_url }}">
-              <img src="{% if product.image %}{{ product.image.url }} 
+              <img src="{% if first_image.image.url %}{{ first_image.image.url }}
             {% else %}{% static "img/no_image.png" %}{% endif %}"> 
             </a>
+            {% endwith %}
           </td>
           <td class="product-img-td"><a href="{{ product.get_absolute_url }}">{{ product.title }}</a></td>
           <td class="num">{{ item.price }} ₽</td> 
