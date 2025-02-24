@@ -57,7 +57,6 @@ class OrderAdmin(admin.ModelAdmin):
     readonly_fields = ['get_total_zakup_cost','get_total_cost']
     list_filter = ['paid', 'created', 'updated'] 
     inlines = [OrderItemInline]
-    # search_fields = ['get_article_number',]
     search_fields = ['items__product__article_number','first_name_last_name', 'email', 'phone',]  # Поля для поиска
 
     def get_total_cost(self, obj):

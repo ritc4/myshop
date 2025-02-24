@@ -118,9 +118,8 @@
                 name="comment"
                 id="comment"
                 rows="3"
-                placeholder="Комментарий"
-                value="{{ form.comment.value|default:'' }}"
-              ></textarea>
+                placeholder="Комментарий">{{ form.comment.value|default:'' }}
+              </textarea>
             </div>
             <div class="col-md-6">
               <div class="form-input-row checkbox">
@@ -166,7 +165,7 @@
           </div>
           <div class="form-input-row checkbox">
             <input id="conditions" type="checkbox" name="conditions" value="Y" checked="checked">
-            <span for="conditions">Я соглашаюсь с <a target="_blank" href="{% url 'home:conditions' %}">условиями сотрудничества</a></span>
+            <span for="conditions">Я соглашаюсь с <a href="#" id="uslovialink" data-bs-toggle="modal" data-bs-target="#uslovia_Modal">условиями сотрудничества</a></span>
           </div>
           <div class="form-input-row checkbox">
             <input id="personal_data" type="checkbox" name="personal_data" value="Y" checked="checked">
@@ -181,7 +180,51 @@
 </form>
 </div>
 
-<!-- Модальное окно -->
+
+<!-- Модальное окно условия сотрудничества-->
+<div class="modal fade" id="uslovia_Modal" data-bs-keyboard="false" tabindex="-1" aria-labelledby="uslovia_ModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="uslovia_ModalLabel">Условиями сотрудничества</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="modal__content">
+          <div>
+            <div class="htmlDataBlock">
+              <h1 class="section-title h5"><span>Ознакомьтесь с условиями сотрудничества</span></h1>
+          <ul>
+              <li><span style="font-size:14px;">Минимальная сумма заказа - 2000 руб.&nbsp;</span></li>
+              <li><span style="font-size:14px;">Заказ можем отправить сразу на вашего клиента.</span></li>
+              <li><span style="font-size:14px;">Отправка заказов следующими ТК на Ваш выбор: ПЭК, Байкал-Сервис, Автотрейдинг, Деловые Линии, СДЭК, Кит, ТК Энергия. Так же отправляем почтой.</span></li>
+          </ul>
+          <span style="font-size:14px;">Доставка до транспортной компании осуществляется платно.&nbsp;Отправка из г. Москва Доставка до почты 150 руб. Доставка до ТК 300 руб. <strong>При заказе от 10000 руб. - доставка до ТК и почты бесплатная</strong>.</span><br>
+          <br>
+          <span style="font-size:14px;">ВНИМАНИЕ! Убедительно просим осознанно, внимательно и тщательно формировать свои заявки. Заказы собираются индивидуально строго под каждого клиента. То что уже отложено убирать из заказа нельзя. После того как заказ собран, если нет какой либо модели можно сделать замену или отправляем без отсутствующих позиций.<br>
+          <br>
+          Ответственность:</span><br>
+          <span style="font-size:14px;">! - Распаковка дома: после принятия посылки, пожалуйста, снимите на видео одним общим планом (максимально широкий угол обзора камеры) ее распаковку.<br>
+          Мы не несем ответственность за отсутствия позиций в заказе БЕЗ ВИДИОФИКСАЦИИ.&nbsp;</span><br>
+          <br>
+          <span style="font-size:14px;">Возврат товара:<br>
+          <br>
+          • Обмен товара производится только в случае производственного брака. Доставка за наш счет.&nbsp;<br>
+          <br>
+          Что в этом случае нужно делать:<br>
+          <br>
+          1. Прислать нам письмо на email cozyopt@gmail.com с номером заказа, к письму обязательно приложить фото брака.<br>
+          2. Отправить брак в течении 14 дней с момента получения заказа, обычной посылкой, Почтой России, прислать трек номер на email cozyopt@gmail.com<br>
+          3. Возврат производится только при наличии фото брака.</span><p></p>
+            </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Модальное окно конфеденциальность-->
 <div class="modal fade" id="privacyPolicyModal" data-bs-keyboard="false" tabindex="-1" aria-labelledby="privacyPolicyModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-scrollable modal-lg">
     <div class="modal-content">
@@ -214,4 +257,5 @@
     </div>
   </div>
 </div>
+
 {% endblock %}

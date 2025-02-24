@@ -82,26 +82,25 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 // Обработчик события изменения для выпадающего списка Modal окна category_page.html
- document.addEventListener('DOMContentLoaded', () => {
-  document.querySelectorAll('.select-size select').forEach(select => {
-      select.addEventListener('change', function() {
-          const selectedOption = this.options[this.selectedIndex];
-          const selectedPrice = selectedOption.getAttribute('data-price');
-          const productId = this.id.split('-')[2]; // Получаем ID продукта из ID элемента
+document.addEventListener('DOMContentLoaded', function() {
+  // Инициализация отображения цены при загрузке страницы для каждого продукта
+  document.querySelectorAll('[id^="size-select_product_"]').forEach(function(sizeSelect) {
+      var productId = sizeSelect.id.split('_').pop(); // Получаем ID продукта из ID селектора
+      var priceDisplay = document.getElementById('price-display-' + productId);
 
-          console.log("Выбранный товар ID:", productId); // Отладочное сообщение
-          // Обновляем цену в модальном окне
-          const modal = document.getElementById('product_Link_add_Modal_' + productId);
-          if (modal) {
-              modal.querySelector('#price-display').textContent = selectedPrice + ' ₽';
-          } else {
-              console.error("Модальное окно не найдено для ID:", productId);
-          }
-          console.log("Выбранная цена:", selectedPrice);
+      // Устанавливаем начальное значение цены
+      var selectedOption = sizeSelect.options[sizeSelect.selectedIndex];
+      var price = selectedOption ? selectedOption.getAttribute('data-price') : null;
+      priceDisplay.innerText = price ? 'Цена: ' + price + ' ₽' : 'Цена недоступна';
+
+      // Добавляем обработчик событий для изменения размера
+      sizeSelect.addEventListener('change', function() {
+          var selectedOption = this.options[this.selectedIndex];
+          var price = selectedOption ? selectedOption.getAttribute('data-price') : null;
+          priceDisplay.innerText = price ? 'Цена: ' + price + ' ₽' : 'Цена недоступна';
       });
   });
 });
-
 
 // Обработчик события изменения для выпадающего списка окна product_page.html
 document.addEventListener('DOMContentLoaded', function() {

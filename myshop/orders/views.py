@@ -1,5 +1,5 @@
 from cart.cart import Cart
-from django.shortcuts import render
+from django.shortcuts import render,redirect
 from .forms import OrderCreateForm
 from .models import OrderItem
 from home.models import Category
@@ -8,6 +8,13 @@ from home.models import Category
 def order_create(request): 
     categories = Category.objects.all()
     cart = Cart(request)
+    get_root_catalog = categories.first().get_absolute_url()
+
+    # Проверка на наличие товаров в корзине
+    if not cart or not any(item['quantity'] > 0 for item in cart):
+        return redirect(get_root_catalog)  # Перенаправляем на страницу товаров
+    
+
     if request.method == 'POST':
         form = OrderCreateForm(request.POST)
         if form.is_valid():

@@ -19,7 +19,8 @@ def product_list(request, slug):
     get_root_cat = category.get_root()  # Получаем корневую категорию
     get_children_cat = category.get_children()  # Получаем дочерние категории
     get_descendants_cat = get_root_cat.get_children()  # Получаем все дочерние категории корня
-    cart_product_form = CartAddProductForm()
+    cart_product_form = [(product, CartAddProductForm(product=product)) for product in products]
+
 
     # Обрабатываем продукты для нахождения минимальной цены и получения размеров
     for product in products:
@@ -56,36 +57,27 @@ def product_detail(request,id,slug):
 
 
 
-
-
-
-
 def registration(request):
-    return render(request, 'home/registration_page.html')
+    categories = Category.objects.all()  # Получите все категории
+    return render(request, 'home/registration_page.html',{'categories': categories})
 
 def login(request):
-    return render(request, 'home/login_page.html')
-
-# def cart(request):
-#     categories = Category.objects.all() 
-#     return render(request, 'home/cart_page.html',{'categories': categories})
-
-def checkout(request):
-    categories = Category.objects.all()  # Получаем все категории
-    return render(request, 'home/checkout_page.html',{'categories': categories})
+    categories = Category.objects.all()  # Получите все категории
+    return render(request, 'home/login_page.html',{'categories': categories})
 
 
 def reviews(request):
-    return render(request, 'home/reviews_page.html')
-
-def conditions(request):
-    return render(request, 'home/conditions_page.html')
+    categories = Category.objects.all()  # Получите все категории
+    return render(request, 'home/reviews_page.html',{'categories': categories})
 
 def contacts(request):
-    return render(request, 'home/contacts_page.html')
+    categories = Category.objects.all()  # Получите все категории
+    return render(request, 'home/contacts_page.html',{'categories': categories})
 
 def delivery(request):
-    return render(request, 'home/delivery_page.html')
+    categories = Category.objects.all()  # Получите все категории
+    return render(request, 'home/delivery_page.html',{'categories': categories})
 
 def news(request):
-    return render(request, 'home/news_page.html')
+    categories = Category.objects.all()  # Получите все категории
+    return render(request, 'home/news_page.html',{'categories': categories})

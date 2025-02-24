@@ -43,6 +43,8 @@ def cart_detail(request):
     categories = Category.objects.all()
     cart = Cart(request)
     get_root_catalog = categories.first().get_absolute_url()
+    # Проверка на наличие товаров в корзине
+    is_cart_empty = not cart or not any(item['quantity'] > 0 for item in cart)
     for item in cart:
         item['update_quantity_form'] = CartAddProductForm(
             initial={'quantity': item['quantity'], 'override': True, 'size': item['size'],})
@@ -50,5 +52,5 @@ def cart_detail(request):
     return render(request, 'cart/cart_page.html', {
         'cart': cart,
         'categories': categories,
-        'get_root_catalog': get_root_catalog
+        'get_root_catalog': get_root_catalog, 'is_cart_empty': is_cart_empty,
     })

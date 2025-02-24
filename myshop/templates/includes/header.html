@@ -137,7 +137,7 @@
               {% load mptt_tags %}
               <ul>
                 <li><a href="{% url 'home:home' %}">Главная</a></li>
-                <li><a href="{% url 'home:home' %}">Доставка</a></li>
+                <li><a href="{% url 'home:delivery' %}">Доставка</a></li>
                 <li><a href="{% url 'cart:cart_detail' %}">Корзина</a></li>
                 {% recursetree categories %}
                 <li>
@@ -152,7 +152,7 @@
                 </li>
                 {% endrecursetree %}
                 <li><a href="{% url 'home:home' %}">Размерная таблица</a></li>
-                <li><a href="{% url 'home:home' %}">Контакты</a></li>
+                <li><a href="{% url 'home:contacts' %}">Контакты</a></li>
               </ul>
             </div>
           </div>
