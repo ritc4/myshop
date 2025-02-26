@@ -20,7 +20,7 @@ class DeliveryMethod(models.Model):
 class Order(models.Model):
     delivery_method = models.ForeignKey(DeliveryMethod, blank=False,on_delete=models.SET_NULL, null=True, verbose_name="Способ доставки")
     first_name_last_name = models.CharField(max_length=255, verbose_name="Фамилия Имя Отчество") 
-    email = models.EmailField(unique=True, verbose_name="Электронная почта")
+    email = models.EmailField(verbose_name="Электронная почта")
     phone = models.CharField(max_length=12, verbose_name="Телефон")
     region = models.CharField(max_length=250, verbose_name="Регион")
     city = models.CharField(max_length=100, verbose_name="Город")

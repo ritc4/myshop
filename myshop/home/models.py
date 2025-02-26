@@ -5,6 +5,7 @@ from django.core.validators import MinValueValidator
 
 
 
+
 class Category(MPTTModel):
     name = models.CharField(max_length=255, unique=True,verbose_name='Категория')
     parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children',verbose_name='Подкатегория')
@@ -106,3 +107,48 @@ class ProductImage(models.Model):
     class Meta:
         verbose_name = 'Фото товара'
         verbose_name_plural = 'Фото товаров'
+
+
+class News(models.Model):
+    title = models.CharField(max_length=255,verbose_name='Новость',blank=False)
+    description = models.TextField(verbose_name='Описание новости',blank=False)
+    created = models.DateTimeField(auto_now_add=True)
+
+
+    def __str__(self):
+        return f"{self.title}"
+    
+
+    class Meta:
+        verbose_name = 'Новость'
+        verbose_name_plural = 'Новости'
+
+
+class SizeTable(models.Model):
+    title = models.CharField(max_length=255,verbose_name='Размерная таблица',blank=False)
+    image = models.ImageField(upload_to='size_table/%Y/%m/%d', blank=True,null=True, verbose_name='Изображение')
+
+
+    class Meta:
+        verbose_name = 'Размерная таблица'
+        verbose_name_plural = 'Размерные таблицы'
+
+
+class Uslovie_firm(models.Model):
+    title = models.CharField(max_length=255,verbose_name='Условие сотрудничества',blank=False)
+    description = models.TextField(verbose_name='Описание',blank=False)
+
+
+    class Meta:
+        verbose_name = 'Условие сотрудничества'
+        verbose_name_plural = 'Условия сотрудничества'
+
+
+class Politica_firm(models.Model):
+    title = models.CharField(max_length=255,verbose_name='Политика конфиденциальности',blank=False)
+    description = models.TextField(verbose_name='Описание',blank=False)
+
+
+    class Meta:
+        verbose_name = 'Политика конфиденциальности'
+        verbose_name_plural = 'Политика конфиденциальности'

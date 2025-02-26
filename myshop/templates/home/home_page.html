@@ -115,211 +115,95 @@
     <div class="row mb-5">
       <div class="col-12">
         <h2 class="section-title">
-          <span>Рекомендуемые товары</span>
+          <span>Хиты продаж</span>
         </h2>
       </div>
     </div>
     <div class="row">
-      <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
-        <div class="product-card">
+    {% for product, cart_product_form in cart_product_form %}
+    {% with first_image=product.images.first %}
+        <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
+          <div class="product-card">
           <div class="product-card-offer">
-            <div class="offer-hit">Hit</div>
-            <div class="offer-new">New</div>
+              <!-- <div class="offer-hit">Hit</div> -->
+              <!-- <div class="offer-new">New</div> -->
           </div>
           <div class="product-thumb">
-            <a href="#"><img src="{% static 'img/product/1.jfif' %}" alt=""></a>
+              <a href="{{ product.get_absolute_url }}">
+                  <img src="{{ first_image.image.url }}" alt="{{ product.title }}"/>
+              </a>
           </div>
           <div class="product-details">
-            <h4>
-              <a href="#">Product 1 Lorem ipsum dolor sit amet consectetur adipisicing.</a>
-            </h4>
-            <p class="product-excerpt">Lorem ipsum dolor, sit amet consectetur adipisicing elit. Voluptatibus, odit.</p>
-            <div class="product-bottom-details d-flex justify-content-between">
-              <div class="product-price">
-                850 руб.
+              <h4>
+                  <a href="{{ product.get_absolute_url }}">{{ product.title }}</a>
+              </h4>
+              <div class="product-bottom-details d-flex justify-content-between align-items-center">
+                <div class="product-price">
+                  {% if product.min_price %}
+                      {{ product.min_price }} ₽
+                  {% else %}
+                      Цена не указана
+                  {% endif %}
               </div>
-              <div class="product-links">
-                <a href="#" class="btn btn-outline-dark add-to-cart"><i class="bi bi-cart4"></i></a>
+                  <button type="button" class="btn btn-outline-dark add-to-cart" 
+                          data-bs-toggle="modal" 
+                          data-bs-target="#product_Link_add_Modal_{{ product.id }}" 
+                          data-product-id="{{ product.id }}" 
+                          data-product-title="{{ product.title }}" 
+                          data-product-price="{{ cart_product_form.fields.size.choices }}">
+                      <i class="bi bi-cart4"></i>
+                  </button>
               </div>
-            </div>
+          </div>
+
+          <div class="modal fade" id="product_Link_add_Modal_{{ product.id }}" tabindex="-1" aria-labelledby="product_Link_add_ModalLabel" aria-hidden="true">
+              <div class="modal-dialog modal-dialog-centered">
+                  <div class="modal-content">
+                      <div class="modal-header">
+                          <h5 class="modal-title fs-5" id="product_Link_add_ModalLabel">Добавить в корзину: {{ product.title }}</h5>
+                          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+                      </div>
+                      <div class="modal-body">
+                          <div class="col-sm-5 productView__articles mb-0">
+                              <span>Артикул:</span>
+                              <span class="goodsModArtNumber">{{ product.article_number }}</span>
+                          </div>
+                          <div class="product-price product-price-category" id="price-display-{{ product.id }}">
+                            
+                            {% if cart_product_form.fields.size.choices %}
+                              {{ cart_product_form.fields.size.choices }}
+                              {% else %}
+                                Цена не указана
+                              {% endif %}
+                          </div>
+                          <form action="{% url 'cart:cart_add' product.id %}" method="post"> 
+                              {% csrf_token %}
+                              <div class="col-sm-5 quantity-product-modal">
+                              <input name="quantity" type="number" class="form-control" value="{{ cart_product_form.quantity.value|default:1 }}" min="1"/>
+                              </div>
+                              <br>
+                              <div class="col-sm-5 select-size">
+                                <label for="size-select_product_{{ product.id }}" class="form-label">Выбирите размер:</label>
+                              <select name="size" class="form-control custom-select" id="size-select_product_{{ product.id }}" aria-label="Выберите размер" {% if cart_product_form.fields.size.required %}required{% endif %}>
+                                  {% for value, price in cart_product_form.fields.size.choices %}
+                                      <option value="{{ value }}" {% if cart_product_form.size.value == value %}selected{% endif %} data-price="{{ price }}">{{ value }}</option>
+                                  {% endfor %}
+                              </select>
+                              <br>
+                            </div>
+                              {{ cart_product_form.override }}
+                              <button type="submit" class="btn btn-dark" value="Add to cart">
+                                  <i class="bi bi-cart4 me-2"></i>Добавить
+                              </button>
+                          </form>
+                      </div>
+                  </div>
+              </div>
+          </div>
           </div>
         </div>
-      </div>
-      <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
-        <div class="product-card">
-          <div class="product-card-offer">
-            <div class="offer-hit">Hit</div>
-            <div class="offer-new">New</div>
-          </div>
-          <div class="product-thumb">
-            <a href="#"><img src="{% static 'img/product/2.jfif' %}" alt=""></a>
-          </div>
-          <div class="product-details">
-            <h4>
-              <a href="#">Product 1 Lorem ipsum dolor sit amet consectetur adipisicing.</a>
-            </h4>
-            <p class="product-excerpt">Lorem ipsum dolor, sit amet consectetur adipisicing elit. Voluptatibus, odit.</p>
-            <div class="product-bottom-details d-flex justify-content-between">
-              <div class="product-price">
-                920 руб.
-              </div>
-              <div class="product-links">
-                <a href="#" class="btn btn-outline-dark add-to-cart"><i class="bi bi-cart4"></i></a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
-        <div class="product-card">
-          <div class="product-card-offer">
-            <div class="offer-hit">Hit</div>
-            <div class="offer-new">New</div>
-          </div>
-          <div class="product-thumb">
-            <a href="#"><img src="{% static 'img/product/3.jfif' %}" alt=""></a>
-          </div>
-          <div class="product-details">
-            <h4>
-              <a href="#">Product 1 Lorem ipsum dolor sit amet consectetur adipisicing.</a>
-            </h4>
-            <p class="product-excerpt">Lorem ipsum dolor, sit amet consectetur adipisicing elit. Voluptatibus, odit.</p>
-            <div class="product-bottom-details d-flex justify-content-between">
-              <div class="product-price">
-                820 руб.
-              </div>
-              <div class="product-links">
-                <a href="#" class="btn btn-outline-dark add-to-cart"><i class="bi bi-cart4"></i></a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
-        <div class="product-card">
-          <div class="product-card-offer">
-            <div class="offer-hit">Hit</div>
-            <div class="offer-new">New</div>
-          </div>
-          <div class="product-thumb">
-            <a href="#"><img src="{% static 'img/product/1.jfif' %}" alt=""></a>
-          </div>
-          <div class="product-details">
-            <h4>
-              <a href="#">Product 1 Lorem ipsum dolor sit amet consectetur adipisicing.</a>
-            </h4>
-            <p class="product-excerpt">Lorem ipsum dolor, sit amet consectetur adipisicing elit. Voluptatibus, odit.</p>
-            <div class="product-bottom-details d-flex justify-content-between">
-              <div class="product-price">
-                920 руб.
-              </div>
-              <div class="product-links">
-                <a href="#" class="btn btn-outline-dark add-to-cart"><i class="bi bi-cart4"></i></a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
-        <div class="product-card">
-          <div class="product-card-offer">
-            <div class="offer-hit">Hit</div>
-            <div class="offer-new">New</div>
-          </div>
-          <div class="product-thumb">
-            <a href="#"><img src="{% static 'img/product/2.jfif' %}" alt=""></a>
-          </div>
-          <div class="product-details">
-            <h4>
-              <a href="#">Product 1 Lorem ipsum dolor sit amet consectetur adipisicing.</a>
-            </h4>
-            <p class="product-excerpt">Lorem ipsum dolor, sit amet consectetur adipisicing elit. Voluptatibus, odit.</p>
-            <div class="product-bottom-details d-flex justify-content-between">
-              <div class="product-price">
-                3920 руб.
-              </div>
-              <div class="product-links">
-                <a href="#" class="btn btn-outline-dark add-to-cart"><i class="bi bi-cart4"></i></a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
-        <div class="product-card">
-          <div class="product-card-offer">
-            <div class="offer-hit">Hit</div>
-            <div class="offer-new">New</div>
-          </div>
-          <div class="product-thumb">
-            <a href="#"><img src="{% static 'img/product/3.jfif' %}" alt=""></a>
-          </div>
-          <div class="product-details">
-            <h4>
-              <a href="#">Product 1 Lorem ipsum dolor sit amet consectetur adipisicing.</a>
-            </h4>
-            <p class="product-excerpt">Lorem ipsum dolor, sit amet consectetur adipisicing elit. Voluptatibus, odit.</p>
-            <div class="product-bottom-details d-flex justify-content-between">
-              <div class="product-price">
-                1920 руб.
-              </div>
-              <div class="product-links">
-                <a href="#" class="btn btn-outline-dark add-to-cart"><i class="bi bi-cart4"></i></a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
-        <div class="product-card">
-          <div class="product-card-offer">
-            <div class="offer-hit">Hit</div>
-            <div class="offer-new">New</div>
-          </div>
-          <div class="product-thumb">
-            <a href="#"><img src="{% static 'img/product/2.jfif' %}" alt=""></a>
-          </div>
-          <div class="product-details">
-            <h4>
-              <a href="#">Product 1 Lorem ipsum dolor sit amet consectetur adipisicing.</a>
-            </h4>
-            <p class="product-excerpt">Lorem ipsum dolor, sit amet consectetur adipisicing elit. Voluptatibus, odit.</p>
-            <div class="product-bottom-details d-flex justify-content-between">
-              <div class="product-price">
-                3920 руб.
-              </div>
-              <div class="product-links">
-                <a href="#" class="btn btn-outline-dark add-to-cart"><i class="bi bi-cart4"></i></a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
-        <div class="product-card">
-          <div class="product-card-offer">
-            <div class="offer-hit">Hit</div>
-            <div class="offer-new">New</div>
-          </div>
-          <div class="product-thumb">
-            <a href="#"><img src="{% static 'img/product/3.jfif' %}" alt=""></a>
-          </div>
-          <div class="product-details">
-            <h4>
-              <a href="#">Product 1 Lorem ipsum dolor sit amet consectetur adipisicing.</a>
-            </h4>
-            <p class="product-excerpt">Lorem ipsum dolor, sit amet consectetur adipisicing elit. Voluptatibus, odit.</p>
-            <div class="product-bottom-details d-flex justify-content-between">
-              <div class="product-price">
-                2920 руб.
-              </div>
-              <div class="product-links">
-                <a href="#" class="btn btn-outline-dark add-to-cart"><i class="bi bi-cart4"></i></a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+    {% endwith %}
+    {% endfor %}
     </div>
   </div>
 </section>

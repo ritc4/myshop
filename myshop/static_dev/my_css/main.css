@@ -327,11 +327,19 @@ section{
 }
 
 /*==========================Product card======================*/
+
+
 .product-card{
   transition: all .3s;
   /* border: 1px solid black; */
   background-color: #fff;
-  position: relative;
+  position: relative; /* Чтобы использовать абсолютное позиционирование для элементов внутри */
+  display: flex; /* Включаем Flexbox */
+  flex-direction: column; /* Располагаем элементы в колонку */
+  width: calc(33.333333% - 21.52px);
+  width: auto;
+  height: auto;
+  overflow: hidden; /* Убираем переполнение */
 }
 
 .product-card:hover{
@@ -367,17 +375,27 @@ section{
   background-color: dodgerblue;
 }
 
-.product-thumb img, .pagination{
-  text-align: center;
+
+.product-thumb{
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    max-width: calc(100% - 1px);
+    height: 262px;
+
+    overflow: hidden;
 }
 
 .product-thumb img{
-  width: 100%; /* Заполнение ширины контейнера */
-  height: 100%; /* Заполнение высоты контейнера */
+  max-height: 208px; /* Максимальная высота изображения */
+  max-width: 100%;
+
 }
 
-.product-details{
-  padding: 10px 20px;
+.product-details {
+  margin-top: auto; /* Отталкивает блок вниз */
+  padding: 10px 20px; /* Отступы для деталей товара */
 }
 
 
@@ -602,8 +620,8 @@ section{
   }
 }
 
+  
 /*==========================Product Page======================*/
-
 
 .product-content .product-price {
   font-size: 25px;

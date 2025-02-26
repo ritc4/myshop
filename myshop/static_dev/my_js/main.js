@@ -91,13 +91,13 @@ document.addEventListener('DOMContentLoaded', function() {
       // Устанавливаем начальное значение цены
       var selectedOption = sizeSelect.options[sizeSelect.selectedIndex];
       var price = selectedOption ? selectedOption.getAttribute('data-price') : null;
-      priceDisplay.innerText = price ? 'Цена: ' + price + ' ₽' : 'Цена недоступна';
+      priceDisplay.innerText = price ? price + ' ₽' : 'Цена недоступна';
 
       // Добавляем обработчик событий для изменения размера
       sizeSelect.addEventListener('change', function() {
           var selectedOption = this.options[this.selectedIndex];
           var price = selectedOption ? selectedOption.getAttribute('data-price') : null;
-          priceDisplay.innerText = price ? 'Цена: ' + price + ' ₽' : 'Цена недоступна';
+          priceDisplay.innerText = price ? price + ' ₽' : 'Цена недоступна';
       });
   });
 });
@@ -130,4 +130,20 @@ document.addEventListener('DOMContentLoaded', function() {
           }
       }
   });
+});
+
+
+// Обработчик события вывод полного описания новости news_page.html
+document.addEventListener('DOMContentLoaded', function() {
+  window.toggleDescription = function(event, id) {
+      event.preventDefault();
+      const descriptionElement = document.getElementById(`full-description-${id}`);
+      if (descriptionElement.style.display === "none") {
+          descriptionElement.style.display = "block";
+          event.target.textContent = "Скрыть";
+      } else {
+          descriptionElement.style.display = "none";
+          event.target.textContent = "Читать полностью";
+      }
+  };
 });

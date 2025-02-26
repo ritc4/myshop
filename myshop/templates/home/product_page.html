@@ -68,9 +68,11 @@
           <div class="input-group">
             <form action="{% url "cart:cart_add" product.id %}" method="post"> 
               {% csrf_token %}
+              <label for="size-select_product">Выберите количество:</label>
               <input name="quantity" type="number" class="form-control" value="{{ cart_product_form.quantity.value|default:1 }}" min="1"/>
-                <select name="size" class="form-control custom-select" id="size-select_product" aria-label="Выберите размер" {% if cart_product_form.fields.size.required %}required{% endif %}>
-                    <option value="" disabled selected>Выберите размер</option>
+                <label for="size-select_product">Выберите размер:</label>
+              <select name="size" class="form-control custom-select" id="size-select_product" aria-label="Выберите размер" {% if cart_product_form.fields.size.required %}required{% endif %}> 
+                  <option value="" disabled selected>Выберите размер</option>
                     {% for value, price in cart_product_form.fields.size.choices %}
                       <option value="{{ value }}" {% if cart_product_form.size.value == value %}selected{% endif %} data-price="{{ price }}">{{ value }}</option>
                     {% endfor %}
@@ -144,20 +146,6 @@
                     О таваре
                   </button>
                 </li>
-                <li class="nav-item" role="presentation">
-                  <button
-                    class="nav-link"
-                    id="profile-tab"
-                    data-bs-toggle="tab"
-                    data-bs-target="#profile-tab-pane"
-                    type="button"
-                    role="tab"
-                    aria-controls="profile-tab-pane"
-                    aria-selected="false"
-                  >
-                    Условия
-                  </button>
-                </li>
               </ul>
               <div class="tab-content mt-3" id="myTabContent">
                 <div
@@ -171,20 +159,6 @@
                     {{ product.description }}
                   </p>
                 </div>
-                <div
-                  class="tab-pane fade"
-                  id="profile-tab-pane"
-                  role="tabpanel"
-                  aria-labelledby="profile-tab"
-                  tabindex="0"
-                >
-                  <p>
-                    Lorem ipsum dolor sit amet, consectetur adipisicing elit.
-                    Velit sequi doloremque, eligendi accusamus itaque aperiam.
-                    Eius ratione tempora, veniam culpa possimus laboriosam enim,
-                    neque non, rem magnam voluptatum odit illo.
-                  </p>
-                </div>   
               </div>
             </div>
           </div>

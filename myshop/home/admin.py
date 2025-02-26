@@ -1,7 +1,7 @@
 from django.contrib import admin
 from mptt.admin import MPTTModelAdmin
 from mptt.admin import DraggableMPTTAdmin
-from .models import Category,Size,Product,ProductImage,ProductPrice
+from .models import Category,Size,Product,ProductImage,ProductPrice,News,SizeTable,Uslovie_firm,Politica_firm
 from django.utils.safestring import mark_safe
 from slugify import slugify
 from django.utils.html import format_html
@@ -155,6 +155,32 @@ class ProductAdmin(admin.ModelAdmin):
             return mark_safe(f"<img src='{first_image.image.url}' width='50'>")
         return 'Нет фото'
     get_image.short_description = "Фото"
+
+
+
+@admin.register(News)
+class NewsAdmin(admin.ModelAdmin):
+    list_display = ('title','description','created',)
+
+
+
+@admin.register(SizeTable)
+class SizeTableAdmin(admin.ModelAdmin):
+    list_display = ('title','image',)
+
+
+
+@admin.register(Uslovie_firm)
+class Uslovie_firmAdmin(admin.ModelAdmin):
+    list_display = ('title','description',)
+
+
+
+@admin.register(Politica_firm)
+class Politica_firmAdmin(admin.ModelAdmin):
+    list_display = ('title','description',)
+
+
 
 
 admin.site.register(Category,DraggableMPTTAdmin,

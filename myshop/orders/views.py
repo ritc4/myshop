@@ -2,13 +2,15 @@ from cart.cart import Cart
 from django.shortcuts import render,redirect
 from .forms import OrderCreateForm
 from .models import OrderItem
-from home.models import Category
+from home.models import Category,Politica_firm,Uslovie_firm
 
 
 def order_create(request): 
     categories = Category.objects.all()
     cart = Cart(request)
     get_root_catalog = categories.first().get_absolute_url()
+    politica = Politica_firm.objects.first()
+    uslovia = Uslovie_firm.objects.first()
 
     # Проверка на наличие товаров в корзине
     if not cart or not any(item['quantity'] > 0 for item in cart):
@@ -37,5 +39,5 @@ def order_create(request):
     return render(
         request,
         'orders/order/checkout_page.html',
-        {'cart': cart, 'form': form,'categories': categories,}
+        {'cart': cart, 'form': form,'categories': categories,'politica':politica,'uslovia':uslovia}
     ) 

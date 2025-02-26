@@ -1,0 +1,27 @@
+{% extends "base.html" %} {% load static %} 
+{% block title%}Reviewspage{%endblock %} 
+
+{% block content %} 
+
+{% include "includes/breadcrumb.html" %}
+
+
+<div class="container-fluid">
+  <div class="row">
+      <div class="reviews">
+        {% for i in size_table %}
+    <div class="card product-reviews mb-3">
+        <div class="card-body">
+            <div class="product-reviews-header d-flex justify-content-between">
+                <!-- <h5 class="card-title">{{ i.title }}</h5> -->
+            </div>
+            <div class="card-text text-center">
+                <img src="{{ i.image.url }}" alt="{{ i.title }}" class="img-thumbnail">
+            </div>
+        </div>
+    </div>
+{% endfor %}
+      </div>
+  </div>
+</div>
+{% endblock %}
