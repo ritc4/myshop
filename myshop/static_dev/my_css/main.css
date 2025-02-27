@@ -383,7 +383,6 @@ section{
     justify-content: center;
     max-width: calc(100% - 1px);
     height: 262px;
-
     overflow: hidden;
 }
 

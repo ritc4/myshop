@@ -152,3 +152,20 @@ class Politica_firm(models.Model):
     class Meta:
         verbose_name = 'Политика конфиденциальности'
         verbose_name_plural = 'Политика конфиденциальности'
+
+class ImageSliderHome(models.Model):
+    image = models.ImageField(upload_to='slider_home/%Y/%m/%d', blank=True,null=True, verbose_name='Изображение')
+
+
+    class Meta:
+        verbose_name = 'Изображение главной страницы'
+        verbose_name_plural = 'Изображения главной страницы'
+
+
+class DeliveryInfo(models.Model):
+    title = models.CharField(max_length=255,verbose_name='Доставка',blank=False)
+    description = models.TextField(verbose_name='Описание',blank=False)
+
+    class Meta:
+        verbose_name = 'Информацию по доставке'
+        verbose_name_plural = 'Информация по доставке'

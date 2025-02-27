@@ -27,27 +27,15 @@
     ></button>
   </div>
   <div class="carousel-inner">
-    <div class="carousel-item active">
+    {% for i in slider_image %}
+    <div class="carousel-item {% if forloop.first %}active{% endif %}">
       <img
-        src="{% static 'img/slider/1.jfif' %}"
+        src="{{ i.image.url }}"
         class="d-block w-100"
         alt="..."
       />
     </div>
-    <div class="carousel-item">
-      <img
-        src="{% static 'img/slider/2.jfif' %}"
-        class="d-block w-100"
-        alt="..."
-      />
-    </div>
-    <div class="carousel-item">
-      <img
-        src="{% static 'img/slider/3.jfif' %}"
-        class="d-block w-100"
-        alt="..."
-      />
-    </div>
+    {% endfor %}
   </div>
   <button
     class="carousel-control-prev"

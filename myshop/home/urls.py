@@ -1,17 +1,17 @@
 from django.urls import path
-from .views import home,product_detail,registration,login,reviews,contacts,delivery,news,ProductListView,size_table
+from .views import HomeView,ProductDetailView,registration,login,ReviewsView,ContactsView,DeliveryView,NewsListView,ProductListView,SizeTableListView
 
 app_name = 'home'
 
 urlpatterns = [
-    path('', home, name='home'),
+    path('', HomeView.as_view(), name='home'),
     path('category/<str:slug>/', ProductListView.as_view(), name='category'),
-    path('<int:id>/<slug:slug>/', product_detail, name='product_detail'),
+    path('<int:id>/<slug:slug>/', ProductDetailView.as_view(), name='product_detail'),
     path('registration/', registration, name='registration'),
     path('login/', login, name='login'),
-    path('reviews/', reviews, name='reviews'),
-    path('contacts/', contacts, name='contacts'),
-    path('delivery/', delivery, name='delivery'),
-    path('news/', news, name='news'),
-    path('size_table/', size_table, name='size_table'),
+    path('reviews/', ReviewsView.as_view(), name='reviews'),
+    path('contacts/', ContactsView.as_view(), name='contacts'),
+    path('delivery/', DeliveryView.as_view(), name='delivery'),
+    path('news/', NewsListView.as_view(), name='news'),
+    path('size_table/', SizeTableListView.as_view(), name='size_table'),
     ]

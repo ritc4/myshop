@@ -1,41 +1,58 @@
 from django.shortcuts import render,get_object_or_404
-from .models import Category,Product,News,SizeTable
+from .models import Category,Product,News,SizeTable,ImageSliderHome,DeliveryInfo
 from cart.forms import CartAddProductForm
 from django.db.models import Sum
+from django.db.models import Case, When
 from orders.models import OrderItem
-from django.views.generic import ListView
+from django.views.generic import ListView,DetailView
 
 
-def home(request):
-    categories = Category.objects.all()
-    # Получаем самые продаваемые товары
-    top_selling_products = (
-        OrderItem.objects
-        .values('product__id', 'product__title')  # Получаем ID и название товара
-        .annotate(total_quantity=Sum('quantity'))  # Суммируем количество
-        .order_by('-total_quantity')[:8]  # Ограничиваем до 8 самых продаваемых
-    )
-
-    # Получаем сами продукты по их ID
-    product_ids = [item['product__id'] for item in top_selling_products]
-    products = Product.objects.filter(id__in=product_ids)
-
-    # Создаем формы для добавления в корзину
-    cart_product_form = [(product, CartAddProductForm(product=product)) for product in products]
-
-    # Обрабатываем продукты для нахождения минимальной цены и получения размеров
-    for product in products:
-        prices = product.product_prices.all()  # Получаем все цены для продукта
-        if prices.exists():
-            product.min_price = min(prices, key=lambda x: x.price).price
-            product.min_price_size = min(prices, key=lambda x: x.price).size  # Получаем размер с минимальной ценой
-        else:
-            product.min_price = None
-            product.min_price_size = None
-    
-    return render(request, 'home/home_page.html', {'categories':categories,'cart_product_form':cart_product_form})
 
 
+class HomeView(ListView):
+    template_name = 'home/home_page.html'
+    context_object_name = 'products'  # Имя контекста для списка продуктов
+
+    def get_queryset(self):
+        # Получаем самые продаваемые товары
+        top_selling_products = (
+            OrderItem.objects
+            .values('product__id', 'product__title')  # Получаем ID и название товара
+            .annotate(total_quantity=Sum('quantity'))  # Суммируем количество
+            .order_by('-total_quantity')[:8]  # Ограничиваем до 8 самых продаваемых
+        )
+
+        # Получаем ID товаров в порядке их продаж
+        product_ids = [item['product__id'] for item in top_selling_products]
+
+        # Используем Case и When для сохранения порядка
+        products = Product.objects.filter(id__in=product_ids).order_by(
+            Case(*[When(id=prod_id, then=idx) for idx, prod_id in enumerate(product_ids)])
+        )
+
+        return products
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['categories'] = Category.objects.all()
+        context['slider_image'] = ImageSliderHome.objects.all()
+
+        # Создаем формы для добавления в корзину
+        context['cart_product_form'] = [
+            (product, CartAddProductForm(product=product)) for product in context['products']
+        ]
+
+        # Обрабатываем продукты для нахождения минимальной цены и получения размеров
+        for product in context['products']:
+            prices = product.product_prices.all()  # Получаем все цены для продукта
+            if prices.exists():
+                product.min_price = min(prices, key=lambda x: x.price).price
+                product.min_price_size = min(prices, key=lambda x: x.price).size  # Получаем размер с минимальной ценой
+            else:
+                product.min_price = None
+                product.min_price_size = None
+
+        return context
 
 
 class ProductListView(ListView):
@@ -79,31 +96,82 @@ class ProductListView(ListView):
         return context
 
 
-def product_detail(request,id,slug):
-    product = get_object_or_404(Product,id=id,slug=slug,is_hidden=False)
-    categories = Category.objects.all()  # Получаем все категории
-    cart_product_form = CartAddProductForm(product=product)
+class ProductDetailView(DetailView):
+    model = Product
+    template_name = 'home/product_page.html'
+    context_object_name = 'product'
 
-    return render(request, 'home/product_page.html', 
-        {'product': product, 
-         'categories': categories,
-         'cart_product_form':cart_product_form})
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        product = self.object  # Получаем текущий продукт
+        context['categories'] = Category.objects.all()  # Получаем все категории
+        context['cart_product_form'] = CartAddProductForm(product=product)  # Форма добавления в корзину
+        return context
 
-
-def news(request):
-    categories = Category.objects.all()
-    news = News.objects.all()
-    return render(request, 'home/news_page.html',{'categories': categories,'news':news})
-
-def size_table(request):
-    categories = Category.objects.all()
-    size_table = SizeTable.objects.all()
-    return render(request, 'home/size_table_page.html',{'categories': categories,'size_table':size_table})
+    def get_object(self, queryset=None):
+        # Переопределяем метод, чтобы добавить проверку на is_hidden
+        obj = super().get_object(queryset)
+        if obj.is_hidden:
+            raise Http404("Product not found")
+        return obj
 
 
+class NewsListView(ListView):
+    model = News
+    template_name = 'home/news_page.html'
+    context_object_name = 'news'  # Имя контекста для списка новостей
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['categories'] = Category.objects.all()  # Получаем все категории
+        return context
+    
 
 
+class SizeTableListView(ListView):
+    model = SizeTable
+    template_name = 'home/size_table_page.html'
+    context_object_name = 'size_table'  # Имя контекста для списка размеров
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['categories'] = Category.objects.all()  # Получаем все категории
+        return context
+
+
+class DeliveryView(ListView):
+    model = DeliveryInfo
+    template_name = 'home/delivery_page.html'
+    context_object_name = 'delivery_info'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['categories'] = Category.objects.all()  # Получаем все категории
+        return context
+
+
+class ContactsView(ListView):
+    model = DeliveryInfo
+    template_name = 'home/contacts_page.html'
+    context_object_name = ''
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['categories'] = Category.objects.all()  # Получаем все категории
+        return context
+    
+
+
+class ReviewsView(ListView):
+    model = DeliveryInfo
+    template_name = 'home/reviews_page.html'
+    context_object_name = ''
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['categories'] = Category.objects.all()  # Получаем все категории
+        return context
+    
 
 
 def registration(request):
@@ -115,14 +183,4 @@ def login(request):
     return render(request, 'home/login_page.html',{'categories': categories})
 
 
-def reviews(request):
-    categories = Category.objects.all()  # Получите все категории
-    return render(request, 'home/reviews_page.html',{'categories': categories})
 
-def contacts(request):
-    categories = Category.objects.all()  # Получите все категории
-    return render(request, 'home/contacts_page.html',{'categories': categories})
-
-def delivery(request):
-    categories = Category.objects.all()  # Получите все категории
-    return render(request, 'home/delivery_page.html',{'categories': categories})

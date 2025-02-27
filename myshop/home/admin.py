@@ -1,7 +1,7 @@
 from django.contrib import admin
 from mptt.admin import MPTTModelAdmin
 from mptt.admin import DraggableMPTTAdmin
-from .models import Category,Size,Product,ProductImage,ProductPrice,News,SizeTable,Uslovie_firm,Politica_firm
+from .models import Category,Size,Product,ProductImage,ProductPrice,News,SizeTable,Uslovie_firm,Politica_firm,ImageSliderHome,DeliveryInfo
 from django.utils.safestring import mark_safe
 from slugify import slugify
 from django.utils.html import format_html
@@ -175,10 +175,21 @@ class Uslovie_firmAdmin(admin.ModelAdmin):
     list_display = ('title','description',)
 
 
+@admin.register(DeliveryInfo)
+class DeliveryInfoAdmin(admin.ModelAdmin):
+    list_display = ('title','description',)
+
+
 
 @admin.register(Politica_firm)
 class Politica_firmAdmin(admin.ModelAdmin):
     list_display = ('title','description',)
+
+
+
+@admin.register(ImageSliderHome)
+class ImageSliderHome(admin.ModelAdmin):
+    list_display = ('image',)
 
 
 
