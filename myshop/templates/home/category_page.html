@@ -11,14 +11,14 @@
     <div class="col-lg-3 col-md-4 d-none d-md-block">
       <div class="sidebar">
         <div class="collapse collapse-category" id="sidebar-collapse">
-          <div class="left-sidebar-title">
+          <div class="left-sidebar-title text-center">
             <h4>Категории товаров</h4>
           </div>
-          <div class="catalog-item">
+          <div class="catalog-item-category">
             {% for i in get_descendants_cat %}
-            <div class="catalog-item-link">
-              <a href="{{ i.get_absolute_url }}" class="catalog__link ">
-                <span>{{ i.name }}</span>
+            <div class="catalog-item-link-category">
+              <a href="{{ i.get_absolute_url }}" class="catalog_link_category">
+                <button class="btn btn-outline-dark" type="button">{{ i.name }}</button>
               </a>
             </div>
             {% endfor %}
@@ -59,28 +59,25 @@
           
           {% else %}
               <div class="row mb-3">
-                <div class="col-sm-6 mb-2 mb-sm-0">
+                <div class="col-sm-12 mb-2 mb-sm-0">
                   <div class="input-group">
-                    <span class="input-group-text">Сортировать:</span>
-                    <select class="form-select" aria-label="Сортировка" id="name-price" onchange="this.form.submit()">
+                    <select class="form-select form-select-sort me-3" aria-label="Сортировка" id="name-price">
                         <option value="created" {% if request.GET.sort == "created" %}selected{% endif %}>По дате добавления</option>
                         <option value="min_price" {% if request.GET.sort == "min_price" %}selected{% endif %}>Цена (от низкой к высокой)</option>
                         <option value="-min_price" {% if request.GET.sort == "-min_price" %}selected{% endif %}>Цена (от высокой к низкой)</option>
                     </select>
                     <input type="hidden" name="per_page" value="{{ per_page }}">
-                </div>
-                </div>
-                  <div class="col-sm-6">
-                    <div class="input-group">
-                      <span class="input-group-text">Показать:</span>
-                      <select class="form-select" id="per_page" onchange="updatePerPage(this.value)">
+                  
+                
+                    
+                      <select class="form-select form-select-view" id="per_page" onchange="updatePerPage(this.value)">
                         <option value="30" {% if per_page|add:0 == 30 %}selected{% endif %}>30</option>
                         <option value="60" {% if per_page|add:0 == 60 %}selected{% endif %}>60</option>
                         <option value="80" {% if per_page|add:0 == 80 %}selected{% endif %}>80</option>
                         <option value="100" {% if per_page|add:0 == 100 %}selected{% endif %}>100</option>
-                    </select>
-                  </div>
-                  </div>
+                      </select>
+                    </div>
+                </div>
               </div>
   
               <div class="row">

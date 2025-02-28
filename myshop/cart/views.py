@@ -48,9 +48,15 @@ def cart_detail(request):
     for item in cart:
         item['update_quantity_form'] = CartAddProductForm(
             initial={'quantity': item['quantity'], 'override': True, 'size': item['size'],})
+        
+    # Создание хлебных крошек
+    breadcrumbs = [
+        {'name': 'Корзина', 'slug': '/cart/'}  # Текущая страница без ссылки
+        ]
+    
     print("Содержимое корзины:", cart.get_cart_items()) 
     return render(request, 'cart/cart_page.html', {
         'cart': cart,
         'categories': categories,
-        'get_root_catalog': get_root_catalog, 'is_cart_empty': is_cart_empty,
+        'get_root_catalog': get_root_catalog, 'is_cart_empty': is_cart_empty,'breadcrumbs': breadcrumbs,  # Добавляем хлебные крошки в контекст
     })

@@ -150,23 +150,45 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 // Обработчик события вывод сортировки по цене и названию продуктов в category_page.html
-function sortProducts() {
-  const select = document.getElementById('name-price');
-  const selectedValue = select.value;
+// function sortProducts() {
+//   const select = document.getElementById('name-price');
+//   const selectedValue = select.value;
 
-  // Получаем текущее значение per_page из URL
-  const urlParams = new URLSearchParams(window.location.search);
-  const perPage = urlParams.get('per_page') || 30; // Установите значение по умолчанию, если per_page не найден
+//   // Получаем текущее значение per_page из URL
+//   const urlParams = new URLSearchParams(window.location.search);
+//   const perPage = urlParams.get('per_page') || 30; // Установите значение по умолчанию, если per_page не найден
 
-  // Обновляем URL с параметрами сортировки и per_page
-  window.location.href = `?sort=${encodeURIComponent(selectedValue)}&per_page=${encodeURIComponent(perPage)}`;
-}
+//   // Обновляем URL с параметрами сортировки и per_page
+//   window.location.href = `?sort=${encodeURIComponent(selectedValue)}&per_page=${encodeURIComponent(perPage)}`;
+// }
+
+// document.addEventListener('DOMContentLoaded', function() {
+//   const select = document.getElementById('name-price');
+//   select.addEventListener('change', sortProducts); // Привязываем обработчик события
+// });
+
 
 document.addEventListener('DOMContentLoaded', function() {
+  // Проверяем, существует ли элемент с ID 'name-price'
   const select = document.getElementById('name-price');
-  select.addEventListener('change', sortProducts); // Привязываем обработчик события
-});
+  
+  if (select) {
+      // Функция сортировки
+      function sortProducts() {
+          const selectedValue = select.value;
 
+          // Получаем текущее значение per_page из URL
+          const urlParams = new URLSearchParams(window.location.search);
+          const perPage = urlParams.get('per_page') || 30; // Установите значение по умолчанию, если per_page не найден
+
+          // Обновляем URL с параметрами сортировки и per_page
+          window.location.href = `?sort=${encodeURIComponent(selectedValue)}&per_page=${encodeURIComponent(perPage)}`;
+      }
+
+      // Привязываем обработчик события
+      select.addEventListener('change', sortProducts);
+  }
+});
 
 
 

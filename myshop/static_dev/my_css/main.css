@@ -329,6 +329,14 @@ section{
 /*==========================Product card======================*/
 
 
+.form-select-sort{
+  max-width: 260px;
+}
+
+.form-select-view{
+  max-width: 80px;
+}
+
 .product-card{
   transition: all .3s;
   /* border: 1px solid black; */
@@ -449,6 +457,38 @@ section{
 }
 
 /*==========================Catalog category product======================*/
+
+.catalog-item-category {
+  gap: 1px; /* Отступ между кнопками */
+}
+
+.catalog-item-link-category {
+  flex: 1; /* Каждая кнопка займет равную ширину */
+}
+
+.catalog_link_category {
+  width: 100%; /* Ссылка занимает всю ширину родительского элемента */
+}
+
+.catalog_link_category .btn {
+  width: 100%; /* Кнопки будут занимать всю ширину ссылки */
+  padding: 0.5rem;
+  border: none; /* Убираем бордер у кнопки */
+  outline: none; /* Убираем контур при фокусе (если нужно) */
+  box-shadow: none; /* Убираем тень, если она есть */
+}
+
+.catalog-item-link-category{
+  margin-bottom: 0.5rem;
+}
+
+.left-sidebar-title{
+  padding: 1rem;
+}
+
+.left-sidebar-title h4{
+  margin: 0;
+}
 
 .catalog-category{
   padding: 10px 20px;

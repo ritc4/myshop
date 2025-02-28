@@ -26,6 +26,9 @@ class Category(MPTTModel):
 
     class MPTTMeta:
         order_insertion_by = ['name']
+
+    def get_breadcrumbs(self):
+        return self.get_ancestors(include_self=True)
         
 
 

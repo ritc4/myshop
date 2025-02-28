@@ -6,9 +6,9 @@
         <div class="col-md-3 col-6">
           <h4>Панель управления</h4>
           <ul class="list-unstyled">
-            <li><a href="#">Главная</a></li>
-            <li><a href="#">Доставка и Оплата</a></li>
-            <li><a href="#">Корзина</a></li>
+            <li><a href="{% url 'home:home' %}">Главная</a></li>
+            <li><a href="{% url 'home:delivery' %}">Доставка и Оплата</a></li>
+            <li><a href="{% url 'cart:cart_detail' %}">Корзина</a></li>
             <li><a href="#">Вход в личный кабинет</a></li>
           </ul>
         </div>
