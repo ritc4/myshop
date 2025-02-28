@@ -61,7 +61,7 @@
               <div class="row mb-3">
                 <div class="col-sm-6 mb-2 mb-sm-0">
                   <div class="input-group">
-                    <span class="input-group-text">Сортировать по:</span>
+                    <span class="input-group-text">Сортировать:</span>
                     <select class="form-select" aria-label="Сортировка" id="name-price" onchange="this.form.submit()">
                         <option value="created" {% if request.GET.sort == "created" %}selected{% endif %}>По дате добавления</option>
                         <option value="min_price" {% if request.GET.sort == "min_price" %}selected{% endif %}>Цена (от низкой к высокой)</option>
@@ -72,13 +72,13 @@
                 </div>
                   <div class="col-sm-6">
                     <div class="input-group">
-                      <span class="input-group-text">Сортировать по:</span>
-                        <select id="per_page" onchange="updatePerPage(this.value)">
-                            <option value="2" {% if per_page == 2 %}selected{% endif %}>2</option>
-                            <option value="5" {% if per_page == 5 %}selected{% endif %}>5</option>
-                            <option value="7" {% if per_page == 7 %}selected{% endif %}>7</option>
-                            <option value="30"{% if per_page == 30 %}selected{% endif %}>30</option>
-                        </select>
+                      <span class="input-group-text">Показать:</span>
+                      <select class="form-select" id="per_page" onchange="updatePerPage(this.value)">
+                        <option value="30" {% if per_page|add:0 == 30 %}selected{% endif %}>30</option>
+                        <option value="60" {% if per_page|add:0 == 60 %}selected{% endif %}>60</option>
+                        <option value="80" {% if per_page|add:0 == 80 %}selected{% endif %}>80</option>
+                        <option value="100" {% if per_page|add:0 == 100 %}selected{% endif %}>100</option>
+                    </select>
                   </div>
                   </div>
               </div>
