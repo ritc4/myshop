@@ -147,3 +147,49 @@ document.addEventListener('DOMContentLoaded', function() {
       }
   };
 });
+
+
+// Обработчик события вывод сортировки по цене и названию продуктов в category_page.html
+function sortProducts() {
+  const select = document.getElementById('name-price');
+  const selectedValue = select.value;
+
+  // Получаем текущее значение per_page из URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const perPage = urlParams.get('per_page') || 30; // Установите значение по умолчанию, если per_page не найден
+
+  // Обновляем URL с параметрами сортировки и per_page
+  window.location.href = `?sort=${selectedValue}&per_page=${perPage}`;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  const select = document.getElementById('name-price');
+  select.addEventListener('change', sortProducts); // Привязываем обработчик события
+});
+
+
+
+
+// Обработчик события вывод сортировки по количеству продуктов в category_page.html
+function updatePerPage(value) {
+  console.log('Updating per_page to:', value); // Проверка значения
+  const sortSelect = document.getElementById('sort');
+  const sortValue = sortSelect ? sortSelect.value : '';
+  console.log('Current sort value:', sortValue); // Проверка текущей сортировки
+
+  const newUrl = new URL(window.location.href);
+  newUrl.searchParams.set('per_page', value);
+  newUrl.searchParams.set('page', 1); // Сбрасываем страницу на 1
+
+  // Если сортировка изменяется, устанавливаем per_page в 30
+  if (sortValue) {
+      newUrl.searchParams.set('sort', sortValue);
+      if (value !== '30') { // Если значение не 30, устанавливаем 30
+          newUrl.searchParams.set('per_page', '30');
+      }
+  }
+
+  console.log('New URL:', newUrl.toString()); // Проверка нового URL
+  window.location.href = newUrl.toString();
+}
+

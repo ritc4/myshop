@@ -5,6 +5,7 @@ from django.db.models import Sum
 from django.db.models import Case, When
 from orders.models import OrderItem
 from django.views.generic import ListView,DetailView
+from django.db.models import Min
 
 
 
@@ -55,29 +56,72 @@ class HomeView(ListView):
         return context
 
 
+
+
+# class ProductListView(ListView):
+#     model = Product
+#     template_name = 'home/category_page.html'
+#     context_object_name = 'products'
+#     paginate_by = 30  # Количество продуктов на странице
+
+#     def get_queryset(self):
+#         # Получаем категорию по слагу
+#         slug = self.kwargs.get('slug')
+#         category = get_object_or_404(Category, slug=slug)
+
+#         # Фильтруем продукты по выбранной категории
+#         products = Product.objects.filter(category=category, is_hidden=False).prefetch_related('product_prices__size')
+
+#         # Обработка сортировки
+#         sort_by = self.request.GET.get('sort', 'created')  # По умолчанию сортируем по времени добавления
+#         if sort_by == 'min_price':
+#             products = products.annotate(min_price=Min('product_prices__price')).order_by('min_price')
+#         elif sort_by == '-min_price':
+#             products = products.annotate(min_price=Min('product_prices__price')).order_by('-min_price')
+#         else:
+#             # По умолчанию сортируем по дате создания
+#             products = products.annotate(min_price=Min('product_prices__price')).order_by('-created')  # Добавлено аннотирование
+
+#         return products
+
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         slug = self.kwargs.get('slug')
+#         context['category'] = get_object_or_404(Category, slug=slug)
+#         context['categories'] = Category.objects.all()  # Получаем все категории
+#         context['get_root_cat'] = context['category'].get_root()  # Получаем корневую категорию
+#         context['get_children_cat'] = context['category'].get_children()  # Получаем дочерние категории
+#         context['get_descendants_cat'] = context['get_root_cat'].get_children()  # Получаем все дочерние категории корня
+        
+#         # Создаем формы для добавления продуктов в корзину
+#         context['cart_product_form'] = [(product, CartAddProductForm(product=product)) for product in context['products']]
+        
+#         return context
+
+
+
 class ProductListView(ListView):
     model = Product
     template_name = 'home/category_page.html'
     context_object_name = 'products'
-    paginate_by = 30  # Количество продуктов на странице
+    paginate_by = 30  # Значение по умолчанию для количества продуктов на странице
 
     def get_queryset(self):
         # Получаем категорию по слагу
         slug = self.kwargs.get('slug')
         category = get_object_or_404(Category, slug=slug)
-        
+
         # Фильтруем продукты по выбранной категории
         products = Product.objects.filter(category=category, is_hidden=False).prefetch_related('product_prices__size')
 
-        # Обрабатываем продукты для нахождения минимальной цены и получения размеров
-        for product in products:
-            prices = product.product_prices.all()  # Получаем все цены для продукта
-            if prices.exists():
-                product.min_price = min(prices, key=lambda x: x.price).price
-                product.min_price_size = min(prices, key=lambda x: x.price).size  # Получаем размер с минимальной ценой
-            else:
-                product.min_price = None
-                product.min_price_size = None
+        # Обработка сортировки
+        sort_by = self.request.GET.get('sort', 'created')  # По умолчанию сортируем по времени добавления
+        if sort_by == 'min_price':
+            products = products.annotate(min_price=Min('product_prices__price')).order_by('min_price')
+        elif sort_by == '-min_price':
+            products = products.annotate(min_price=Min('product_prices__price')).order_by('-min_price')
+        else:
+            products = products.annotate(min_price=Min('product_prices__price')).order_by('-created')
 
         return products
 
@@ -89,11 +133,21 @@ class ProductListView(ListView):
         context['get_root_cat'] = context['category'].get_root()  # Получаем корневую категорию
         context['get_children_cat'] = context['category'].get_children()  # Получаем дочерние категории
         context['get_descendants_cat'] = context['get_root_cat'].get_children()  # Получаем все дочерние категории корня
-        
+
         # Создаем формы для добавления продуктов в корзину
         context['cart_product_form'] = [(product, CartAddProductForm(product=product)) for product in context['products']]
-        
+
+        # Устанавливаем количество продуктов на странице
+        per_page = self.request.GET.get('per_page', self.paginate_by)  # Получаем значение per_page из GET-запроса
+        context['per_page'] = per_page
+
         return context
+
+    def get_paginate_by(self, request):
+        per_page = self.request.GET.get('per_page', self.paginate_by)  # Получаем значение per_page из GET-запроса
+        if isinstance(per_page, str) and per_page.isdigit():
+            return int(per_page)
+        return self.paginate_by  # Вернуть значение по умолчанию
 
 
 class ProductDetailView(DetailView):
