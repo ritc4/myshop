@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    "debug_toolbar",
     'mptt',
     'home.apps.HomeConfig',
     'cart.apps.CartConfig',
@@ -52,6 +53,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
 ]
 
 ROOT_URLCONF = 'myshop.urls'
@@ -146,3 +148,6 @@ USE_TZ = True  # Убедитесь, что использование врем�
 
 
 CART_SESSION_ID = 'cart'
+
+
+INTERNAL_IPS = ['127.0.0.1']

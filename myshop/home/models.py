@@ -57,6 +57,9 @@ class ProductPrice(models.Model):
     class Meta:
         verbose_name = 'Размер и Цена товара'
         verbose_name_plural = 'Размеры и Цены товара'
+        indexes = [
+            models.Index(fields=['product']),  # Индекс для поля product
+        ]
     
 
 class Product(models.Model):
@@ -78,6 +81,7 @@ class Product(models.Model):
             models.Index(fields=['id', 'slug']),
             models.Index(fields=['title']),
             models.Index(fields=['-created']),
+            models.Index(fields=['category']),  # Индекс для поля category
         ]
     
     
