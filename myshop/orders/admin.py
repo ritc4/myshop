@@ -2,6 +2,13 @@ from django.contrib import admin
 from .models import Order, OrderItem,DeliveryMethod
 from django.utils.safestring import mark_safe
 from django.db.models import Q
+from django.urls import reverse
+
+
+def order_pdf(obj):
+    url = reverse('orders:admin_order_pdf', args=[obj.id]) 
+    return mark_safe(f'<a href="{url}">Чек</a>')
+order_pdf.short_description = 'Чеки'
 
 
 
@@ -51,9 +58,11 @@ class OrderAdmin(admin.ModelAdmin):
         'created',
         'updated',
         'get_total_cost',
-        'get_total_zakup_cost', 
+        'get_total_zakup_cost',
+         order_pdf, 
         ]
     
+    list_editable = ['paid']
     readonly_fields = ['get_total_zakup_cost','get_total_cost']
     list_filter = ['paid', 'created', 'updated'] 
     inlines = [OrderItemInline]

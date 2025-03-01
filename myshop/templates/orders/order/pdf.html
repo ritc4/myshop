@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Товарный чек № {{ order.id }} {{ order.first_name_last_name }} от {{ order.created|date:"d.m.Y" }}</title>
+    <style>
+        @page {
+            size: A4 landscape; /* Установка размера страницы в альбомной ориентации */
+            margin: 20mm; /* Установка отступов, при необходимости */
+        }
+        /* Остальные стили вашего документа */
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 12px; /* Установите нужный размер шрифта */
+            margin: 0;
+        }
+        .logo-img {
+            text-align: center;
+            
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .total {
+            font-weight: bold;
+        }
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+        }
+        .bold {
+        font-weight: bold; /* Установка жирного шрифта */
+    }
+    .payment{
+        font-weight: bold; /* Установка жирного шрифта */
+    }
+
+        /* Изменение ширины ячеек */
+    .number {
+        width: 5%; /* 15% ширины для артикулов */
+    }
+    .article-cell {
+        width: 15%; /* 15% ширины для артикулов */
+    }
+    .name-cell {
+        width: 50%; /* 40% ширины для наименования */
+    }
+    .price-cell {
+        width: 10%; /* 15% ширины для цены */
+    }
+    .quantity-cell {
+        width: 10%; /* 15% ширины для количества */
+    }
+    .sum-cell {
+        width: 10%; /* 15% ширины для суммы */
+    }
+    </style>
+</head>
+<body>
+    <div class="logo-img">
+        <img src="{{ logo_path }}" class="img-fluid header-img-logo" alt="Логотип" style="max-width: 150px; height: auto;" />
+    </div>
+
+    <h2>cozy.su</h2>
+    <p>Email: cozyopt@gmail.com</p>
+    <h3>Товарный чек № {{ order.id }} от {{ order.created|date:"d.m.Y" }}</h3>
+
+    <table>
+        <thead>
+            <tr>
+                <th>№</th>
+                <th>Артикул</th>
+                <th>Наименование</th>
+                <th>Цена</th>
+                <th>Кол-во</th>
+                <th>Сумма</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in order.items.all %}
+            <tr>
+                <td class="number">{{ forloop.counter }}</td>
+                <td class="article-cell">{{ item.product.article_number }}</td>
+                <td class="name-cell">{{ item.product.title }} (Размер: {{ item.size }})</td>
+                <td class="price-cell">{{ item.price }} ₽</td>
+                <td class="quantity-cell">{{ item.quantity }} шт</td>
+                <td class="sum-cell">{{ item.get_cost }} ₽</td>
+            </tr>
+            {% endfor %}
+            <tr class="delivery">
+                <td colspan="3">Выбранный способ доставки:</td>
+                <td colspan="2">{{ order.delivery_method }}</td>
+                <td colspan="1"></td>
+            </tr>
+            <tr class="total">
+                <td colspan="5">Итого</td>
+                <td>{{ order.get_total_cost }} ₽</td>
+            </tr>
+        </tbody>
+        </table>
+            
+                <p class="line" align="right">Количество позиций: {{ total_items }}
+                  Общее количество: {{ total_quantity }} шт
+                </p>
+            
+            
+                <p class="line">
+                    Способ оплаты: По выставленному счету на карту Сбербанка
+                </p>
+                <p 
+                class="payment">{% if order.paid %}Оплачен{% else %}Не оплачен{% endif %}
+                </p>
+            
+        
+    
+    <p>Покупатель: {{ order.first_name_last_name }}<br>Тел.: {{ order.phone }}<br>Адрес: {{ order.address }}, {{ order.region }}, {{ order.city }}</p>
+    <div class="footer" style="display: flex; justify-content: space-between;">
+              <p width="50%"><font face="Arial" size="3">Поставщик ______________________</font></p>
+              <p width="50%"><font face="Arial" size="3">Покупатель ______________________</font></p>
+    </div>
+</body>
+</html>
