@@ -6,6 +6,8 @@ from django.utils.safestring import mark_safe
 from slugify import slugify
 from django.utils.html import format_html
 
+
+
 @admin.register(Size)
 class SizeAdmin(admin.ModelAdmin):
     list_display = ('title',)  # Отображение названия размера в админке
@@ -46,7 +48,7 @@ class ProductPriceInline(admin.TabularInline):
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     inlines = [ProductImageInline, ProductPriceInline]  # Подключаем инлайн для изображений
-    list_display = ('get_image','title', 'article_number', 'stock', 'unit','get_prices_and_sizes' ,'get_zacup_prices_and_sizes','get_old_prices_and_sizes','is_hidden','category','mesto')  # Отображение полей продукта в админке
+    list_display = ('get_image','title', 'article_number', 'stock', 'unit', 'get_prices_and_sizes','get_zacup_prices_and_sizes','get_old_prices_and_sizes','is_hidden','category','mesto')  # Отображение полей продукта в админке
     list_filter = ('is_hidden','category','created','updated','mesto')
     prepopulated_fields = {'slug':('title','article_number',)}
     search_fields = ['title','article_number',]  # Позволяет искать продукты по названию
@@ -82,6 +84,7 @@ class ProductAdmin(admin.ModelAdmin):
         return 'Нет цен'
 
     get_old_prices_and_sizes.short_description = 'Старая цена'  # Старая цена:
+
     
 
     def duplicate_product(self, request, queryset):

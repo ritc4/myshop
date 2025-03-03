@@ -1,23 +1,35 @@
 from django.db import models
 from home.models import Product
 from django.utils.safestring import mark_safe
+from django_ckeditor_5.fields import CKEditor5Field
 
 
 
 class DeliveryMethod(models.Model):
     title = models.CharField(max_length=255, verbose_name="Способ доставки")
+    price_delivery = models.DecimalField(max_digits=10,decimal_places=0,blank=True,null=True, verbose_name="Цена доставки")
 
     class Meta:
         verbose_name = 'Способ доставки'
         verbose_name_plural = 'Способы доставки'
 
     def __str__(self):
-        return self.title
-
+        return f"{self.title}"
 
 
 
 class Order(models.Model):
+
+    STATUS_CHOICES = [
+        ('new', 'Новый'),
+        ('obrabotka', 'В обработке'),
+        ('oplata', 'Ожидает оплаты'),
+        ('assembled', 'Собран'),
+        ('canceled', 'Отменен'),
+        ('pending', 'В ожидании'),
+    ]
+
+
     delivery_method = models.ForeignKey(DeliveryMethod, blank=False,on_delete=models.SET_NULL, null=True, verbose_name="Способ доставки")
     first_name_last_name = models.CharField(max_length=255, verbose_name="Фамилия Имя Отчество") 
     email = models.EmailField(verbose_name="Электронная почта")
@@ -26,12 +38,13 @@ class Order(models.Model):
     city = models.CharField(max_length=100, verbose_name="Город")
     address = models.CharField(max_length=250, verbose_name="Адрес") 
     passport_number = models.CharField(max_length=50, verbose_name="Паспортные данные",blank=True,null=True)
-    comment = models.TextField(blank=True, null=True, verbose_name="Комментарий")
+    comment = CKEditor5Field(config_name='extends',blank=True, null=True, verbose_name="Комментарий")
     created = models.DateTimeField(auto_now_add=True) 
     updated = models.DateTimeField(auto_now=True) 
     paid = models.BooleanField(default=False, verbose_name="Товар Оплачен")
     zamena_product = models.BooleanField(default=True, verbose_name="Предлагать замену товара")
     strahovat_gruz = models.BooleanField(default=True, verbose_name="Застраховать груз")
+    status = models.CharField(max_length=20,choices=STATUS_CHOICES,default='new',verbose_name="Статус заказа")
 
 
     class Meta:
@@ -47,7 +60,12 @@ class Order(models.Model):
     
     
     def get_total_cost(self):
-        return sum(item.get_cost() for item in self.items.all())
+        total_cost = sum(item.get_cost() for item in self.items.all())
+        
+        # Проверяем, есть ли способ доставки и установлена ли цена доставки
+        if self.delivery_method and self.delivery_method.price_delivery is not None:
+            total_cost += self.delivery_method.price_delivery
+        return total_cost
 
     
     def get_total_zakup_cost(self):

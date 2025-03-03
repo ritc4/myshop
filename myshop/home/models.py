@@ -2,6 +2,7 @@ from django.db import models
 from mptt.models import MPTTModel, TreeForeignKey
 from django.urls import reverse
 from django.core.validators import MinValueValidator
+from django_ckeditor_5.fields import CKEditor5Field
 
 
 
@@ -64,7 +65,7 @@ class ProductPrice(models.Model):
 
 class Product(models.Model):
     title = models.CharField(max_length=255,verbose_name='Название товара')
-    description = models.TextField(max_length=255,blank=True,verbose_name='Описание')
+    description = CKEditor5Field(config_name='extends',max_length=255,blank=True,verbose_name='Описание')
     article_number = models.IntegerField(unique=True,verbose_name='Артикул')
     stock = models.IntegerField(default=100, validators=[MinValueValidator(0)],verbose_name='Остаток')  # Остаток товара в штуках
     unit = models.CharField(max_length=10, default='шт',verbose_name='Единица измерения')  # Единица измерения, по умолчанию 'шт'
@@ -118,7 +119,7 @@ class ProductImage(models.Model):
 
 class News(models.Model):
     title = models.CharField(max_length=255,verbose_name='Новость',blank=False)
-    description = models.TextField(verbose_name='Описание новости',blank=False)
+    description = CKEditor5Field(config_name='extends',verbose_name='Описание новости',blank=False)
     created = models.DateTimeField(auto_now_add=True)
 
 
@@ -143,7 +144,7 @@ class SizeTable(models.Model):
 
 class Uslovie_firm(models.Model):
     title = models.CharField(max_length=255,verbose_name='Условие сотрудничества',blank=False)
-    description = models.TextField(verbose_name='Описание',blank=False)
+    description = CKEditor5Field(config_name='extends',verbose_name='Описание',blank=False)
 
 
     class Meta:
@@ -153,7 +154,7 @@ class Uslovie_firm(models.Model):
 
 class Politica_firm(models.Model):
     title = models.CharField(max_length=255,verbose_name='Политика конфиденциальности',blank=False)
-    description = models.TextField(verbose_name='Описание',blank=False)
+    description = CKEditor5Field(config_name='extends',verbose_name='Описание',blank=False)
 
 
     class Meta:
@@ -171,7 +172,7 @@ class ImageSliderHome(models.Model):
 
 class DeliveryInfo(models.Model):
     title = models.CharField(max_length=255,verbose_name='Доставка',blank=False)
-    description = models.TextField(verbose_name='Описание',blank=False)
+    description = CKEditor5Field(config_name='extends',verbose_name='Описание',blank=False)
 
     class Meta:
         verbose_name = 'Информацию по доставке'

@@ -17,10 +17,10 @@
                 <h6 class="card-subtitle mb-2 text-muted">{{ i.created }}</h6>
             </div>
             <div class="card-text">
-                <p>{{ i.description|truncatechars:100 }}...</p>  <!-- Ограничиваем до 100 символов -->
+                <p>{{ i.description|truncatechars:100|safe }}...</p>  <!-- Ограничиваем до 100 символов -->
                 <a href="#" class="read-more" onclick="toggleDescription(event, '{{ i.id }}')">Читать полностью</a>
                 <div id="full-description-{{ i.id }}" class="full-description" style="display: none;">
-                    <p>{{ i.description }}</p>
+                    <p>{{ i.description|safe }}</p>
                 </div>
             </div>
         </div>

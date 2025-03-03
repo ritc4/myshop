@@ -5,6 +5,8 @@ from django.db.models import Q
 from django.urls import reverse
 
 
+
+
 def order_pdf(obj):
     url = reverse('orders:admin_order_pdf', args=[obj.id]) 
     return mark_safe(f'<a href="{url}">Чек</a>')
@@ -33,7 +35,9 @@ class OrderItemInline(admin.TabularInline):
     product_image.short_description = 'Фото'
     
     def product_mesto(self, obj):
-        return obj.product_mesto()  # Вызов метода product_image из модели
+        mesto = obj.product_mesto()  # Вызов метода product_mesto из модели
+        return mesto if mesto else 'Не указано'  # Возврат значения или 'Не указано'
+
     product_mesto.short_description = 'Место'
     
     def product_zacup_price(self, obj):
@@ -46,28 +50,34 @@ class OrderItemInline(admin.TabularInline):
 class OrderAdmin(admin.ModelAdmin):
     list_display = [
         'id',
-        'delivery_method', 
         'first_name_last_name',
-        'email',
+        'paid',
+        'status',
         'phone',
         'region',
         'city',
-        'address',
-        'comment',   
-        'paid', 
-        'created',
-        'updated',
+        'address',   
         'get_total_cost',
         'get_total_zakup_cost',
          order_pdf, 
         ]
     
-    list_editable = ['paid']
-    readonly_fields = ['get_total_zakup_cost','get_total_cost']
+    list_editable = ['paid','status']
+    readonly_fields = ['get_total_zakup_cost','get_total_cost','get_delivery_price']
     list_filter = ['paid', 'created', 'updated'] 
     inlines = [OrderItemInline]
     search_fields = ['items__product__article_number','first_name_last_name', 'email', 'phone',]  # Поля для поиска
 
+    def get_delivery_price(self, obj):
+        # Проверяем, установлен ли способ доставки
+        if obj.delivery_method:
+            # Если цена доставки указана, возвращаем её, иначе возвращаем "Не указано"
+            return obj.delivery_method.price_delivery if obj.delivery_method.price_delivery is not None else "Не указано"
+        return "Не указано"  # Если способ доставки не указан
+
+    get_delivery_price.short_description = 'Цена доставки'  # Заголовок колонки
+
+    
     def get_total_cost(self, obj):
         return obj.get_total_cost()
     get_total_cost.short_description = 'Общая стоимость'
@@ -92,6 +102,6 @@ class OrderAdmin(admin.ModelAdmin):
 @admin.register(DeliveryMethod)
 class DeliveryMethodAdmin(admin.ModelAdmin):
     list_display =[
-        'title',
+        'title'
         ]
 

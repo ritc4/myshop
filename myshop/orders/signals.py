@@ -1,14 +1,14 @@
 from django.dispatch import Signal, receiver
 from django.shortcuts import get_object_or_404
-from .models import Order  # Импортируйте вашу модель заказа
+from .models import Order
 from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from django.conf import settings
 import weasyprint
 from django.templatetags.static import static
 
-# Определите сигнал
-order_created_signal = Signal()  # Уберите providing_args
+# Определитель сигнала
+order_created_signal = Signal()
 
 @receiver(order_created_signal)
 def handle_order_created(request, order_id, **kwargs):

@@ -21,16 +21,13 @@ from django.conf import settings
 from debug_toolbar.toolbar import debug_toolbar_urls
 
 urlpatterns = [
+    path("ckeditor5/", include('django_ckeditor_5.urls')),
     path('admin/', admin.site.urls),
     path('cart/', include('cart.urls')),
     path('orders/', include('orders.urls')),
-    path('', include('home.urls')),
-    
-] 
+    path('', include('home.urls')),]
+
 
 if settings.DEBUG:
-    urlpatterns += static(
-        settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)+ debug_toolbar_urls()
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)+ debug_toolbar_urls()
     
-    
-# path('__debug__/',include(debug_toolbar_urls)),
