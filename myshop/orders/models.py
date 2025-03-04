@@ -2,6 +2,7 @@ from django.db import models
 from home.models import Product
 from django.utils.safestring import mark_safe
 from django_ckeditor_5.fields import CKEditor5Field
+from decimal import Decimal, ROUND_HALF_UP
 
 
 
@@ -30,7 +31,6 @@ class Order(models.Model):
     ]
 
 
-    delivery_method = models.ForeignKey(DeliveryMethod, blank=False,on_delete=models.SET_NULL, null=True, verbose_name="Способ доставки")
     first_name_last_name = models.CharField(max_length=255, verbose_name="Фамилия Имя Отчество") 
     email = models.EmailField(verbose_name="Электронная почта")
     phone = models.CharField(max_length=12, verbose_name="Телефон")
@@ -45,6 +45,8 @@ class Order(models.Model):
     zamena_product = models.BooleanField(default=True, verbose_name="Предлагать замену товара")
     strahovat_gruz = models.BooleanField(default=True, verbose_name="Застраховать груз")
     status = models.CharField(max_length=20,choices=STATUS_CHOICES,default='new',verbose_name="Статус заказа")
+    delivery_method = models.ForeignKey(DeliveryMethod, blank=False,on_delete=models.SET_NULL, null=True, verbose_name="Способ доставки")
+    discount = models.ForeignKey('Discount', on_delete=models.SET_NULL, blank=True, null=True, verbose_name="Скидка")
 
 
     class Meta:
@@ -59,15 +61,36 @@ class Order(models.Model):
         return f"Заказ №{self.id} от {self.first_name_last_name}"
     
     
+
+
     def get_total_cost(self):
         total_cost = sum(item.get_cost() for item in self.items.all())
-        
+
         # Проверяем, есть ли способ доставки и установлена ли цена доставки
         if self.delivery_method and self.delivery_method.price_delivery is not None:
             total_cost += self.delivery_method.price_delivery
-        return total_cost
 
+        # Отладка: выводим общую стоимость перед применением скидки
+        print(f"Общая стоимость до применения скидки: {total_cost}")
+
+        # Применяем скидку, если она есть
+        if self.discount:
+            print(f"Скидка найдена: {self.discount.discount_value}, Тип: {self.discount.discount_type}")
+            if self.discount.discount_type == 'amount':
+                discount_value = round(Decimal(self.discount.discount_value))  # Округляем до целого
+                total_cost -= discount_value  # Скидка в рублях
+                print(f"Применена скидка в рублях: {discount_value}")
+            elif self.discount.discount_type == 'percentage':
+                discount_value = round(total_cost * (Decimal(self.discount.discount_value) / 100))  # Округляем до целого
+                total_cost -= discount_value
+                print(f"Применена скидка в процентах: {self.discount.discount_value}% (сумма: {discount_value})")
+        else:
+            print("Скидка не найдена.")
+
+        return max(total_cost, 0)  # Обеспечиваем, чтобы стоимость не была отрицательной
     
+
+
     def get_total_zakup_cost(self):
         total_zakup_cost = 0
         for item in self.items.all():
@@ -131,3 +154,20 @@ class OrderItem(models.Model):
     class Meta:
         verbose_name = 'Заказанный товар'
         verbose_name_plural = 'Заказанные товары'
+
+
+class Discount(models.Model):
+    DISCOUNT_TYPE_CHOICES = [
+        ('amount', 'Скидка в рублях'),
+        ('percentage', 'Скидка в %'),
+    ]
+
+    discount_type = models.CharField(max_length=20, choices=DISCOUNT_TYPE_CHOICES, verbose_name="Тип скидки")
+    discount_value = models.DecimalField(max_digits=20, decimal_places=0, verbose_name="Размер скидки")
+
+    def __str__(self):
+        if self.discount_type == 'amount':
+            return f'{self.discount_value} руб.'
+        elif self.discount_type == 'percentage':
+            return f'{self.discount_value} %'
+        return 'Неизвестный тип скидки'

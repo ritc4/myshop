@@ -5,6 +5,52 @@ from .models import Category,Size,Product,ProductImage,ProductPrice,News,SizeTab
 from django.utils.safestring import mark_safe
 from slugify import slugify
 from django.utils.html import format_html
+from django import forms
+
+
+
+
+
+class ProductPriceAdminForm(forms.ModelForm):
+    new_sale_price = forms.DecimalField(label='Новая цена продажи', max_digits=20, decimal_places=0, required=False)
+    new_purchase_price = forms.DecimalField(label='Новая цена закупки', max_digits=20, decimal_places=0, required=False)
+    new_old_price = forms.DecimalField(label='Новая старая цена', max_digits=20, decimal_places=0, required=False)
+
+    class Meta:
+        model = ProductPrice
+        fields = '__all__'
+
+    def save(self, commit=True):
+        # Получаем текущий объект продукта
+        product = self.instance.product
+
+        # Обновляем цены для всех размеров продукта
+        # Сначала обновляем саму запись, к которой относится форма
+        if self.cleaned_data['new_sale_price'] is not None:
+            self.instance.price = self.cleaned_data['new_sale_price']
+        if self.cleaned_data['new_purchase_price'] is not None:
+            self.instance.zacup_price = self.cleaned_data['new_purchase_price']
+        if self.cleaned_data['new_old_price'] is not None:
+            self.instance.old_price = self.cleaned_data['new_old_price']
+
+        # Сохраняем текущую запись
+        if commit:
+            self.instance.save()
+
+        # Обновляем остальные записи
+        for price_entry in product.product_prices.exclude(id=self.instance.id):  # Исключаем текущую запись
+            if self.cleaned_data['new_sale_price'] is not None:
+                price_entry.price = self.cleaned_data['new_sale_price']
+            if self.cleaned_data['new_purchase_price'] is not None:
+                price_entry.zacup_price = self.cleaned_data['new_purchase_price']
+            if self.cleaned_data['new_old_price'] is not None:
+                price_entry.old_price = self.cleaned_data['new_old_price']
+
+            # Сохраняем обновленную запись
+            price_entry.save()
+    
+        return super().save(commit)
+
 
 
 
@@ -40,20 +86,22 @@ class ProductPriceAdmin(admin.ModelAdmin):
 
 
 class ProductPriceInline(admin.TabularInline):
+    form = ProductPriceAdminForm
     model = ProductPrice
     extra = 1  # Количество пустых форм для добавления новых записей
-    fields = ('size', 'price','zacup_price','old_price',)
-
+    fields = ('size', 'price','zacup_price','old_price','new_sale_price', 'new_purchase_price', 'new_old_price')
+    
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     inlines = [ProductImageInline, ProductPriceInline]  # Подключаем инлайн для изображений
-    list_display = ('get_image','title', 'article_number', 'stock', 'unit', 'get_prices_and_sizes','get_zacup_prices_and_sizes','get_old_prices_and_sizes','is_hidden','category','mesto')  # Отображение полей продукта в админке
+    list_display = ('get_image','title', 'article_number','stock','description', 'unit','get_prices_and_sizes','get_zacup_prices_and_sizes','get_old_prices_and_sizes','is_hidden','category','mesto')  # Отображение полей продукта в админке
     list_filter = ('is_hidden','category','created','updated','mesto')
     prepopulated_fields = {'slug':('title','article_number',)}
-    search_fields = ['title','article_number',]  # Позволяет искать продукты по названию
+    search_fields = ['title','article_number','description']  # Позволяет искать продукты по названию
     list_editable = ['is_hidden','mesto']
-    actions = ['hide_products', 'show_products','duplicate_product',]
+    actions = ['hide_products', 'show_products','duplicate_product']
+    list_display_links=['get_image','title',]
 
 
     def get_prices_and_sizes(self, obj):
@@ -193,7 +241,6 @@ class Politica_firmAdmin(admin.ModelAdmin):
 @admin.register(ImageSliderHome)
 class ImageSliderHome(admin.ModelAdmin):
     list_display = ('image',)
-
 
 
 

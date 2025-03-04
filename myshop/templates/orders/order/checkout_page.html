@@ -192,7 +192,7 @@
         <div class="modal__content">
           <div>
             <div class="htmlDataBlock">
-              {{ uslovia.description }}
+              {{ uslovia.description|safe }}
             </div>
           </div>
         </div>
@@ -212,7 +212,7 @@
       <div class="modal-body">
         <div class="modal__content">
           <div>
-            <p>{{ politica.description }}</p>
+            <p>{{ politica.description|safe }}</p>
           </div>
         </div>
       </div>

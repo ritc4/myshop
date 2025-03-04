@@ -101,8 +101,21 @@
             <tr class="delivery">
                 <td colspan="3">Выбранный способ доставки:</td>
                 <td colspan="2">{{ order.delivery_method }}</td>
-                <td colspan="1">{{ order.delivery_method.price_delivery }}</td>
+                {% if order.delivery_method.price_delivery %}
+                    <td colspan="1">{{ order.delivery_method.price_delivery }}</td>
+                {% else %}
+                    <td colspan="1"></td>
+                {% endif %}
             </tr>
+            {% if order.discount %}
+            <tr class="discount">
+                <td colspan="5">Скидка:</td>
+                <td colspan="1">{{ order.discount }}</td>
+            </tr>
+            {% else %}
+                
+            {% endif %}
+            
             <tr class="total">
                 <td colspan="5">Итого</td>
                 <td>{{ order.get_total_cost }} ₽</td>
