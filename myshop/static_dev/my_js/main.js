@@ -201,3 +201,26 @@ function updatePerPage(value) {
   console.log('New URL:', newUrl.toString()); // Проверка нового URL
   window.location.href = newUrl.toString();
 }
+
+
+// Обработчик показать или скрыть пароль при регистрации в register.html
+// document.getElementById('togglePasswords').addEventListener('click', function () {
+//   // Получаем только поля пароля на странице
+//   const passwordInputs = document.querySelectorAll('input[type="password"]');
+  
+//   // Проверяем, есть ли поля пароля на странице
+//   if (passwordInputs.length === 0) {
+//       console.warn('Нет полей пароля на странице.');
+//       return; // Прерываем выполнение, если нет полей пароля
+//   }
+
+//   // Переключаем тип только для полей пароля
+//   let isPasswordVisible = passwordInputs[0].getAttribute('type') === 'password';
+  
+//   passwordInputs.forEach(input => {
+//       input.setAttribute('type', isPasswordVisible ? 'text' : 'password');
+//   });
+  
+//   // Меняем текст кнопки
+//   this.textContent = isPasswordVisible ? 'Показать пароли' : 'Скрыть пароли';
+// });

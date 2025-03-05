@@ -4,6 +4,7 @@ from cart.forms import CartAddProductForm
 from django.db.models import Case, When,Min,Sum
 from orders.models import OrderItem
 from django.views.generic import ListView,DetailView
+from django.contrib.auth.mixins import LoginRequiredMixin 
 
 
 
@@ -326,7 +327,7 @@ class ContactsView(ListView):
     
 
 
-class ReviewsView(ListView):
+class ReviewsView(LoginRequiredMixin, ListView):
     model = DeliveryInfo
     template_name = 'home/reviews_page.html'
     context_object_name = ''

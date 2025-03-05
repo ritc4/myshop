@@ -791,3 +791,57 @@ textarea{
 .contacts-link a:hover{
   color: dodgerblue;
 }
+
+/*==========================Password_reset_complete======================*/
+
+.password-reset-link a{
+  color: black;
+  text-decoration: none;
+  transition: all .3s;
+}
+
+.password-reset-link a:hover {
+  color: dodgerblue;
+  text-decoration: underline;
+}
+
+
+.password_reset_complete a{
+  color: black;
+  transition: all .3s;
+}
+
+.password_reset_complete a:hover{
+  color: dodgerblue;
+}
+
+
+
+
+/*==========================Password_reset_complete======================*/
+
+.profile-link a{
+  color: black;
+  text-decoration: none;
+  transition: all .3s;
+}
+
+
+.profile-link a:hover{
+  color: dodgerblue;
+  text-decoration: underline;
+}
+
+/*==========================Password_change_done======================*/
+
+
+
+.password-change-done a{
+  color: black;
+  transition: all .3s;
+}
+
+
+.password-change-done a:hover{
+  color: dodgerblue;
+}

@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'mptt',
     'home.apps.HomeConfig',
     'cart.apps.CartConfig',
+    'users.apps.UsersConfig',
     'orders.apps.OrdersConfig',
     'django_ckeditor_5',
     
@@ -168,6 +169,18 @@ DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
 
 STATIC_ROOT = BASE_DIR / 'static'
 
+
+
+LOGIN_REDIRECT_URL = 'home:home'
+LOGOUT_REDIRECT_URL = 'home:home'
+LOGIN_URL = "users:login"
+
+
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'users.authentication.EmailAuthBackend',
+]
 
 
 customColorPalette = [

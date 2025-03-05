@@ -7,20 +7,14 @@
   <div class="row">
     <div class="col-12">
       <div class="page-register bg-white p-3 mb-3">
-        <h1 class="section-title h3"><span>Регистрация</span></h1>
+        <h1 class="section-title h3"><span>{{ title }}</span></h1>
         <div class="row">
           <div class="col-md-6 offset-md-3">
-            <form action="">
+            <form method="POST">
+              {% csrf_token %}
               <div class="mb-3">
-                <label for="name" class="form-label"
-                  >Имя</label
-                >
-                <input
-                  type="text"
-                  class="form-control"
-                  id="name"
-                  placeholder="Name"
-                />
+                <label for="name" class="form-label">Имя</label>
+                <input type="text" class="form-control" id="name" placeholder="Name"/>
               </div>
               <div class="mb-3">
                 <label for="email" class="form-label"
