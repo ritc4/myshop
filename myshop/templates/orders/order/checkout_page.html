@@ -8,127 +8,58 @@
 <div class="container-fluid">
     <form method="post" class="order-form"> 
     {% csrf_token %}
-    {% for field in form %}
-     {% for error in field.errors %}
-      <li>{{ field.label }}: {{ error }}</li>
-      {% endfor %}
-      {% endfor %}
-      {% for error in form.non_field_errors %}
-      <li>{{ error }}</li>
-      {% endfor %}
     <div class="row">
       <div class="col-lg-8 mb-3">
         <div class="checkout p-3 h-100 bg-white">
           <h1 class="section-title h5"><span>Оформление заказа</span></h1>
-          <div class="row g-3">           
-            <div class="col-md-6">
-              <label for="shipmethod" class="form-label">Доставка</label>
-              {{ form.delivery_method }}
-            </div>
-            <div class="col-md-6">
-              <label for="first_name_last_name" class="form-label">Фамилия Имя Отчество</label>
-              <input
-                type="text"
-                id="first_name_last_name"
-                name="first_name_last_name"
-                class="form-control"
-                aria-label="first_name_last_name"
-                autocomplete="name"
-                value="{{ form.first_name_last_name.value|default:'' }}"
-              />
-            </div>
-            <div class="col-md-6">
-              <label for="email" class="form-label">Электронный адрес</label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                class="form-control"
-                aria-label="email"
-                autocomplete="email"
-                value="{{ form.email.value|default:'' }}"
-              />
-            </div>
-            <div class="col-md-6">
-              <label for="phone" class="form-label">Телефон</label>
-              <input
-                    type="tel"
-                    id="phone"
-                    name="phone"
-                    class="form-control"
-                    aria-label="phone"
-                    autocomplete="tel"
-                    value="{{ form.phone.value|default:'' }}"
-                />
-            </div>
-            <div class="col-md-6">
-              <label for="region" class="form-label">Регион</label>
-              <input
-                type="text"
-                id="region"
-                name="region"
-                class="form-control"
-                aria-label="region"
-                autocomplete="name"
-                value="{{ form.region.value|default:'' }}"
-              />
-            </div>
-            <div class="col-md-6">
-              <label for="city" class="form-label">Город</label>
-              <input
-                type="text"
-                id="city"
-                name="city"
-                class="form-control"
-                aria-label="city"
-                autocomplete="name"
-                value="{{ form.city.value|default:'' }}"
-              />
-            </div>
-            <div class="col-md-6">
-              <label for="address" class="form-label">Адрес</label>
-              <input
-                type="text"
-                id="address"
-                name="address"
-                class="form-control"
-                aria-label="address"
-                autocomplete="name"
-                value="{{ form.address.value|default:'' }}"
-              />
-            </div>
-            <div class="col-md-6" id="additionalCol" style="display: none;">
-              <label for="passport_number" class="form-label">Паспортные данные</label>
-              <input
-                type="text"
-                id="passport_number"
-                name="passport_number"
-                class="form-control"
-                aria-label="passport_number"
-                autocomplete="name"
-                value="{{ form.passport_number.value|default:'' }}"
-              />
-            </div>
-            <div class="col-12">
-              <label for="comment" class="form-label"
-                >Комментарии к заказу</label
-              >
-              <textarea
-                class="form-control"
-                name="comment"
-                id="comment"
-                rows="3"
-                placeholder="Комментарий">{{ form.comment.value|default:'' }}
-              </textarea>
-            </div>
-            <div class="col-md-6">
-              <div class="form-input-row checkbox">
-                {{ form.strahovat_gruz }} <label for="{{ form.strahovat_gruz.id_for_label }}">Не предлагать замену товаров</label>
+          <div class="row g-3">
+            <input type="hidden" name="next" value="{{ next }}"/>
+              <div class="form-error">{{ form.non_field_errors }}</div>
+              {% for i in form %}
+              {% if i == form.comment %}
+              <div class="col-md-12">
+              <div class="mb-3">
+                  <label class="form-label" for="{{ i.id_for_label }}">{{ i.label }}</label> 
+                  {{ i }}
+                </div>
+                  <div class="form-error text-danger">{{ i.errors }}</div>
               </div>
-              <div class="form-input-row checkbox">
-                {{ form.zamena_product }} <label for="{{ form.zamena_product.id_for_label }}">Cтраховать груз</label>
+              {% elif i == form.passport_number %}
+              <div class="col-md-6" id="passportNumberCol" style="display: none;">
+              <div class="mb-3">
+                  <label class="form-label" for="{{ i.id_for_label }}">{{ i.label }}</label> 
+                  {{ i }}
+                </div>
+                  <div class="form-error text-danger">{{ i.errors }}</div>
               </div>
-            </div>
+              {% elif i == form.postal_code %}
+              <div class="col-md-6" id="postalCodeCol" style="display: none;">
+              <div class="mb-3">
+                  <label class="form-label" for="{{ i.id_for_label }}">{{ i.label }}</label> 
+                  {{ i }}
+                </div>
+                  <div class="form-error text-danger">{{ i.errors }}</div>
+              </div>
+              {% elif i == form.soglasie_na_obrabotku_danyh %}
+              <div class="link_soglasie_na_obrabotku_danyh">
+                  {{ i }} <a href="#" id="policyLink" data-bs-toggle="modal" data-bs-target="#privacyPolicyModal">{{ i.label }}</a>
+                  <div class="form-error text-danger">{{ i.errors }}</div>
+              </div>
+              {% elif i == form.soglasie_na_uslovie_sotrudnichestva %}
+                  <div class="link_soglasie_na_uslovie_sotrudnichestva">
+                  {{ i }} <a href="#" id="uslovialink" data-bs-toggle="modal" data-bs-target="#uslovia_Modal">{{ i.label }}</a>
+                  <div class="form-error text-danger">{{ i.errors }}</div>
+              </div>
+              {% else %}
+              <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label" for="{{ i.id_for_label }}">{{ i.label }}</label> 
+                    {{ i }}
+                  </div>
+                    <div class="form-error text-danger">{{ i.errors }}</div>
+                </div>
+                {% endif %}
+              {% endfor %}
           </div>
         </div>
       </div>
@@ -163,14 +94,14 @@
               </tfoot>
             </table>
           </div>
-          <div class="form-input-row checkbox">
+          <!-- <div class="form-input-row checkbox">
             <input id="conditions" type="checkbox" name="conditions" value="Y" checked="checked">
             <span for="conditions">Я соглашаюсь с <a href="#" id="uslovialink" data-bs-toggle="modal" data-bs-target="#uslovia_Modal">условиями сотрудничества</a></span>
           </div>
           <div class="form-input-row checkbox">
             <input id="personal_data" type="checkbox" name="personal_data" value="Y" checked="checked">
             <span for="personal_data">Я соглашаюсь на обработку моих персональных данных в соответствии с <a href="#" id="policyLink" data-bs-toggle="modal" data-bs-target="#privacyPolicyModal">политикой конфиденциальности</a></span>
-          </div>
+          </div> -->
           <div class="d-grid mt-3">
             <button type="submit" class="btn btn-outline-dark">Оформить</button>
           </div>

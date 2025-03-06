@@ -183,6 +183,9 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 
+AUTH_USER_MODEL = 'users.User'
+
+
 customColorPalette = [
         {
             'color': 'hsl(4, 90%, 58%)',

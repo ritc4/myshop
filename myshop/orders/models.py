@@ -3,6 +3,7 @@ from home.models import Product
 from django.utils.safestring import mark_safe
 from django_ckeditor_5.fields import CKEditor5Field
 from decimal import Decimal, ROUND_HALF_UP
+from django.core.validators import RegexValidator
 
 
 
@@ -33,17 +34,45 @@ class Order(models.Model):
 
     first_name_last_name = models.CharField(max_length=255, verbose_name="Фамилия Имя Отчество") 
     email = models.EmailField(verbose_name="Электронная почта")
-    phone = models.CharField(max_length=12, verbose_name="Телефон")
+    phone = models.CharField(
+        max_length=15,  # Увеличьте длину, чтобы учесть символы + и пробелы
+        verbose_name="Телефон",
+        validators=[
+            RegexValidator(
+                regex=r'^(?:\+7|8)\d{10}$',  # Регулярное выражение для +7 или 8 и 10 цифр
+                message='Телефон должен начинаться с +7 или 8 и содержать 10 цифр.'
+            )
+        ]
+    )
+    
+    
     region = models.CharField(max_length=250, verbose_name="Регион")
     city = models.CharField(max_length=100, verbose_name="Город")
-    address = models.CharField(max_length=250, verbose_name="Адрес") 
-    passport_number = models.CharField(max_length=50, verbose_name="Паспортные данные",blank=True,null=True)
+    address = models.CharField(max_length=250, verbose_name="Адрес")
+    postal_code = models.CharField(
+        max_length=6,
+        verbose_name="Почтовый индекс",
+        validators=[RegexValidator(
+            regex=r'^\d{6}$',  # Регулярное выражение для индекса, состоящего только из цифр
+            message='Индекс должен состоять только из цифр.'
+        )])
+    passport_number = models.CharField(
+        max_length=15,
+        verbose_name="Паспортные данные",
+        blank=True,
+        null=True,
+        validators=[RegexValidator(
+            regex=r'^\d{10}$',  # Регулярное выражение для 10 цифр
+            message='Паспортные данные должны состоять из 10 цифр.'
+        )])
     comment = CKEditor5Field(config_name='extends',blank=True, null=True, verbose_name="Комментарий")
     created = models.DateTimeField(auto_now_add=True) 
     updated = models.DateTimeField(auto_now=True) 
     paid = models.BooleanField(default=False, verbose_name="Товар Оплачен")
     zamena_product = models.BooleanField(default=True, verbose_name="Предлагать замену товара")
     strahovat_gruz = models.BooleanField(default=True, verbose_name="Застраховать груз")
+    soglasie_na_obrabotku_danyh = models.BooleanField(default=True, verbose_name="Согласие на обработку персональных данных")
+    soglasie_na_uslovie_sotrudnichestva = models.BooleanField(default=True, verbose_name="Согласие с условиями сотрудничества")
     status = models.CharField(max_length=20,choices=STATUS_CHOICES,default='new',verbose_name="Статус заказа")
     delivery_method = models.ForeignKey(DeliveryMethod, blank=False,on_delete=models.SET_NULL, null=True, verbose_name="Способ доставки")
     discount = models.ForeignKey('Discount', on_delete=models.SET_NULL, blank=True, null=True, verbose_name="Скидка")

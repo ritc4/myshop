@@ -13,7 +13,6 @@ from django.templatetags.static import static
 from .signals import order_created_signal  # Импортируйте ваш сигнал
 
 
-
 def order_create(request): 
     categories = Category.objects.all()
     cart = Cart(request)
@@ -25,11 +24,12 @@ def order_create(request):
     if not cart or not any(item['quantity'] > 0 for item in cart):
         return redirect(get_root_catalog)  # Перенаправляем на страницу товаров
     
-
     if request.method == 'POST':
-        form = OrderCreateForm(request.POST)
+        form = OrderCreateForm(request.POST, user=request.user)  # Передаем пользователя в форму
         if form.is_valid():
-            order = form.save()
+            order = form.save(commit=False)  # Создаем объект заказа, но не сохраняем его еще
+            order.user = request.user  # Если у вас есть связь с пользователем
+            order.save()
             for item in cart:
                 OrderItem.objects.create(
                     order=order, 
@@ -37,22 +37,22 @@ def order_create(request):
                     price=item['price'], 
                     quantity=item['quantity'],
                     size=item['size'],  # Передаем размер
-            )
-            # очистить корзину
+                )
+            # Очистить корзину
             cart.clear()
             # Отправить сигнал после успешного создания заказа
-            order_created_signal.send(sender=OrderItem, order_id=order.id, request = request)
+            order_created_signal.send(sender=OrderItem, order_id=order.id, request=request)
             return render(
-                request, 'orders/order/checkout_finish_page.html', {'order': order,'categories': categories,}
+                request, 'orders/order/checkout_finish_page.html', {'order': order, 'categories': categories}
             )
     else:
-        form = OrderCreateForm()
+        form = OrderCreateForm(user=request.user)  # Передаем пользователя в форму
+
     return render(
         request,
         'orders/order/checkout_page.html',
-        {'cart': cart, 'form': form,'categories': categories,'politica':politica,'uslovia':uslovia}
-    ) 
-
+        {'cart': cart, 'form': form, 'categories': categories, 'politica': politica, 'uslovia': uslovia}
+    )
 
 @staff_member_required
 def admin_order_pdf(request, order_id):

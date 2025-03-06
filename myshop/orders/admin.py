@@ -56,13 +56,14 @@ class OrderAdmin(admin.ModelAdmin):
         'phone',
         'region',
         'city',
-        'address',   
+        'address',
+        'postal_code',   
         'get_total_cost',
         'get_total_zakup_cost',
          order_pdf, 
         ]
     
-    list_editable = ['paid','status']
+    list_editable = ['paid','status',]
     readonly_fields = ['get_total_zakup_cost','get_total_cost','get_delivery_price']
     list_filter = ['paid', 'created', 'updated'] 
     inlines = [OrderItemInline]

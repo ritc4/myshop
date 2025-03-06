@@ -12,8 +12,7 @@ class LoginUserForm(AuthenticationForm):
 
 class RegisterUserForm(UserCreationForm):  
     username = forms.CharField(label='Логин', widget=forms.TextInput(attrs={'class': 'form-control'}))
-    first_name = forms.CharField(label='Имя', widget=forms.TextInput(attrs={'class': 'form-control'}))
-    last_name = forms.CharField(label='Фамилия', widget=forms.TextInput(attrs={'class': 'form-control'}))
+    first_name = forms.CharField(label='ФИО', widget=forms.TextInput(attrs={'class': 'form-control'}))
     email = forms.EmailField(label='Электронная почта', widget=forms.EmailInput(attrs={'class': 'form-control'}))
     phone = forms.CharField(label='Телефон для связи', widget=forms.TextInput(attrs={'class': 'form-control'}))
     password1 = forms.CharField(label='Пароль', widget=forms.PasswordInput(attrs={'class': 'form-control'}))
@@ -21,7 +20,7 @@ class RegisterUserForm(UserCreationForm):
 
     class Meta:
         model = get_user_model()
-        fields = ['username', 'first_name','last_name','email', 'phone', 'password1', 'password2']
+        fields = ['username', 'first_name','email', 'phone', 'password1', 'password2']
 
         
     def clean_email (self):
@@ -37,14 +36,24 @@ class ProfileUserForm(forms.ModelForm):
 
     class Meta:
         model = get_user_model()
-        fields = ['username', 'email', 'first_name', 'last_name']
+        fields = ['username', 'email', 'first_name','phone', 'region', 'city', 'address','postal_code','delivery_method']
         labels = {
-            'first_name': 'Имя',
-            'last_name': 'Фамилия',
+            'first_name': 'ФИО',
+            'region': 'Регион',
+            'city': 'Город',
+            'address': 'Адрес',
+            'postal_code': 'Почтовый индекс',
+            'delivery_method': 'Доставка',
+            
         }
         widgets = {
             'first_name': forms.TextInput(attrs={'class': 'form-control'}),
-            'last_name': forms.TextInput(attrs={'class': 'form-control'}),   
+            'phone': forms.TextInput(attrs={'class': 'form-control'}),
+            'region': forms.TextInput(attrs={'class': 'form-control'}), 
+            'city': forms.TextInput(attrs={'class': 'form-control'}),  
+            'address': forms.TextInput(attrs={'class': 'form-control'}),
+            'postal_code': forms.TextInput(attrs={'class': 'form-control'}),
+            'delivery_method': forms.Select(attrs={'class': 'form-control'}),
         }
 
 
