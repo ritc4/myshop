@@ -52,28 +52,53 @@ document.querySelectorAll('.closecart').forEach(item =>{
 
 
 /* Показываем дополнительный блок доставки товара*/
-function toggleAdditionalCol() {
-    var select = document.getElementById('shipmethod'); // Получаем элемент select
-    var additionalCol = document.getElementById('additionalCol'); // Получаем дополнительный блок
+$(document).ready(function () {
+  // Функция для переключения дополнительных полей доставки
+  window.toggleAdditionalCol = function() { // Определяем функцию в глобальной области видимости
+    var $select = $('#shipmethod'); // Получаем элемент select
+    var $postalCodeCol = $('#postalCodeCol'); // Получаем блок postal_code
+    var $passportNumberCol = $('#passportNumberCol'); // Получаем блок passport_number
+    var $postalCodeInput = $('#postal_code'); // Получаем поле ввода postal_code
+    var $passportNumberInput = $('#passport_number'); // Получаем поле ввода passport_number
 
-    // Проверяем, выбран ли способ доставки, который требует дополнительной информации
-    if (select.value === "2"||select.value === "6"|| select.value === "7" || select.value === "8"|| select.value === "9"|| select.value === "10") { // Например, если выбрана СДЭК
-        additionalCol.style.display = 'block'; // Показываем блок
+    // Получаем текст выбранного метода доставки
+    var selectedText = $select.find('option:selected').text();
+
+    // Проверяем, выбран ли способ доставки "Почта"
+    if (selectedText === "Почта") { 
+      $postalCodeCol.show(); // Показываем блок postal_code
+      $passportNumberCol.hide(); // Скрываем блок passport_number
+      $postalCodeInput.attr('required', 'required'); // Устанавливаем поле postal_code обязательным
+      $passportNumberInput.removeAttr('required'); // Убираем обязательность для passport_number
+    } else if (selectedText === "ТК энергия") { // Проверяем, выбран ли способ доставки "ТК"
+      $passportNumberCol.show(); // Показываем блок passport_number
+      $postalCodeCol.hide(); // Скрываем блок postal_code
+      $passportNumberInput.attr('required', 'required'); // Устанавливаем поле passport_number обязательным
+      $postalCodeInput.removeAttr('required'); // Убираем обязательность для postal_code
     } else {
-        additionalCol.style.display = 'none'; // Скрываем блок
+      $postalCodeCol.hide(); // Скрываем блок postal_code
+      $passportNumberCol.hide(); // Скрываем блок passport_number
+      $postalCodeInput.removeAttr('required'); // Убираем обязательность для postal_code
+      $passportNumberInput.removeAttr('required'); // Убираем обязательность для passport_number
     }
-}
+  };
+
+  // Вызываем функцию при загрузке страницы
+  toggleAdditionalCol(); // Вызываем функцию при загрузке страницы
+
+  // Обработчик изменения для select метода доставки
+  $('#shipmethod').change(toggleAdditionalCol); // Обновляем поля при изменении метода доставки
+});
 
 
 
 // /* Функция автоматической отправки формы выбора количества товара в корзине */
-document.addEventListener('DOMContentLoaded', function() {
-  const quantityInputs = document.querySelectorAll('.quantity-input');
-  
-  quantityInputs.forEach(function(quantityInput) {
+$(document).ready(function() {
+  $('.quantity-input').each(function() {
+      const quantityInput = $(this);
       const updateForm = quantityInput.closest('.update-form'); // Найти ближайшую форму
-      
-      quantityInput.addEventListener('input', function() {
+
+      quantityInput.on('input', function() {
           console.log("Изменение значения: ", this.value); // Проверяем, срабатывает ли событие
           updateForm.submit(); // Отправляем форму
       });
@@ -82,100 +107,79 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 // Обработчик события изменения для выпадающего списка Modal окна category_page.html
-document.addEventListener('DOMContentLoaded', function() {
+$(document).ready(function() {
   // Инициализация отображения цены при загрузке страницы для каждого продукта
-  document.querySelectorAll('[id^="size-select_product_"]').forEach(function(sizeSelect) {
-      var productId = sizeSelect.id.split('_').pop(); // Получаем ID продукта из ID селектора
-      var priceDisplay = document.getElementById('price-display-' + productId);
+  $('[id^="size-select_product_"]').each(function() {
+      var sizeSelect = $(this);
+      var productId = sizeSelect.attr('id').split('_').pop(); // Получаем ID продукта из ID селектора
+      var priceDisplay = $('#price-display-' + productId);
 
       // Устанавливаем начальное значение цены
-      var selectedOption = sizeSelect.options[sizeSelect.selectedIndex];
-      var price = selectedOption ? selectedOption.getAttribute('data-price') : null;
-      priceDisplay.innerText = price ? price + ' ₽' : 'Цена недоступна';
+      var selectedOption = sizeSelect.find('option:selected');
+      var price = selectedOption.length ? selectedOption.data('price') : null;
+      priceDisplay.text(price ? price + ' ₽' : 'Цена недоступна');
 
       // Добавляем обработчик событий для изменения размера
-      sizeSelect.addEventListener('change', function() {
-          var selectedOption = this.options[this.selectedIndex];
-          var price = selectedOption ? selectedOption.getAttribute('data-price') : null;
-          priceDisplay.innerText = price ? price + ' ₽' : 'Цена недоступна';
+      sizeSelect.on('change', function() {
+          var selectedOption = $(this).find('option:selected');
+          var price = selectedOption.length ? selectedOption.data('price') : null;
+          priceDisplay.text(price ? price + ' ₽' : 'Цена недоступна');
       });
   });
 });
 
 // Обработчик события изменения для выпадающего списка окна product_page.html
-document.addEventListener('DOMContentLoaded', function() {
+$(document).ready(function() {
   // Инициализация отображения цены при загрузке страницы
-  var sizeSelect = document.getElementById('size-select_product');
-  var priceDisplay = document.getElementById('price-display');
+  var sizeSelect = $('#size-select_product');
+  var priceDisplay = $('#price-display');
 
-  if (sizeSelect && priceDisplay) {
+  if (sizeSelect.length && priceDisplay.length) {
       // Получаем выбранный элемент и его цену
-      var selectedOption = sizeSelect.options[sizeSelect.selectedIndex];
-      var price = selectedOption ? selectedOption.getAttribute('data-price') : null;
+      var selectedOption = sizeSelect.find('option:selected');
+      var price = selectedOption.length ? selectedOption.data('price') : null;
 
       // Устанавливаем начальное значение цены
-      priceDisplay.innerText = price ? price + ' ₽' : 'Цена недоступна';
+      priceDisplay.text(price ? price + ' ₽' : 'Цена недоступна');
   }
 
   // Добавляем общий обработчик событий для изменения размера
-  document.addEventListener('change', function(event) {
-      if (event.target.id === 'size-select_product') {
-          var selectedOption = event.target.options[event.target.selectedIndex];
-          var price = selectedOption ? selectedOption.getAttribute('data-price') : null;
+  $(document).on('change', '#size-select_product', function() {
+      var selectedOption = $(this).find('option:selected');
+      var price = selectedOption.length ? selectedOption.data('price') : null;
 
-          // Получаем элемент для отображения цены по его ID
-          if (priceDisplay) {
-              // Проверяем, есть ли выбранная опция и выводим соответствующую цену
-              priceDisplay.innerText = price ? price + ' ₽' : 'Цена недоступна';
-          }
-      }
+      // Проверяем, есть ли выбранная опция и выводим соответствующую цену
+      priceDisplay.text(price ? price + ' ₽' : 'Цена недоступна');
   });
 });
 
 
 // Обработчик события вывод полного описания новости news_page.html
-document.addEventListener('DOMContentLoaded', function() {
+$(document).ready(function() {
   window.toggleDescription = function(event, id) {
       event.preventDefault();
-      const descriptionElement = document.getElementById(`full-description-${id}`);
-      if (descriptionElement.style.display === "none") {
-          descriptionElement.style.display = "block";
-          event.target.textContent = "Скрыть";
+      const descriptionElement = $(`#full-description-${id}`);
+      
+      if (descriptionElement.css("display") === "none") {
+          descriptionElement.css("display", "block");
+          $(event.target).text("Скрыть");
       } else {
-          descriptionElement.style.display = "none";
-          event.target.textContent = "Читать полностью";
+          descriptionElement.css("display", "none");
+          $(event.target).text("Читать полностью");
       }
   };
 });
 
 
 // Обработчик события вывод сортировки по цене и названию продуктов в category_page.html
-// function sortProducts() {
-//   const select = document.getElementById('name-price');
-//   const selectedValue = select.value;
-
-//   // Получаем текущее значение per_page из URL
-//   const urlParams = new URLSearchParams(window.location.search);
-//   const perPage = urlParams.get('per_page') || 30; // Установите значение по умолчанию, если per_page не найден
-
-//   // Обновляем URL с параметрами сортировки и per_page
-//   window.location.href = `?sort=${encodeURIComponent(selectedValue)}&per_page=${encodeURIComponent(perPage)}`;
-// }
-
-// document.addEventListener('DOMContentLoaded', function() {
-//   const select = document.getElementById('name-price');
-//   select.addEventListener('change', sortProducts); // Привязываем обработчик события
-// });
-
-
-document.addEventListener('DOMContentLoaded', function() {
+$(document).ready(function() {
   // Проверяем, существует ли элемент с ID 'name-price'
-  const select = document.getElementById('name-price');
+  const select = $('#name-price');
   
-  if (select) {
+  if (select.length) {
       // Функция сортировки
       function sortProducts() {
-          const selectedValue = select.value;
+          const selectedValue = select.val();
 
           // Получаем текущее значение per_page из URL
           const urlParams = new URLSearchParams(window.location.search);
@@ -186,7 +190,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
 
       // Привязываем обработчик события
-      select.addEventListener('change', sortProducts);
+      select.on('change', sortProducts);
   }
 });
 
@@ -201,3 +205,74 @@ function updatePerPage(value) {
   console.log('New URL:', newUrl.toString()); // Проверка нового URL
   window.location.href = newUrl.toString();
 }
+
+
+
+// Обработчик показать или скрыть выбор рейтинга в reviews_page.html
+$(document).ready(function() {
+  $('.star-rating').each(function() {
+      const $starRating = $(this);
+      const $stars = $starRating.find('.star');
+      const $inputField = $('#' + $starRating.data('field'));
+
+      $stars.on('click', function() {
+          const value = $(this).data('value');
+          $inputField.val(value); // Устанавливаем значение в скрытое поле
+
+          // Удаляем класс 'selected' у всех звёзд
+          $stars.removeClass('selected');
+
+          // Добавляем класс 'selected' к звёздам в зависимости от выбранного значения
+          for (let i = 0; i < value; i++) {
+              $stars.eq(i).addClass('selected');
+          }
+
+          console.log('Star clicked:', value); // Для отладки
+      });
+  });
+
+  // Валидация перед отправкой формы
+  $('form').on('submit', function(event) {
+      let isValid = true;
+      $('.star-rating').each(function() {
+          const $inputField = $('#' + $(this).data('field'));
+          if ($inputField.val() === '') {
+              isValid = false;
+              $inputField.next('.form-error').text('Пожалуйста, выберите рейтинг.').show();
+          } else {
+              $inputField.next('.form-error').hide(); // Скрываем сообщение об ошибке
+          }
+      });
+
+      if (!isValid) {
+          event.preventDefault(); // Предотвращаем отправку формы
+      }
+  });
+});
+
+
+
+
+// Обработчик показать или скрыть пароль при регистрации в register.html
+// $(document).ready(function() {
+//   $('#togglePasswords').on('click', function() {
+//       // Получаем только поля пароля на странице
+//       const passwordInputs = $('input[type="password"]');
+      
+//       // Проверяем, есть ли поля пароля на странице
+//       if (passwordInputs.length === 0) {
+//           console.warn('Нет полей пароля на странице.');
+//           return; // Прерываем выполнение, если нет полей пароля
+//       }
+
+//       // Переключаем тип только для полей пароля
+//       let isPasswordVisible = passwordInputs.first().attr('type') === 'password';
+      
+//       passwordInputs.each(function() {
+//           $(this).attr('type', isPasswordVisible ? 'text' : 'password');
+//       });
+      
+//       // Меняем текст кнопки
+//       $(this).text(isPasswordVisible ? 'Показать пароли' : 'Скрыть пароли');
+//   });
+// });

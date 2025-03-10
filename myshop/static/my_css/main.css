@@ -57,6 +57,11 @@ section{
 }
 
 
+.text-danger {
+  color: red; /* Устанавливает цвет текста на красный */
+  font-size: 0.875rem; /* Опционально: уменьшает размер шрифта */
+  margin-top: 0.25rem; /* Опционально: добавляет отступ сверху */
+}
 
 /*==========================Advantages======================*/
 
@@ -790,4 +795,94 @@ textarea{
 
 .contacts-link a:hover{
   color: dodgerblue;
+}
+
+/*==========================Password_reset_complete======================*/
+
+.password-reset-link a{
+  color: black;
+  text-decoration: none;
+  transition: all .3s;
+}
+
+.password-reset-link a:hover {
+  color: dodgerblue;
+  text-decoration: underline;
+}
+
+
+.password_reset_complete a{
+  color: black;
+  transition: all .3s;
+}
+
+.password_reset_complete a:hover{
+  color: dodgerblue;
+}
+
+
+
+
+/*==========================Password_reset_complete======================*/
+
+.profile-link a{
+  color: black;
+  text-decoration: none;
+  transition: all .3s;
+}
+
+
+.profile-link a:hover{
+  color: dodgerblue;
+  text-decoration: underline;
+}
+
+
+/*==========================Profile_page======================*/
+.profile-img {
+  max-width: 100px;       /* Максимальная ширина */
+  max-height: 100px;      /* Максимальная высота */
+  width: 100px;           /* Фиксированная ширина для круга */
+  height: 100px;          /* Фиксированная высота для круга */
+  object-fit: cover;      /* Чтобы изображение не искажалось, используйте object-fit */
+  border-radius: 50%;     /* Делает изображение круглым */
+}
+
+
+/*==========================Review_page======================*/
+.profile-img {
+  max-width: 100px;       /* Максимальная ширина */
+  max-height: 100px;      /* Максимальная высота */
+  width: 100px;           /* Фиксированная ширина для круга */
+  height: 100px;          /* Фиксированная высота для круга */
+  object-fit: cover;      /* Чтобы изображение не искажалось, используйте object-fit */
+  border-radius: 50%;     /* Делает изображение круглым */
+}
+
+/*==========================Password_change_done======================*/
+
+
+
+.password-change-done a{
+  color: black;
+  transition: all .3s;
+}
+
+
+.password-change-done a:hover{
+  color: dodgerblue;
+}
+
+
+
+
+
+.star {
+  cursor: pointer;
+  font-size: 24px; /* Размер звёзд */
+  color: lightgray; /* Цвет невыбранных звёзд */
+}
+
+.star.selected {
+  color: gold; /* Цвет выбранных звёзд */
 }

@@ -1,10 +1,15 @@
 from django.shortcuts import render,get_object_or_404
-from .models import Category,Product,News,SizeTable,ImageSliderHome,DeliveryInfo
+from .models import Category,Product,News,SizeTable,ImageSliderHome,DeliveryInfo,Review,ReviewImage
 from cart.forms import CartAddProductForm
+from .forms import ReviewForm
 from django.db.models import Case, When,Min,Sum
 from orders.models import OrderItem
 from django.views.generic import ListView,DetailView
 from django.contrib.auth.mixins import LoginRequiredMixin 
+from django.shortcuts import get_object_or_404, redirect, render
+from django.views.generic.edit import FormView
+from django.urls import reverse_lazy
+
 
 
 class HomeView(ListView):
@@ -203,20 +208,40 @@ class ContactsView(ListView):
     
 
 
-class ReviewsView(LoginRequiredMixin, ListView):
-    model = DeliveryInfo
+class ReviewsView(LoginRequiredMixin, FormView, ListView):
+    form_class = ReviewForm
     template_name = 'home/reviews_page.html'
-    context_object_name = ''
+    success_url = reverse_lazy('home:reviews')
+    context_object_name = 'reviews'
+    paginate_by = 5
     
+    def get_queryset(self):
+        # Ограничиваем выборку до 5 последних отзывов
+        return Review.objects.all().order_by('-created_at')
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
-         # Настройка хлебных крошек
-        context['breadcrumbs'] = [
-            {'name': 'Отзывы', 'slug': '/reviews/'},  # Страница доставка
-            ]
-        
+        context.update({
+            'breadcrumbs': [{'name': 'Отзывы', 'slug': '/reviews/'}],
+            'user': self.request.user,
+            'form': self.get_form(),  # Сохраняем форму в контексте
+        })
         return context
+
+    def form_valid(self, form):
+        review = form.save(commit=False)
+        review.user = self.request.user
+        review.save()
+
+        # Сохраняем каждое загруженное изображение с использованием bulk_create
+        images = self.request.FILES.getlist('images')
+        review_images = [ReviewImage(review=review, image=image) for image in images]
+        ReviewImage.objects.bulk_create(review_images)
+
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        return super().form_invalid(form)
     
 
 

@@ -837,6 +837,22 @@ textarea{
   text-decoration: underline;
 }
 
+
+/*==========================Profile_page======================*/
+.profile-img {
+  max-width: 100px;       /* Максимальная ширина */
+  max-height: 100px;      /* Максимальная высота */
+  width: 100px;           /* Фиксированная ширина для круга */
+  height: 100px;          /* Фиксированная высота для круга */
+  object-fit: cover;      /* Чтобы изображение не искажалось, используйте object-fit */
+  border-radius: 50%;     /* Делает изображение круглым */
+}
+
+
+/*==========================Review_page======================*/
+
+
+
 /*==========================Password_change_done======================*/
 
 
@@ -849,4 +865,18 @@ textarea{
 
 .password-change-done a:hover{
   color: dodgerblue;
+}
+
+
+
+
+
+.star {
+  cursor: pointer;
+  font-size: 24px; /* Размер звёзд */
+  color: lightgray; /* Цвет невыбранных звёзд */
+}
+
+.star.selected {
+  color: gold; /* Цвет выбранных звёзд */
 }

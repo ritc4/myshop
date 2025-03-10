@@ -14,7 +14,7 @@ class OrderCreateForm(forms.ModelForm):
             'onchange': 'toggleAdditionalCol()',
         }),
         empty_label="Выберите способ доставки",
-        label="Выберите способ доставки",  # Устанавливаем нужную метку
+        label="Доставка",  # Устанавливаем нужную метку
     )
  
     class Meta: 
@@ -37,7 +37,7 @@ class OrderCreateForm(forms.ModelForm):
         ]
 
         labels = {
-            'delivery_method':'Доставка',
+            # 'delivery_method':'Доставка',
             'first_name_last_name': 'Фамилия Имя Отчество',
             'email': 'Электронный адрес',
             'phone': 'Телефон',
@@ -45,7 +45,7 @@ class OrderCreateForm(forms.ModelForm):
             'city': 'Город',
             'address': 'Адрес',
             'postal_code': 'Почтовый индекс',
-            'passport_number':'Паспортные данные',
+            'passport_number':'Номер паспорта',
             'comment':'Комментарии к заказу',
             'zamena_product':'Не предлагать замену товаров',
             'strahovat_gruz':'Cтраховать груз',
@@ -83,4 +83,19 @@ class OrderCreateForm(forms.ModelForm):
             self.fields['city'].initial = getattr(user, 'city', '')
             self.fields['address'].initial = getattr(user, 'address', '')
             self.fields['postal_code'].initial = getattr(user, 'postal_code', '')
+
+    
+
+    def clean(self):
+        cleaned_data = super().clean()
+        soglasie_na_obrabotku_danyh = cleaned_data.get("soglasie_na_obrabotku_danyh")
+        soglasie_na_uslovie_sotrudnichestva = cleaned_data.get("soglasie_na_uslovie_sotrudnichestva")
+
+        if not soglasie_na_obrabotku_danyh:
+            self.add_error('soglasie_na_obrabotku_danyh', "Необходимо согласие на обработку персональных данных.")
+        
+        if not soglasie_na_uslovie_sotrudnichestva:
+            self.add_error('soglasie_na_uslovie_sotrudnichestva', "Необходимо согласие с условиями сотрудничества.")
+
+        return cleaned_data
             

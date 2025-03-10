@@ -6,12 +6,21 @@
 {% include "includes/breadcrumb.html" %}
 
 <div class="container-fluid">
-  <form method="POST">
+  <form method="POST" enctype="multipart/form-data">
     {% csrf_token %}
   <div class="row">
       <div class="col-md-6 offset-md-3 mb-3">
         <div class="checkout p-3 h-100 bg-white">
             <h1 class="section-title h5 text-center"><span>{{ title }}</span></h1>
+            {% if user.photo %}
+              <div class="img-profile">
+              <p><img class="profile-img" src="{{ user.photo.url }}" alt="User  Photo"></p>
+              </div>
+            {% else %}
+              <div class="img-profile">
+              <p><img class="profile-img" src="/media/users/default.png" alt="Default User Photo"></p>
+              </div>
+            {% endif %}
             <input type="hidden" name="next" value="{{ next }}"/>
               <div class="form-error">{{ form.non_field_errors }}</div>
               {% for i in form %}

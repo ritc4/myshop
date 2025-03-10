@@ -1,7 +1,7 @@
 from django.contrib import admin
 from mptt.admin import MPTTModelAdmin
 from mptt.admin import DraggableMPTTAdmin
-from .models import Category,Size,Product,ProductImage,ProductPrice,News,SizeTable,Uslovie_firm,Politica_firm,ImageSliderHome,DeliveryInfo
+from .models import Category,Size,Product,ProductImage,ProductPrice,News,SizeTable,Uslovie_firm,Politica_firm,ImageSliderHome,DeliveryInfo,Review,ReviewImage
 from django.utils.safestring import mark_safe
 from slugify import slugify
 from django.utils.html import format_html
@@ -241,6 +241,45 @@ class Politica_firmAdmin(admin.ModelAdmin):
 @admin.register(ImageSliderHome)
 class ImageSliderHome(admin.ModelAdmin):
     list_display = ('image',)
+
+
+
+@admin.register(ReviewImage)
+class ReviewImageAdmin(admin.ModelAdmin):
+    list_display = ('review','image',)
+
+
+class ReviewImageInline(admin.TabularInline):
+    model = ReviewImage
+    extra = 1
+    readonly_fields = ('image_tag',)
+    fields = ('image_tag', 'image')
+
+    def image_tag(self, obj):
+        if obj.image:
+            return mark_safe(f"<img src='{obj.image.url}' width='75'>")
+        return 'Нет фото'
+    image_tag.short_description = "Фото"
+
+
+@admin.register(Review)
+class ReviewAdmin(admin.ModelAdmin):
+    inlines = [ReviewImageInline]
+    list_display = ('user','content','get_image_review','kachestvo_rating','obsluga_rating','sroki_rating','created_at')
+
+    def get_queryset(self, request):
+        # Используем prefetch_related для загрузки связанных изображений
+        qs = super().get_queryset(request)
+        return qs.prefetch_related('images')
+
+    def get_image_review(self, obj):
+        images = obj.images.all()  # Получаем все изображения, связанные с отзывом
+        if images.exists():
+            # Создаем строку с HTML-кодом для отображения всех изображений
+            return mark_safe(" ".join([f"<img src='{image.image.url}' width='50'>" for image in images]))
+        return 'Нет фото'
+    
+    get_image_review.short_description = "Изображение"
 
 
 

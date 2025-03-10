@@ -29,7 +29,7 @@ class User(AbstractUser ):
             )
         ]
     )
-
+    photo = models.ImageField(upload_to="users/%Y/%m/%d/",blank=True,null=True,verbose_name="Фотография")
     delivery_method = models.ForeignKey(DeliveryMethod, blank=False, on_delete=models.SET_NULL, null=True, verbose_name="Способ доставки")
 
     class Meta:

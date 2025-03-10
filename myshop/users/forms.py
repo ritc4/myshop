@@ -36,7 +36,7 @@ class ProfileUserForm(forms.ModelForm):
 
     class Meta:
         model = get_user_model()
-        fields = ['username', 'email', 'first_name','phone', 'region', 'city', 'address','postal_code','delivery_method']
+        fields = ['photo','username', 'email', 'first_name','phone', 'region', 'city', 'address','postal_code','delivery_method']
         labels = {
             'first_name': 'ФИО',
             'region': 'Регион',
@@ -44,6 +44,7 @@ class ProfileUserForm(forms.ModelForm):
             'address': 'Адрес',
             'postal_code': 'Почтовый индекс',
             'delivery_method': 'Доставка',
+            'photo':'Фотография',
             
         }
         widgets = {

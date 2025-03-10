@@ -1,102 +1,157 @@
-{% extends "base.html" %} {% load static %} 
-{% block title %}Отзывы{% endblock %} 
-
-{% block content %} 
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
 
 {% include "includes/breadcrumb.html" %}
 
-
 <div class="container-fluid">
-    <div class="row">
-        <div class="reviews">
-            <div class="tab-content" id="myTabContent">
-                <div class="tab-pane fade" id="home-tab-pane" role="tabpanel" aria-labelledby="home-tab" tabindex="0">
-                  <p>
-                    Lorem ipsum, dolor sit amet consectetur adipisicing elit. Et
-                    quod fuga, molestiae dolorem, aut eum atque praesentium
-                    commodi possimus dolores ab officiis minima debitis numquam
-                    impedit tempora recusandae, cum sapiente.
-                  </p>
+  <div class="row">
+    <div class="reviews">
+      <div class="tab-content" id="myTabContent">
+        <div class="tab-pane fade active show" id="reviews-tab-pane" role="tabpanel" aria-labelledby="reviews-tab" tabindex="0">
+          <button type="button" class="btn btn-dark mb-3" data-bs-toggle="modal" data-bs-target="#reviewsModal">
+            Написать отзыв
+          </button>
+          {% for i in reviews %}
+            <div class="card product-reviews mb-4 shadow-sm">
+              <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                  <div class="img-profile me-3">
+                    {% if i.user.photo %}
+                      <img class="profile-img rounded-circle" src="{{ i.user.photo.url }}" alt="User  Photo">
+                    {% else %}
+                      <img class="profile-img rounded-circle" src="/media/users/default.png" alt="Default User Photo">
+                    {% endif %}
+                  </div>
+                  <div>
+                    <h5 class="card-title mb-0">{{ i.user }} <small class="text-muted">{{ i.user.city }}</small></h5>
+                    <h6 class="text-muted">{{ i.created_at|date:"d.m.Y" }}</h6>
+                  </div>
                 </div>
-                <div class="tab-pane fade" id="profile-tab-pane" role="tabpanel" aria-labelledby="profile-tab" tabindex="0">
-                  <p>
-                    Lorem ipsum dolor sit amet, consectetur adipisicing elit.
-                    Velit sequi doloremque, eligendi accusamus itaque aperiam.
-                    Eius ratione tempora, veniam culpa possimus laboriosam enim,
-                    neque non, rem magnam voluptatum odit illo.
-                  </p>
+
+                <div class="rating mb-3">
+                  <div class="d-flex align-items-center mb-2">
+                    <strong class="me-2">Качество товара:</strong>
+                    {% for star in "★★★★★" %}
+                      <span class="star {% if forloop.counter <= i.kachestvo_rating %}text-warning{% endif %}">&#9733;</span>
+                    {% endfor %}
+                  </div>
+                  <div class="d-flex align-items-center mb-2">
+                    <strong class="me-2">Качество обслуживания:</strong>
+                    {% for star in "★★★★★" %}
+                      <span class="star {% if forloop.counter <= i.obsluga_rating %}text-warning{% endif %}">&#9733;</span>
+                    {% endfor %}
+                  </div>
+                  <div class="d-flex align-items-center mb-2">
+                    <strong class="me-2">Соблюдение сроков:</strong>
+                    {% for star in "★★★★★" %}
+                      <span class="star {% if forloop.counter <= i.sroki_rating %}text-warning{% endif %}">&#9733;</span>
+                    {% endfor %}
+                  </div>
                 </div>
-                <div class="tab-pane fade active show" id="reviews-tab-pane" role="tabpanel" aria-labelledby="reviews-tab" tabindex="0">
-                  <button type="button" class="btn btn-dark mb-3" data-bs-toggle="modal" data-bs-target="#reviewsModal">
-                    Написать отзыв
-                  </button>
-                  
-                  <!-- Modal -->
-                  <div class="modal fade" id="reviewsModal" tabindex="-1" aria-labelledby="reviewsModal" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered modal-lg">
-                      <div class="modal-content">
-                        <div class="modal-header">
-                          <h1 class="modal-title fs-5" id="exampleModalLabel">Написать отзыв</h1>
-                          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <form action="">
-                        <div class="modal-body">
-                          <div class="mb-3">
-                            <label for="exampleFormControlInput1" class="form-label">Email address</label>
-                            <input type="email" class="form-control" id="exampleFormControlInput1" placeholder="name@example.com">
-                          </div>
-                          <div class="mb-3">
-                            <label for="exampleFormControlTextarea1" class="form-label">Example textarea</label>
-                            <textarea class="form-control" id="exampleFormControlTextarea1" rows="3"></textarea>
-                          </div>
-                        </div>
-                        <div class="modal-footer">
-                         <button type="submit" class="btn btn-dark">Отправить отзыв</button>
-                        </div>
-                        </form>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div class="card product-reviews mb-3">
-                    <div class="card-body">
-                      <div class="product-reviews-header d-flex justify-content-between">
-                        <h5 class="card-title">Александр</h5>
-                        <h6 class="card-subtitle mb-2 text-muted">27.02.2025<!--р-->
-                      </h6></div>
-                      <div class="card-text">
-                        <p>Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-                        <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Dolorem repellendus aperiam voluptas quod minus veniam recusandae possimus consequuntur similique numquam unde, quae velit aliquid maiores illo a, exercitationem aut harum!</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="card product-reviews mb-3">
-                    <div class="card-body">
-                      <div class="product-reviews-header d-flex justify-content-between">
-                        <h5 class="card-title">Светлана</h5>
-                        <h6 class="card-subtitle mb-2 text-muted">27.02.2025</h6>
-                      </div>
-                      <div class="card-text">
-                        <p>Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-                        <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Dolorem repellendus aperiam voluptas quod minus veniam recusandae possimus consequuntur similique numquam unde, quae velit aliquid maiores illo a, exercitationem aut harum!</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="card product-reviews mb-3">
-                    <div class="card-body">
-                      <div class="product-reviews-header d-flex justify-content-between">
-                        <h5 class="card-title">Вася</h5>
-                        <h6 class="card-subtitle mb-2 text-muted">27.02.2025</h6>
-                      </div>
-                      <div class="card-text">
-                        <p>Some quick example text to build on the card title and make up the bulk of the card's content.</p>
-                        <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Dolorem repellendus aperiam voluptas quod minus veniam recusandae possimus consequuntur similique numquam unde, quae velit aliquid maiores illo a, exercitationem aut harum!</p>
-                      </div>
-                    </div>
-                  </div>
+
+                <div class="card-text mt-3">
+                  <p>{{ i.content }}</p>
+                </div>
+
+                {% if i.images %}
+                <div class="img-review d-flex flex-wrap mt-2">
+                  {% for image in i.images.all %}
+                    <img class="review-img me-2" src="{{ image.image.url }}" alt="Отзыв" style="max-width: auto; max-height: 200px; object-fit: contain; margin: 0.5rem;">
+                  {% endfor %}
+                </div>
+                {% endif %}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="reviewsModal" tabindex="-1" aria-labelledby="reviewsModal" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="exampleModalLabel">Написать отзыв</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form method="POST" enctype="multipart/form-data" id="reviewForm">
+        {% csrf_token %}
+        <div class="modal-body">
+          <h6 class="card-title mb-3">{{ user }} <small class="text-muted">{{ user.city }}</small></h6>
+          <input type="hidden" name="next" value="{{ next }}" />
+          <div class="form-error">{{ form.non_field_errors }}</div>
+          {% for i in form %}
+              {% if i.name == 'kachestvo_rating' or i.name == 'obsluga_rating' or i.name == 'sroki_rating' %}
+                <div class="star-rating mb-3" data-field="{{ i.name }}">
+                  <span class="form-label">{{ i.label }}</span>
+                  {% for value, display in i.field.choices %}
+                    <span class="star" data-value="{{ value }}" style="cursor: pointer;">&#9733;</span>
+                  {% endfor %}
+                </div>
+                <input type="hidden" name="{{ i.name }}" id="{{ i.name }}" value="">
+                <div class="form-error text-danger">{{ i.errors }}</div>
+              {% elif i.name == 'images' %}
+                <div class="mb-3">
+                  {{ i }}
+                  <div class="form-error text-danger">{{ i.errors }}</div>
+                  <div id="image-preview-container" class="d-flex flex-wrap mt-2"></div>
+                </div>
+              {% else %}
+                <div class="mb-3">
+                  {{ i }}
+                  <div class="form-error text-danger">{{ i.errors }}</div>
+                </div>
+              {% endif %}
+            {% endfor %}
+            <div class="modal-footer">
+              <button type="submit" class="btn btn-dark">Отправить отзыв</button>
+            </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<!-- Пагинация -->
+<div class="row">
+                <div class="col-12">
+                    <nav aria-label="Page navigation example">
+                        <ul class="pagination d-flex justify-content-center">
+                            {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?slug={{ category.slug }}&page=1&per_page={{ per_page }}&sort={{ request.GET.sort }}">&laquo; Первая</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?slug={{ category.slug }}&page={{ page_obj.previous_page_number }}&per_page={{ per_page }}&sort={{ request.GET.sort }}">Назад</a>
+                                </li>
+                            {% endif %}
+            
+                            {% for num in page_obj.paginator.page_range %}
+                                {% if page_obj.number == num %}
+                                    <li class="page-item active" aria-current="page">
+                                        <a class="page-link" href="#">{{ num }}</a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?slug={{ category.slug }}&page={{ num }}&per_page={{ per_page }}&sort={{ request.GET.sort }}">{{ num }}</a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+            
+                            {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?slug={{ category.slug }}&page={{ page_obj.next_page_number }}&per_page={{ per_page }}&sort={{ request.GET.sort }}">Вперёд</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?slug={{ category.slug }}&page={{ page_obj.paginator.num_pages }}&per_page={{ per_page }}&sort={{ request.GET.sort }}">Последняя &raquo;</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
                 </div>
               </div>
-        </div>
-    </div>
-</div>
 {% endblock %}

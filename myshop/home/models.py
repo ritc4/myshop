@@ -3,6 +3,7 @@ from mptt.models import MPTTModel, TreeForeignKey
 from django.urls import reverse
 from django.core.validators import MinValueValidator
 from django_ckeditor_5.fields import CKEditor5Field
+from django.conf import settings
 
 
 
@@ -177,3 +178,37 @@ class DeliveryInfo(models.Model):
     class Meta:
         verbose_name = 'Информацию по доставке'
         verbose_name_plural = 'Информация по доставке'
+
+
+
+
+class Review(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)  # Связь с пользователем
+    content = models.TextField(verbose_name="Отзыв", blank=False)
+    kachestvo_rating = models.PositiveIntegerField(default=0,blank=False,verbose_name='Качество товара')  # Рейтинг за качество
+    obsluga_rating = models.PositiveIntegerField(default=0,blank=False,verbose_name='Качество обслуживания')    # Рейтинг за обслуживание
+    sroki_rating = models.PositiveIntegerField(default=0,blank=False,verbose_name='Соблюдение сроков')  # Рейтинг за сроки
+    created_at = models.DateTimeField(auto_now_add=True)  
+
+    def __str__(self):
+        return str(self.user) if self.user else "Анонимный пользователь"  # Возвращаем строку
+
+
+    class Meta:
+        verbose_name = 'Отзыв'
+        verbose_name_plural = 'Отзывы'
+
+
+class ReviewImage(models.Model):
+    review = models.ForeignKey(Review, related_name='images', on_delete=models.CASCADE)
+    image = models.ImageField(upload_to='review_home/%Y/%m/%d', blank=True, null=True, verbose_name='Изображение')
+
+    
+    def image_tag_review(self):
+        # Возвращаем все изображения, связанные с продуктом
+        return self.review.image.all()
+    image_tag_review.short_description = "Изображение"
+    
+    class Meta:
+        verbose_name = 'Изображение отзыва'
+        verbose_name_plural = 'Изображения отзывов'
