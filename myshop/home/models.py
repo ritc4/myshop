@@ -38,7 +38,7 @@ class Size(models.Model):
     title = models.CharField(max_length=50, unique=True,verbose_name="Размеры")  # Название размера
 
     def __str__(self):
-        return self.title
+        return f"{self.title}"
     
     class Meta:
         verbose_name = 'Размер'
@@ -138,6 +138,9 @@ class SizeTable(models.Model):
     image = models.ImageField(upload_to='size_table/%Y/%m/%d', blank=True,null=True, verbose_name='Изображение')
 
 
+    def __str__(self):
+        return f"{self.title}"
+    
     class Meta:
         verbose_name = 'Размерная таблица'
         verbose_name_plural = 'Размерные таблицы'
@@ -148,6 +151,9 @@ class Uslovie_firm(models.Model):
     description = CKEditor5Field(config_name='extends',verbose_name='Описание',blank=False)
 
 
+    def __str__(self):
+        return f"{self.title}"
+    
     class Meta:
         verbose_name = 'Условие сотрудничества'
         verbose_name_plural = 'Условия сотрудничества'
@@ -157,7 +163,9 @@ class Politica_firm(models.Model):
     title = models.CharField(max_length=255,verbose_name='Политика конфиденциальности',blank=False)
     description = CKEditor5Field(config_name='extends',verbose_name='Описание',blank=False)
 
-
+    def __str__(self):
+        return f"{self.title}"
+    
     class Meta:
         verbose_name = 'Политика конфиденциальности'
         verbose_name_plural = 'Политика конфиденциальности'
@@ -175,6 +183,9 @@ class DeliveryInfo(models.Model):
     title = models.CharField(max_length=255,verbose_name='Доставка',blank=False)
     description = CKEditor5Field(config_name='extends',verbose_name='Описание',blank=False)
 
+    def __str__(self):
+        return f"{self.title}"
+    
     class Meta:
         verbose_name = 'Информацию по доставке'
         verbose_name_plural = 'Информация по доставке'
@@ -203,6 +214,9 @@ class ReviewImage(models.Model):
     review = models.ForeignKey(Review, related_name='images', on_delete=models.CASCADE)
     image = models.ImageField(upload_to='review_home/%Y/%m/%d', blank=True, null=True, verbose_name='Изображение')
 
+    
+    def __str__(self):
+        return f"{self.review}"
     
     def image_tag_review(self):
         # Возвращаем все изображения, связанные с продуктом

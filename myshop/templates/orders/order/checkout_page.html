@@ -1,9 +1,7 @@
 {% extends "base.html" %} {% load static %} 
-{% block title %}Checkoutpage{% endblock %} 
+{% block title %}{{ title }}{% endblock %} 
 
 {% block content %} 
-
-{% include "includes/breadcrumb.html" %}
 
 <div class="container-fluid">
     <form method="post" class="order-form"> 

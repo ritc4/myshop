@@ -24,6 +24,12 @@ def order_create(request):
     if not cart or not any(item['quantity'] > 0 for item in cart):
         return redirect(get_root_catalog)  # Перенаправляем на страницу товаров
     
+    # Создание хлебных крошек
+    breadcrumbs = [
+        {'name': 'Оформление заказа', 'slug': '/orders/'}  # Текущая страница без ссылки
+        ]
+    
+    
     if request.method == 'POST':
         form = OrderCreateForm(request.POST, user=request.user)  # Передаем пользователя в форму
         if form.is_valid():
@@ -43,7 +49,7 @@ def order_create(request):
             # Отправить сигнал после успешного создания заказа
             order_created_signal.send(sender=OrderItem, order_id=order.id, request=request)
             return render(
-                request, 'orders/order/checkout_finish_page.html', {'order': order, 'categories': categories}
+                request, 'orders/order/checkout_finish_page.html', {'order': order, 'categories': categories, 'breadcrumbs': breadcrumbs}
             )
     else:
         form = OrderCreateForm(user=request.user)  # Передаем пользователя в форму
@@ -51,8 +57,11 @@ def order_create(request):
     return render(
         request,
         'orders/order/checkout_page.html',
-        {'cart': cart, 'form': form, 'categories': categories, 'politica': politica, 'uslovia': uslovia}
+        {'cart': cart, 'form': form, 'categories': categories, 'politica': politica, 'uslovia': uslovia, 'breadcrumbs': breadcrumbs}
     )
+
+
+
 
 @staff_member_required
 def admin_order_pdf(request, order_id):

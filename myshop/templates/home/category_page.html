@@ -3,9 +3,6 @@
 
 {% block content %}
 
-{% include "includes/breadcrumb.html" %}
-
-
 <div class="container-fluid">
   <div class="row">
     <div class="col-lg-3 col-md-4 d-none d-md-block">
@@ -117,7 +114,7 @@
                                     </div>
                                 </div>
             
-                                <div class="modal fade" id="product_Link_add_Modal_{{ product.id }}" tabindex="-1" aria-labelledby="product_Link_add_ModalLabel" aria-hidden="true">
+                                <div class="modal fade" id="product_Link_add_Modal_{{ product.id }}" tabindex="-1" aria-labelledby="product_Link_add_ModalLabel" aria-hidden="false">
                                     <div class="modal-dialog modal-dialog-centered">
                                         <div class="modal-content">
                                             <div class="modal-header">
@@ -166,38 +163,6 @@
                     {% endwith %}
                 {% endfor %}
               </div>
-              <!-- <div class="row">
-
-                <div class="col-12">
-                    <nav aria-label="Page navigation example">
-                        <ul class="pagination d-flex justify-content-center">
-                            {% if page_obj.has_previous %}
-                                <li class="page-item">
-                                    <a class="page-link" href="?slug={{ category.slug }}&page={{ page_obj.previous_page_number }}">Назад</a>
-                                </li>
-                            {% endif %}
-            
-                            {% for num in page_obj.paginator.page_range %}
-                                {% if page_obj.number == num %}
-                                    <li class="page-item active" aria-current="page">
-                                        <a class="page-link" href="#">{{ num }}</a>
-                                    </li>
-                                {% else %}
-                                    <li class="page-item">
-                                        <a class="page-link" href="?slug={{ category.slug }}&page={{ num }}">{{ num }}</a>
-                                    </li>
-                                {% endif %}
-                            {% endfor %}
-            
-                            {% if page_obj.has_next %}
-                                <li class="page-item">
-                                    <a class="page-link" href="?slug={{ category.slug }}&page={{ page_obj.next_page_number }}">Вперёд</a>
-                                </li>
-                            {% endif %}
-                        </ul>
-                    </nav>
-                </div>
-              </div> -->
               <div class="row">
                 <div class="col-12">
                     <nav aria-label="Page navigation example">

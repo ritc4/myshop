@@ -24,6 +24,15 @@ img {
   background-color: dodgerblue;
 }
 
+
+.btn-dark {
+  transition: all .3s;
+ }
+ 
+ .btn-dark:hover {
+   background-color: dodgerblue;
+ }
+
 /*==========================General rules======================*/
 
 html,
@@ -850,32 +859,6 @@ textarea{
 
 
 /*==========================Review_page======================*/
-.profile-img {
-  max-width: 100px;       /* Максимальная ширина */
-  max-height: 100px;      /* Максимальная высота */
-  width: 100px;           /* Фиксированная ширина для круга */
-  height: 100px;          /* Фиксированная высота для круга */
-  object-fit: cover;      /* Чтобы изображение не искажалось, используйте object-fit */
-  border-radius: 50%;     /* Делает изображение круглым */
-}
-
-/*==========================Password_change_done======================*/
-
-
-
-.password-change-done a{
-  color: black;
-  transition: all .3s;
-}
-
-
-.password-change-done a:hover{
-  color: dodgerblue;
-}
-
-
-
-
 
 .star {
   cursor: pointer;
@@ -885,4 +868,18 @@ textarea{
 
 .star.selected {
   color: gold; /* Цвет выбранных звёзд */
+}
+
+
+
+/*==========================Password_change_done======================*/
+
+.password-change-done a{
+  color: black;
+  transition: all .3s;
+}
+
+
+.password-change-done a:hover{
+  color: dodgerblue;
 }

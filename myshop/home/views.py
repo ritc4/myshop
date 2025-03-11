@@ -9,12 +9,17 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.generic.edit import FormView
 from django.urls import reverse_lazy
+from .forms import ContactForm
+from django.contrib import messages
+from django.core.mail import send_mail
+from django.conf import settings
 
 
 
 class HomeView(ListView):
     template_name = 'home/home_page.html'
     context_object_name = 'products'  # Имя контекста для списка продуктов
+    extra_context = {'title':'Главная страница'}
 
     def get_queryset(self):
         # Получаем самые продаваемые товары
@@ -91,6 +96,10 @@ class ProductListView(ListView):
         context['get_children_cat'] = context['category'].get_children()  # Получаем дочерние категории
         context['get_descendants_cat'] = context['get_root_cat'].get_children()  # Получаем все дочерние категории корня
 
+        # Получаем хлебные крошки
+        context['breadcrumbs'] = context['category'].get_breadcrumbs()
+
+
         # Создаем формы для добавления продуктов в корзину
         context['cart_product_form'] = [
             (product, CartAddProductForm(product=product)) for product in context['products']
@@ -146,11 +155,12 @@ class NewsListView(ListView):
     model = News
     template_name = 'home/news_page.html'
     context_object_name = 'news'  # Имя контекста для списка новостей
+    extra_context = {'title':'Новости'}
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        # # Настройка хлебных крошек
+        # Настройка хлебных крошек
         context['breadcrumbs'] = [
             {'name': 'Новости', 'slug': '/news/'},  # Страница новостей
             ]
@@ -163,6 +173,7 @@ class SizeTableListView(ListView):
     model = SizeTable
     template_name = 'home/size_table_page.html'
     context_object_name = 'size_table'  # Имя контекста для списка размеров
+    extra_context = {'title':'Размерная таблица'}
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -179,6 +190,7 @@ class DeliveryView(ListView):
     model = DeliveryInfo
     template_name = 'home/delivery_page.html'
     context_object_name = 'delivery_info'
+    extra_context = {'title':'Доставка'}
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -191,21 +203,56 @@ class DeliveryView(ListView):
         return context
 
 
-class ContactsView(ListView):
-    model = DeliveryInfo
-    template_name = 'home/contacts_page.html'
-    context_object_name = ''
-    
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
 
-         # Настройка хлебных крошек
-        context['breadcrumbs'] = [
-            {'name': 'Контакты', 'slug': '/contacts/'},  # Страница доставка
-            ]
-        
-        return context
-    
+
+
+class ContactsView(FormView):
+    form_class = ContactForm
+    template_name = 'home/contacts_page.html'
+    extra_context = {'title': 'Контакты'}
+    success_url = reverse_lazy('home:contacts')
+
+    def get_form_kwargs(self):
+        # Получаем исходные аргументы формы
+        kwargs = super().get_form_kwargs()
+        # Добавляем пользователя в аргументы формы
+        kwargs['user'] = self.request.user
+        return kwargs
+
+    def form_valid(self, form):
+        # Проверяем, аутентифицирован ли пользователь
+        if self.request.user.is_authenticated:
+            first_name = form.cleaned_data['first_name']
+            email = form.cleaned_data['email']
+            phone = form.cleaned_data['phone']
+        else:
+            first_name = form.cleaned_data['first_name']
+            email = form.cleaned_data['email']
+            phone = form.cleaned_data['phone']
+
+        content = form.cleaned_data['content']
+
+        # Отправка сообщения
+        subject = f'Новое сообщение от {first_name}'
+        message_body = (
+            f'Имя: {first_name}\n'
+            f'Email: {email}\n'
+            f'Телефон: {phone}\n'
+            f'Сообщение:\n{content}'
+        )
+        admin_email = settings.EMAIL_HOST_USER
+
+        send_mail(subject, message_body, settings.DEFAULT_FROM_EMAIL, [admin_email])
+
+        messages.success(self.request, 'Ваше сообщение успешно отправлено!')
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        messages.error(self.request, 'Ошибка при отправке сообщения. Пожалуйста, проверьте форму.')
+        return super().form_invalid(form)
+
+
+
 
 
 class ReviewsView(LoginRequiredMixin, FormView, ListView):
@@ -213,6 +260,7 @@ class ReviewsView(LoginRequiredMixin, FormView, ListView):
     template_name = 'home/reviews_page.html'
     success_url = reverse_lazy('home:reviews')
     context_object_name = 'reviews'
+    extra_context = {'title':'Отзывы'}
     paginate_by = 5
     
     def get_queryset(self):
@@ -242,16 +290,3 @@ class ReviewsView(LoginRequiredMixin, FormView, ListView):
 
     def form_invalid(self, form):
         return super().form_invalid(form)
-    
-
-
-def registration(request):
-    categories = Category.objects.all()  # Получите все категории
-    return render(request, 'home/registration_page.html',{'categories': categories})
-
-def login(request):
-    categories = Category.objects.all()  # Получите все категории
-    return render(request, 'home/login_page.html',{'categories': categories})
-
-
-

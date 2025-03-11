@@ -1,16 +1,21 @@
+{% if breadcrumbs %}
 <div class="container-fluid">
   <div class="row">
     <div class="col-12">
       <nav class="breadcrumbs">
         <ul>
-          <li><a href="{% url 'home:home' %}">Home</a></li>
+          <li><a href="{% url 'home:home' %}">Главная</a></li>
           {% for i in breadcrumbs %}
-            <li><a href="{{ i.get_absolute_url }}">{{ i.name }}</a></li>
+              {% if forloop.last %}
+                  <li>{{ i.name }}</li>  <!-- Отображаем без ссылки, если это последний элемент -->
+              {% else %}
+                <li><a href="{{ i.get_absolute_url }}">{{ i.name }}</a></li>  <!-- Отображаем с ссылкой для остальных элементов -->
+              {% endif %}
           {% endfor %}
-          <!-- <li><a href="{{ category.get_absolute_url }}">{{ category }}</a></li> -->
-          <!-- <li><a href="#">{{ products }}</a></li> -->
         </ul>
       </nav>
     </div>
   </div>
 </div>
+{% endif %}
+
