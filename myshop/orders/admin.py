@@ -3,6 +3,10 @@ from .models import Order, OrderItem,DeliveryMethod,Discount
 from django.utils.safestring import mark_safe
 from django.db.models import Q
 from django.urls import reverse
+from django.db.models import Sum, Count
+
+
+
 
 
 
@@ -67,7 +71,7 @@ class OrderAdmin(admin.ModelAdmin):
     readonly_fields = ['get_total_zakup_cost','get_total_cost','get_delivery_price']
     list_filter = ['paid', 'created', 'updated'] 
     inlines = [OrderItemInline]
-    search_fields = ['items__product__article_number','first_name_last_name', 'email', 'phone',]
+    search_fields = ['items__product__article_number','first_name_last_name', 'email', 'phone','city']
     list_display_links=['id','first_name_last_name',]  # Поля для поиска
 
     def get_delivery_price(self, obj):
@@ -99,6 +103,10 @@ class OrderAdmin(admin.ModelAdmin):
                 Q(phone__icontains=search_term)
             ).distinct()
         return super().get_search_results(request, queryset, search_term)
+    
+    
+
+    
 
 
 @admin.register(DeliveryMethod)
@@ -111,3 +119,6 @@ class DeliveryMethodAdmin(admin.ModelAdmin):
 @admin.register(Discount)
 class DiscountAdmin(admin.ModelAdmin):
     list_display = ('discount_type', 'discount_value')
+
+
+

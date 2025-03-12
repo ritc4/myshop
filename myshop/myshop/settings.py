@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'cart.apps.CartConfig',
     'users.apps.UsersConfig',
     'orders.apps.OrdersConfig',
+    'visit_user.apps.VisitUserConfig',
     'django_ckeditor_5',
     
 ]
@@ -57,6 +58,9 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     "debug_toolbar.middleware.DebugToolbarMiddleware",
+    
+    # Добавьте ваш middleware
+    'visit_user.middleware.VisitMiddleware',
 ]
 
 ROOT_URLCONF = 'myshop.urls'

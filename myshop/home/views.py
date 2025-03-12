@@ -212,6 +212,17 @@ class ContactsView(FormView):
     extra_context = {'title': 'Контакты'}
     success_url = reverse_lazy('home:contacts')
 
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # Настройка хлебных крошек
+        context['breadcrumbs'] = [
+            {'name': 'Контакты', 'slug': '/contacts/'},  # Страница доставка
+            ]
+
+        return context
+
     def get_form_kwargs(self):
         # Получаем исходные аргументы формы
         kwargs = super().get_form_kwargs()

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Количество посещений</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Статистика посещений</h1>
+
+    <p>Выберите период:</p>
+    <ul>
+        <li><a href="{% url 'visit_user:visit_view' %}?period=1_day" {% if selected_period == '1_day' %}style="font-weight: bold;"{% endif %}>За 1 день</a></li>
+        <li><a href="{% url 'visit_user:visit_view' %}?period=3_days" {% if selected_period == '3_days' %}style="font-weight: bold;"{% endif %}>За 3 дня</a></li>
+        <li><a href="{% url 'visit_user:visit_view' %}?period=1_week" {% if selected_period == '1_week' %}style="font-weight: bold;"{% endif %}>За неделю</a></li>
+        <li><a href="{% url 'visit_user:visit_view' %}?period=1_month" {% if selected_period == '1_month' %}style="font-weight: bold;"{% endif %}>За месяц</a></li>
+        <li><a href="{% url 'visit_user:visit_view' %}?period=1_quarter" {% if selected_period == '1_quarter' %}style="font-weight: bold;"{% endif %}>За квартал</a></li>
+        <li><a href="{% url 'visit_user:visit_view' %}?period=1_year" {% if selected_period == '1_year' %}style="font-weight: bold;"{% endif %}>За год</a></li>
+    </ul>
+
+    <p>Количество посещений за выбранный период: {{ unique_users_count }}</p>
+
+    <h2>Статистика по каналам:</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>№</th> <!-- Нумерация -->
+                <th>Канал</th>
+                <th>Посетители</th>
+                <th>Просмотры</th>
+                <th>Глубина просмотра</th>
+                <th>Заказов</th>
+                <th>Успешных заказов</th>
+                <th>Конверсия</th>
+                <th>Ср. чек</th>
+                <th>Оборот</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>1</td> <!-- Номер строки -->
+                <td>Итого и средние</td>
+                <td>{{ unique_users_count }}</td>
+                <td>{{ visit_count }}</td>
+                <td>2,4</td>
+                <td>2</td>
+                <td>2</td>
+                <td>1,36%</td>
+                <td>6 135 рублей</td>
+                <td>12 270 рублей</td>
+            </tr>
+            <tr>
+                <td>2</td> <!-- Номер строки -->
+                <td>detkityumen.ru</td>
+                <td>3</td>
+                <td>3</td>
+                <td>1,0</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>3</td> <!-- Номер строки -->
+                <td>sp2.bvf.ru</td>
+                <td>2</td>
+                <td>4</td>
+                <td>2,0</td>
+                <td>1</td>
+                <td>1</td>
+                <td>50%</td>
+                <td>5 000 рублей</td>
+                <td>5 000 рублей</td>
+            </tr>
+            <!-- Добавьте дополнительные строки по мере необходимости -->
+        </tbody>
+    </table>
+</body>
+</html>

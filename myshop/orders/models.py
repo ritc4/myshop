@@ -120,6 +120,8 @@ class Order(models.Model):
     
 
 
+
+
     def get_total_zakup_cost(self):
         total_zakup_cost = 0
         for item in self.items.all():
@@ -134,7 +136,7 @@ class Order(models.Model):
 
     def get_article_numbers(self):
         return [item.product.article_number for item in self.items.all() if item.product.article_number]
-
+    
 
 
 class OrderItem(models.Model):
