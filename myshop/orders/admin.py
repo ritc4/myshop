@@ -11,6 +11,7 @@ from django.db.models import Sum, Count
 
 
 
+
 def order_pdf(obj):
     url = reverse('orders:admin_order_pdf', args=[obj.id]) 
     return mark_safe(f'<a href="{url}">Чек</a>')
@@ -106,7 +107,15 @@ class OrderAdmin(admin.ModelAdmin):
     
     
 
-    
+
+@admin.register(OrderItem)
+class OrderItemAdmin(admin.ModelAdmin):
+    list_display =[
+        'order','product','price','quantity','size',
+        ]
+
+
+
 
 
 @admin.register(DeliveryMethod)
@@ -119,6 +128,7 @@ class DeliveryMethodAdmin(admin.ModelAdmin):
 @admin.register(Discount)
 class DiscountAdmin(admin.ModelAdmin):
     list_display = ('discount_type', 'discount_value')
+
 
 
 

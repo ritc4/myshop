@@ -1,3 +1,8 @@
+{% extends "admin/base_site.html" %}
+
+
+
+{% block content %}
 <!DOCTYPE html>
 <html lang="en">
 
@@ -22,23 +27,48 @@
         th {
             background-color: #f2f2f2;
         }
+
+        /* Стили для графика */
+        #myChart {
+            width: 100%;
+            max-width: 600px;
+            margin: 20px auto;
+        }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
-    <h1>Статистика посещений</h1>
+    <h2>График посещений</h2>
+    <canvas id="myChart"></canvas>
 
-    <p>Выберите период:</p>
-    <ul>
-        <li><a href="{% url 'visit_user:visit_view' %}?period=1_day" {% if selected_period == '1_day' %}style="font-weight: bold;"{% endif %}>За 1 день</a></li>
-        <li><a href="{% url 'visit_user:visit_view' %}?period=3_days" {% if selected_period == '3_days' %}style="font-weight: bold;"{% endif %}>За 3 дня</a></li>
-        <li><a href="{% url 'visit_user:visit_view' %}?period=1_week" {% if selected_period == '1_week' %}style="font-weight: bold;"{% endif %}>За неделю</a></li>
-        <li><a href="{% url 'visit_user:visit_view' %}?period=1_month" {% if selected_period == '1_month' %}style="font-weight: bold;"{% endif %}>За месяц</a></li>
-        <li><a href="{% url 'visit_user:visit_view' %}?period=1_quarter" {% if selected_period == '1_quarter' %}style="font-weight: bold;"{% endif %}>За квартал</a></li>
-        <li><a href="{% url 'visit_user:visit_view' %}?period=1_year" {% if selected_period == '1_year' %}style="font-weight: bold;"{% endif %}>За год</a></li>
-    </ul>
-
-    <p>Количество посещений за выбранный период: {{ unique_users_count }}</p>
+    <p>Период:</p>
+<div style="display: flex; gap: 10px;">
+    <a href="{% url 'admin:visit' %}?period=1_day" 
+       {% if selected_period == '1_day' %} style="font-weight: bold;" {% endif %}>
+       день
+    </a>
+    <a href="{% url 'admin:visit' %}?period=3_days" 
+       {% if selected_period == '3_days' %} style="font-weight: bold;" {% endif %}>
+       3 дня
+    </a>
+    <a href="{% url 'admin:visit' %}?period=1_week" 
+       {% if selected_period == '1_week' %} style="font-weight: bold;" {% endif %}>
+       За неделю
+    </a>
+    <a href="{% url 'admin:visit' %}?period=1_month" 
+       {% if selected_period == '1_month' %} style="font-weight: bold;" {% endif %}>
+       За месяц
+    </a>
+    <a href="{% url 'admin:visit' %}?period=1_quarter" 
+       {% if selected_period == '1_quarter' %} style="font-weight: bold;" {% endif %}>
+       За квартал
+    </a>
+    <a href="{% url 'admin:visit' %}?period=1_year" 
+       {% if selected_period == '1_year' %} style="font-weight: bold;" {% endif %}>
+       За год
+    </a>
+</div>
 
     <h2>Статистика по каналам:</h2>
     <table>
@@ -49,52 +79,89 @@
                 <th>Посетители</th>
                 <th>Просмотры</th>
                 <th>Глубина просмотра</th>
-                <th>Заказов</th>
+                <!-- <th>Заказов</th>
                 <th>Успешных заказов</th>
                 <th>Конверсия</th>
                 <th>Ср. чек</th>
-                <th>Оборот</th>
+                <th>Оборот</th> -->
             </tr>
         </thead>
         <tbody>
             <tr>
-                <td>1</td> <!-- Номер строки -->
+                <td></td> <!-- Номер строки -->
                 <td>Итого и средние</td>
-                <td>{{ unique_users_count }}</td>
                 <td>{{ visit_count }}</td>
-                <td>2,4</td>
-                <td>2</td>
-                <td>2</td>
-                <td>1,36%</td>
-                <td>6 135 рублей</td>
-                <td>12 270 рублей</td>
+                <td>{{ total_views }}</td>
+                <td>{{ average_depth_of_view }}</td>
+                <!-- <td>{{ total_orders }}</td>
+                <td>{{ successful_orders }}</td>
+                <td>{{ conversion_rate|floatformat:2 }}%</td>
+                <td>{{ average_check }} рублей</td>
+                <td>{{ turnover }} рублей</td> -->
             </tr>
+            {% for i in visits_by_referrer %}
+                <tr>
+                    <td>{{ forloop.counter }}</td> <!-- Номер строки -->
+                    <td>{{ i.referrer }}</td>
+                    <td>{{ i.user_count }}</td>
+                    <td>{{ i.average_view_refferer }}</td>
+                    <td>{{ i.view_refferer }}</td>
+                   
+                 
+                </tr>
+            {% endfor %}
+            {% for channel in channels_stats %}
             <tr>
-                <td>2</td> <!-- Номер строки -->
-                <td>detkityumen.ru</td>
-                <td>3</td>
-                <td>3</td>
-                <td>1,0</td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
+                <td>{{ forloop.counter }}</td> <!-- Номер строки -->
+                <td>{{ channel.referrer }}</td>
+                <td>{{ channel.visitors }}</td>
+                <td>{{ channel.views }}</td>
+                <td>{{ average_depth_of_view }}</td> <!-- Можно заменить на реальную логику, если необходимо -->
+                <td>{{ channel.successful_orders }}</td>
+                <td>{% if channel.successful_orders %}{{ channel.successful_orders|floatformat:2 }}{% else %}0{% endif%}</td>
+                <td>
+
+                </td>
+                <td>{% if channel.successful_orders %}{{ average_check }} рублей{% else %}0 рублей{% endif %}</td>
+                <td>{% if channel.successful_orders and channel.views %}{{ (channel.successful_orders *
+                    average_check)|floatformat:2 }} рублей{% else %}0 рублей{% endif %}</td>
             </tr>
-            <tr>
-                <td>3</td> <!-- Номер строки -->
-                <td>sp2.bvf.ru</td>
-                <td>2</td>
-                <td>4</td>
-                <td>2,0</td>
-                <td>1</td>
-                <td>1</td>
-                <td>50%</td>
-                <td>5 000 рублей</td>
-                <td>5 000 рублей</td>
-            </tr>
-            <!-- Добавьте дополнительные строки по мере необходимости -->
+            {% endfor %}
         </tbody>
     </table>
+
+    <script>
+        // Данные для графика
+        const labels = {{ visit_dates|safe}};
+        const data = {
+            labels: labels,
+            datasets: [{
+                label: 'Количество посещений',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1,
+                data: {{ visit_numbers|safe}},
+            }]
+        };
+    
+        const config = {
+            type: 'line',
+            data: data,
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        };
+    
+        const myChart = new Chart(
+            document.getElementById('myChart'),
+            config
+        );
+    </script>
 </body>
 </html>
+<a href="{% url 'admin:index' %}">Вернуться в админку</a>
+{% endblock %}

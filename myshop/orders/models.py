@@ -5,6 +5,10 @@ from django_ckeditor_5.fields import CKEditor5Field
 from decimal import Decimal, ROUND_HALF_UP
 from django.core.validators import RegexValidator
 
+from django.utils import timezone
+from datetime import timedelta
+from django.db.models import Count
+
 
 
 class DeliveryMethod(models.Model):
@@ -181,6 +185,26 @@ class OrderItem(models.Model):
 
     product_image.short_description = 'Фото товара'
 
+
+    # @classmethod
+    # def get_top_products(cls, period='month'):
+    #     now = timezone.now()
+    #     if period == 'month':
+    #         start_date = now - timedelta(days=30)
+    #     elif period == 'three_months':
+    #         start_date = now - timedelta(days=90)
+    #     elif period == 'year':
+    #         start_date = now - timedelta(days=365)
+    #     else:
+    #         raise ValueError("Неверный период. Используйте 'month', 'three_months' или 'year'.")
+
+    #     return (
+    #         cls.objects.filter(order__created__gte=start_date)
+    #         .values('product__title')
+    #         .annotate(total_quantity=Count('quantity'))
+    #         .order_by('-total_quantity')[:50]  # Топ 10 товаров
+    #     )
+
       
     class Meta:
         verbose_name = 'Заказанный товар'
@@ -202,3 +226,5 @@ class Discount(models.Model):
         elif self.discount_type == 'percentage':
             return f'{self.discount_value} %'
         return 'Неизвестный тип скидки'
+    
+
