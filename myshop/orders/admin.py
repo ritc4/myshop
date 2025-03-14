@@ -4,6 +4,10 @@ from django.utils.safestring import mark_safe
 from django.db.models import Q
 from django.urls import reverse
 from django.db.models import Sum, Count
+from django.urls import path
+from django.shortcuts import render
+from django.utils import timezone
+from datetime import timedelta
 
 
 
@@ -24,6 +28,7 @@ class OrderItemInline(admin.TabularInline):
     raw_id_fields = ['product']
     fields = ['product_image','product','product_article_number','size','product_mesto','product_zacup_price','quantity', 'price','get_cost',]  # Добавьте поле product_image
     readonly_fields = ['product_image','product_article_number','size','product_mesto','product_zacup_price','get_cost']  # Убедитесь, что это поле только для чтения
+
 
     
     def get_cost(self, obj):  # Добавляем obj как второй аргумент
@@ -48,6 +53,7 @@ class OrderItemInline(admin.TabularInline):
     def product_zacup_price(self, obj):
         return obj.product_zacup_price()  # Вызов метода product_image из модели  
     product_zacup_price.short_description = 'Закупочная цена'
+
     
  
  
@@ -114,7 +120,60 @@ class OrderItemAdmin(admin.ModelAdmin):
         'order','product','price','quantity','size',
         ]
 
+    change_list_template = "admin/orders/orderitem/change_list.html"  # Укажите свой шаблон
 
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path('top_product/', self.admin_site.admin_view(self.top_products_view), name='top_product'),
+        ]
+        return custom_urls + urls
+    
+
+
+    def top_products_view(self, request):
+        now = timezone.now()
+
+        # Определяем временные рамки для различных периодов
+        period_mapping = {
+            '1_month': now - timedelta(days=30),
+            '3_months': now - timedelta(days=90),
+            '1_year': now - timedelta(days=365),
+        }
+
+        # Получаем все заказы за последний год и группируем по продуктам
+        all_orders = (
+            OrderItem.objects.filter(order__created__gte=period_mapping['1_year'])
+            .values('product__title', 'product__article_number')  # Используем article_number
+            .annotate(total_quantity=Sum('quantity'))  # Суммируем количество
+        )
+
+        # Группируем данные по периодам
+        top_products_month = (
+            all_orders.filter(order__created__gte=period_mapping['1_month'])
+            .order_by('-total_quantity')[:60]
+        )
+
+        top_products_three_months = (
+            all_orders.filter(order__created__gte=period_mapping['3_months'])
+            .order_by('-total_quantity')[:60]
+        )
+
+        top_products_year = (
+            all_orders.order_by('-total_quantity')[:60]
+        )
+
+        return render(request, 'admin/orders/orderitem/top_product.html', {
+            'top_products_month': top_products_month,
+            'top_products_three_months': top_products_three_months,
+            'top_products_year': top_products_year,
+        })
+    
+
+    def changelist_view(self, request, extra_context=None):
+        extra_context = extra_context or {}
+        extra_context['top_product_url'] = reverse('admin:top_product')
+        return super().changelist_view(request, extra_context=extra_context)
 
 
 
@@ -128,7 +187,6 @@ class DeliveryMethodAdmin(admin.ModelAdmin):
 @admin.register(Discount)
 class DiscountAdmin(admin.ModelAdmin):
     list_display = ('discount_type', 'discount_value')
-
 
 
 

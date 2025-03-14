@@ -4,28 +4,25 @@ from django.shortcuts import render
 from .models import Visit
 from django.utils import timezone
 from datetime import timedelta
-from django.db.models import Count, Avg
+from django.db.models import Count, Avg, Sum
+from django.urls import reverse
 
 
 
-# @admin.register(Visit)
-# class VisitAdmin(admin.ModelAdmin):
-#     list_display = ('user', 'ip_address', 'referrer', 'visit_time')
-#     list_filter = ('user', 'visit_time')
 
 
 
 @admin.register(Visit)
 class VisitAdmin(admin.ModelAdmin):
     list_display = ('user', 'ip_address', 'referrer', 'visit_time')
-    list_filter = ('user', 'visit_time')
+    list_filter = ('visit_time',)
 
-    change_list_template = "admin/visit_user/visits.html"  # Укажите свой шаблон
+    change_list_template = "admin/visit_user/change_list.html"  # Укажите свой шаблон
 
     def get_urls(self):
         urls = super().get_urls()
         custom_urls = [
-            path('', self.admin_site.admin_view(self.visit_view), name='visit'),
+            path('visit/', self.admin_site.admin_view(self.visit_view), name='visit'),
         ]
         return custom_urls + urls
 
@@ -125,3 +122,10 @@ class VisitAdmin(admin.ModelAdmin):
 
 
 
+    
+
+    def changelist_view(self, request, extra_context=None):
+        extra_context = extra_context or {}
+        extra_context['visit_url'] = reverse('admin:visit')  # добавляем URL
+        return super().changelist_view(request, extra_context=extra_context)
+    

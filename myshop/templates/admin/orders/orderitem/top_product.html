@@ -1,0 +1,36 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+{{ block.super }}
+
+<h2>Топ 60 товаров за месяц</h2>
+<ul>
+    {% for product in top_products_month %}
+        <li>{{ product.product__title }} (Артикул: {{ product.product__article_number }}): {{ product.total_quantity }} шт. продано</li>
+    {% empty %}
+        <li>Нет данных за последний месяц.</li>
+    {% endfor %}
+</ul>
+
+<h2>Топ 60 товаров за три месяца</h2>
+<ul>
+    {% for product in top_products_three_months %}
+        <li>{{ product.product__title }} (Артикул: {{ product.product__article_number }}): {{ product.total_quantity }} шт. продано</li>
+    {% empty %}
+        <li>Нет данных за последние три месяца.</li>
+    {% endfor %}
+</ul>
+
+<h2>Топ 60 товаров за год</h2>
+<ul>
+    {% for product in top_products_year %}
+        <li>{{ product.product__title }} (Артикул: {{ product.product__article_number }}): {{ product.total_quantity }} шт. продано</li>
+    {% empty %}
+        <li>Нет данных за последний год.</li>
+    {% endfor %}
+</ul>
+
+<br>
+<br>
+<a href="{% url 'admin:index' %}">Вернуться в админку</a>
+{% endblock %}
