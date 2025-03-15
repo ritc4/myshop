@@ -27,7 +27,7 @@ class OrderItemInline(admin.TabularInline):
     model = OrderItem
     raw_id_fields = ['product']
     fields = ['product_image','product','product_article_number','size','product_mesto','product_zacup_price','quantity', 'price','get_cost',]  # Добавьте поле product_image
-    readonly_fields = ['product_image','product_article_number','size','product_mesto','product_zacup_price','get_cost']  # Убедитесь, что это поле только для чтения
+    readonly_fields = ['product_image','product_article_number','product_mesto','product_zacup_price','get_cost']  # Убедитесь, что это поле только для чтения
 
 
     
