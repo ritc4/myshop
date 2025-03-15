@@ -9,7 +9,6 @@ from django.core.validators import RegexValidator
 
 class DeliveryMethod(models.Model):
     title = models.CharField(max_length=255, verbose_name="Способ доставки")
-    price_delivery = models.DecimalField(max_digits=10,decimal_places=0,blank=True,null=True, verbose_name="Цена доставки")
 
     class Meta:
         verbose_name = 'Способ доставки'
@@ -75,6 +74,7 @@ class Order(models.Model):
     soglasie_na_uslovie_sotrudnichestva = models.BooleanField(default=True,blank=False, verbose_name="Согласие с условиями сотрудничества")
     status = models.CharField(max_length=20,choices=STATUS_CHOICES,default='new',verbose_name="Статус заказа")
     delivery_method = models.ForeignKey(DeliveryMethod, blank=False,on_delete=models.SET_NULL, null=True, verbose_name="Способ доставки")
+    price_delivery = models.DecimalField(max_digits=10,decimal_places=0,blank=True,null=True, verbose_name="Цена доставки")
     discount = models.ForeignKey('Discount', on_delete=models.SET_NULL, blank=True, null=True, verbose_name="Скидка")
 
 
@@ -96,8 +96,8 @@ class Order(models.Model):
         total_cost = sum(item.get_cost() for item in self.items.all())
 
         # Проверяем, есть ли способ доставки и установлена ли цена доставки
-        if self.delivery_method and self.delivery_method.price_delivery is not None:
-            total_cost += self.delivery_method.price_delivery
+        if self.delivery_method and self.price_delivery is not None:
+            total_cost += self.price_delivery
 
         # Отладка: выводим общую стоимость перед применением скидки
         print(f"Общая стоимость до применения скидки: {total_cost}")

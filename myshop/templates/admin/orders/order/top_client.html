@@ -1,0 +1,42 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+{{ block.super }}
+<h1 style="text-align: center; color: #333; font-family: 'Arial', sans-serif;">Топ клиентов</h1>
+<table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+    <thead>
+        <tr style="background-color: #4CAF50; color: white;">
+            <th style="padding: 12px; text-align: center;">ФИО</th>
+            <th style="padding: 12px; text-align: center;">Телефон</th>
+            <th style="padding: 12px; text-align: center;">Email</th>
+            <th style="padding: 12px; text-align: center;">Заказов</th>
+            <th style="padding: 12px; text-align: center;">Оборот по оплаченным</th>
+            <th style="padding: 12px; text-align: center;">Ср. чек</th>
+            <th style="padding: 12px; text-align: center;">Ср. период</th>
+            <th style="padding: 12px; text-align: center;">Последняя покупка</th>
+            <th style="padding: 12px; text-align: center;">Город</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for email, client in top_clients %}
+        <tr style="border-bottom: 1px solid #ddd; transition: background-color 0.3s;">
+            <td style="padding: 12px; text-align: center;">{{ client.first_name_last_name }}</td>
+            <td style="padding: 12px; text-align: center;">{{ client.phone }}</td>
+            <td style="padding: 12px; text-align: center;">{{ email }}</td>
+            <td style="padding: 12px; text-align: center;">{{ client.total_orders }}</td>
+            <td style="padding: 12px; text-align: center;">{{ client.total_spent|floatformat:2 }} рублей</td>
+            <td style="padding: 12px; text-align: center;">{{ client.average_check|floatformat:2 }} рублей</td>
+            <td style="padding: 12px; text-align: center;">{{ client.average_period }} дней</td>
+            <td style="padding: 12px; text-align: center;">{{ client.last_purchase|date:"d.m.Y" }}</td>
+            <td style="padding: 12px; text-align: center;">{{ client.city }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<br>
+<br>
+<div style="text-align: center;">
+    <a href="{{ request.META.HTTP_REFERER }}" style="text-decoration: none; color: white; background-color: #4CAF50; padding: 10px 20px; border-radius: 5px; transition: background-color 0.3s;">Вернуться в админку</a>
+</div>
+{% endblock %}

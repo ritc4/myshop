@@ -3,34 +3,42 @@
 {% block content %}
 {{ block.super }}
 
-<h2>Топ 60 товаров за месяц</h2>
-<ul>
+<h2 style="text-align: center; color: #333; font-family: 'Arial', sans-serif;">Топ 60 товаров за месяц</h2>
+<ul style="list-style-type: none; padding: 0; margin: 20px 0;">
     {% for product in top_products_month %}
-        <li>{{ product.product__title }} (Артикул: {{ product.product__article_number }}): {{ product.total_quantity }} шт. продано</li>
+        <li style="background-color: #f9f9f9; border: 1px solid #ddd; border-radius: 5px; padding: 10px; margin-bottom: 10px; transition: background-color 0.3s;">
+            {{ product.product__title }} (Артикул: {{ product.product__article_number }}): <strong>{{ product.total_quantity }}</strong> шт. продано
+        </li>
     {% empty %}
-        <li>Нет данных за последний месяц.</li>
+        <li style="text-align: center; color: #999;">Нет данных за последний месяц.</li>
     {% endfor %}
 </ul>
 
-<h2>Топ 60 товаров за три месяца</h2>
-<ul>
+<h2 style="text-align: center; color: #333; font-family: 'Arial', sans-serif;">Топ 60 товаров за три месяца</h2>
+<ul style="list-style-type: none; padding: 0; margin: 20px 0;">
     {% for product in top_products_three_months %}
-        <li>{{ product.product__title }} (Артикул: {{ product.product__article_number }}): {{ product.total_quantity }} шт. продано</li>
+        <li style="background-color: #f9f9f9; border: 1px solid #ddd; border-radius: 5px; padding: 10px; margin-bottom: 10px; transition: background-color 0.3s;">
+            {{ product.product__title }} (Артикул: {{ product.product__article_number }}): <strong>{{ product.total_quantity }}</strong> шт. продано
+        </li>
     {% empty %}
-        <li>Нет данных за последние три месяца.</li>
+        <li style="text-align: center; color: #999;">Нет данных за последние три месяца.</li>
     {% endfor %}
 </ul>
 
-<h2>Топ 60 товаров за год</h2>
-<ul>
+<h2 style="text-align: center; color: #333; font-family: 'Arial', sans-serif;">Топ 60 товаров за год</h2>
+<ul style="list-style-type: none; padding: 0; margin: 20px 0;">
     {% for product in top_products_year %}
-        <li>{{ product.product__title }} (Артикул: {{ product.product__article_number }}): {{ product.total_quantity }} шт. продано</li>
+        <li style="background-color: #f9f9f9; border: 1px solid #ddd; border-radius: 5px; padding: 10px; margin-bottom: 10px; transition: background-color 0.3s;">
+            {{ product.product__title }} (Артикул: {{ product.product__article_number }}): <strong>{{ product.total_quantity }}</strong> шт. продано
+        </li>
     {% empty %}
-        <li>Нет данных за последний год.</li>
+        <li style="text-align: center; color: #999;">Нет данных за последний год.</li>
     {% endfor %}
 </ul>
 
 <br>
 <br>
-<a href="{% url 'admin:index' %}">Вернуться в админку</a>
+<div style="text-align: center;">
+    <a href="{{ request.META.HTTP_REFERER }}" style="text-decoration: none; color: white; background-color: #4CAF50; padding: 10px 20px; border-radius: 5px; transition: background-color 0.3s;">Вернуться в админку</a>
+</div>
 {% endblock %}

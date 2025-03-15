@@ -7,6 +7,8 @@ from django.conf import settings
 import weasyprint
 from django.templatetags.static import static
 
+
+
 # Определитель сигнала
 order_created_signal = Signal()
 
@@ -41,8 +43,8 @@ def handle_order_created(request, order_id, **kwargs):
         subject=subject,
         body='Спасибо за ваш заказ! В скором времени мы с вами свяжемся.',
         from_email=settings.DEFAULT_FROM_EMAIL,
-        to=[order.email],  # Используйте email покупателя из заказа
+        to=[order.email, 'ccozy@yandex.ru'],  # Используйте email покупателя из заказа и добавить адрес админа
     )
-    print(order.email)
+    print(order.email, settings.DEFAULT_FROM_EMAIL)
     email.attach(f'Ваш Заказ № {order.id}.pdf', pdf, 'application/pdf')
     email.send()

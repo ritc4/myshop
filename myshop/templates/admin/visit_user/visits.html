@@ -163,7 +163,11 @@
     </script>
 </body>
 </html>
+
+
 <br>
 <br>
-<a href="{% url 'admin:index' %}">Вернуться в админку</a>
+<div style="text-align: center;">
+    <a href="{{ request.META.HTTP_REFERER }}" style="text-decoration: none; color: white; background-color: #4CAF50; padding: 10px 20px; border-radius: 5px; transition: background-color 0.3s;">Вернуться в админку</a>
+</div>
 {% endblock %}

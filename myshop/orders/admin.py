@@ -3,7 +3,7 @@ from .models import Order, OrderItem,DeliveryMethod,Discount
 from django.utils.safestring import mark_safe
 from django.db.models import Q
 from django.urls import reverse
-from django.db.models import Sum, Count
+from django.db.models import Sum, Count,Max,F,DecimalField
 from django.urls import path
 from django.shortcuts import render
 from django.utils import timezone
@@ -60,6 +60,7 @@ class OrderItemInline(admin.TabularInline):
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
     list_display = [
+        'email',
         'id',
         'first_name_last_name',
         'paid',
@@ -75,7 +76,7 @@ class OrderAdmin(admin.ModelAdmin):
         ]
     
     list_editable = ['paid','status',]
-    readonly_fields = ['get_total_zakup_cost','get_total_cost','get_delivery_price']
+    readonly_fields = ['get_total_zakup_cost','get_total_cost']
     list_filter = ['paid', 'created', 'updated'] 
     inlines = [OrderItemInline]
     search_fields = ['items__product__article_number','first_name_last_name', 'email', 'phone','city']
@@ -85,7 +86,7 @@ class OrderAdmin(admin.ModelAdmin):
         # Проверяем, установлен ли способ доставки
         if obj.delivery_method:
             # Если цена доставки указана, возвращаем её, иначе возвращаем "Не указано"
-            return obj.delivery_method.price_delivery if obj.delivery_method.price_delivery is not None else "Не указано"
+            return obj.price_delivery if obj.price_delivery is not None else "Не указано"
         return "Не указано"  # Если способ доставки не указан
 
     get_delivery_price.short_description = 'Цена доставки'  # Заголовок колонки
@@ -113,6 +114,115 @@ class OrderAdmin(admin.ModelAdmin):
     
     
 
+    change_list_template = "admin/orders/order/change_list.html"  # Укажите свой шаблон
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path('top_client/', self.admin_site.admin_view(self.top_client_view), name='top_client'),
+        ]
+        return custom_urls + urls
+    
+    
+
+    # def top_client_view(self, request):
+    #     now = timezone.now()
+        
+    #     # Получаем топ клиентов с необходимыми аннотациями
+    #     top_clients = (
+            
+    #         Order.objects.values('email')
+    #         .annotate(
+    #             first_name_last_name=Max('first_name_last_name'),  # Берем максимальное значение ФИО
+    #             phone=Max('phone'),  # Берем максимальное значение телефона
+    #             city=Max('city'),  # Берем максимальное значение города
+    #             total_orders=Count('id'),  # Количество заказов
+    #             total_spent=Sum(F('items__price') * F('items__quantity'), output_field=DecimalField()),  # Общая сумма по заказам
+    #             last_purchase=Max('created')  # Дата последнего заказа
+    #         )
+    #         .filter(total_orders__gt=0)  # Убедитесь, что у клиентов есть заказы
+    #         .order_by('-total_spent')[:100]  # Сортируем по убыванию и берем топ-60
+    #     )
+        
+    #     for order in Order.objects.all():
+    #         print(f"Заказ ID: {order.id}, Email: {order.email}, Сумма: {order.get_total_cost()}")
+    #     # Рассчитываем средний чек и период
+    #     for client in top_clients:
+    #         print(client)
+    #         client['average_check'] = (
+    #             client['total_spent'] / client['total_orders'] 
+    #             if client['total_orders'] > 0 else 0
+    #         )
+    #         client['average_period'] = (
+    #             (now - client['last_purchase']).days // client['total_orders'] 
+    #             if client['total_orders'] > 0 else 0
+    #         )
+    
+    #     return render(request, 'admin/orders/order/top_client.html', {
+    #         'top_clients': top_clients,
+    #     })
+    
+
+    def top_client_view(self, request):
+        now = timezone.now()
+
+        # Получаем все заказы
+        orders = Order.objects.all()
+        print(f"Количество заказов: {orders.count()}")
+
+        # Создаем словарь для хранения информации о клиентах
+        client_data = {}
+
+        for order in orders:
+            print(f"Заказ ID: {order.id}, Email: {order.email}, Сумма: {order.get_total_cost()}")
+            email = order.email
+            if email not in client_data:
+                client_data[email] = {
+                    'first_name_last_name': order.first_name_last_name,
+                    'phone': order.phone,
+                    'city': order.city,
+                    'total_orders': 0,
+                    'total_spent': 0,
+                    'last_purchase': order.created,
+                }
+
+            client_data[email]['total_orders'] += 1
+            client_data[email]['total_spent'] += order.get_total_cost()  # Используем метод get_total_cost
+            client_data[email]['last_purchase'] = max(client_data[email]['last_purchase'], order.created)
+
+        # Проверяем, есть ли собранные данные
+        if not client_data:
+            print("Нет данных о клиентах.")
+
+        # Преобразуем данные в список и сортируем по total_spent
+        top_clients = sorted(client_data.items(), key=lambda x: x[1]['total_spent'], reverse=True)[:100]
+
+        # Рассчитываем средний чек и период
+        for email, client in top_clients:
+            client['average_check'] = (
+                client['total_spent'] / client['total_orders'] 
+                if client['total_orders'] > 0 else 0
+            )
+            client['average_period'] = (
+                (now - client['last_purchase']).days // client['total_orders'] 
+                if client['total_orders'] > 0 else 0
+            )
+
+        return render(request, 'admin/orders/order/top_client.html', {
+            'top_clients': top_clients,
+        })
+
+
+
+
+    
+    def changelist_view(self, request, extra_context=None):
+        extra_context = extra_context or {}
+        extra_context['top_client_url'] = reverse('admin:top_client')
+        return super().changelist_view(request, extra_context=extra_context)
+
+
+
 
 @admin.register(OrderItem)
 class OrderItemAdmin(admin.ModelAdmin):
@@ -128,6 +238,12 @@ class OrderItemAdmin(admin.ModelAdmin):
             path('top_product/', self.admin_site.admin_view(self.top_products_view), name='top_product'),
         ]
         return custom_urls + urls
+    
+
+    def changelist_view(self, request, extra_context=None):
+        extra_context = extra_context or {}
+        extra_context['top_product_url'] = reverse('admin:top_product')
+        return super().changelist_view(request, extra_context=extra_context)
     
 
 
