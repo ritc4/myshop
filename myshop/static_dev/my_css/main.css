@@ -858,6 +858,33 @@ textarea{
 }
 
 
+
+
+.custom-file-upload {
+  display: inline-flex;
+  align-items: center; /* Центрируем содержимое по вертикали */
+  padding: 5px 10px; /* Уменьшаем отступы */
+  cursor: pointer;
+  font-size: 14px; /* Уменьшаем размер шрифта */
+  transition: background-color 0.3s, color 0.3s; /* Плавный переход */
+  border: 1px solid black; /* Цвет границы */
+}
+
+.custom-file-upload:hover {
+  background-color: dodgerblue; /* Цвет фона при наведении */
+  color: white; /* Цвет текста при наведении */
+}
+
+.custom-file-upload input[type="file"] {
+  display: none; /* Скрываем стандартный элемент input */
+}
+
+.form-check-label {
+  margin-left: 8px; /* Отступ между чекбоксом и текстом */
+}
+
+
+
 /*==========================Review_page======================*/
 
 .star {
@@ -883,3 +910,5 @@ textarea{
 .password-change-done a:hover{
   color: dodgerblue;
 }
+
+

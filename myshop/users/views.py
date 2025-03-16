@@ -4,6 +4,8 @@ from django.views.generic import CreateView,UpdateView
 from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin 
 from django.contrib.auth import get_user_model
+from orders.models import Order  # Импортируйте вашу модель заказов
+from django.core.paginator import Paginator
 
 
 
@@ -30,6 +32,26 @@ class ProfileUser(LoginRequiredMixin, UpdateView):
     form_class = ProfileUserForm
     template_name = 'users/profile.html'
     extra_context = {'title': "Профиль пользователя"}
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # Настройка хлебных крошек
+        context['breadcrumbs'] = [
+            {'name': 'Профиль пользователя', 'slug': '/profile/'},
+            ]
+        
+        # Получаем заказы пользователя
+        orders = Order.objects.filter(email=self.request.user.email)  # Измените на правильное поле, если нужно
+        
+        # Пагинация
+        paginator = Paginator(orders, 20)  # Разбиваем на страницы по 5 заказов
+        page_number = self.request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+
+        context['orders'] = page_obj  # Передаем только текущую страницу заказов
+        
+        return context
 
     def get_success_url(self):
         return reverse_lazy ('users:profile')

@@ -34,12 +34,12 @@ class Order(models.Model):
     first_name_last_name = models.CharField(max_length=255, verbose_name="Фамилия Имя Отчество") 
     email = models.EmailField(verbose_name="Электронная почта")
     phone = models.CharField(
-        max_length=15,  # Увеличьте длину, чтобы учесть символы + и пробелы
+        max_length=20,  # Увеличьте длину для учета пробелов и символов
         verbose_name="Телефон",
         validators=[
             RegexValidator(
-                regex=r'^(?:\+7|8)\d{10}$',  # Регулярное выражение для +7 или 8 и 10 цифр
-                message='Телефон должен начинаться с +7 или 8 и содержать 10 цифр.'
+                regex=r'^(?:\+7|8)\s*\(?\d{3}\)?\s*\d{3}-\d{2}-\d{2}$|^(?:\+7|8)\d{10}$',  # Учитывает формат с 8 и +7
+                message='Телефон должен быть в формате: +7 (XXX) XXX-XX-XX, 8 (XXX) XXX-XX-XX, +7XXXXXX или 8XXXXXXXXXX, где X - цифры.'
             )
         ]
     )
@@ -51,10 +51,13 @@ class Order(models.Model):
     postal_code = models.CharField(
         max_length=6,
         verbose_name="Почтовый индекс",
-        validators=[RegexValidator(
-            regex=r'^\d{6}$',  # Регулярное выражение для индекса, состоящего только из цифр
-            message='Индекс должен состоять только из цифр.'
-        )])
+        validators=[
+            RegexValidator(
+                regex=r'^\d{6}$',  # Регулярное выражение для ровно 6 цифр
+                message='Индекс должен состоять только из 6 цифр.'
+            )
+        ]
+    )
     passport_number = models.CharField(
         max_length=15,
         verbose_name="Паспортные данные",
