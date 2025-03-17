@@ -13,13 +13,13 @@
             <form method="POST">
               {% csrf_token %}
               <input type="hidden" name="next" value="{{ next }}"/>
-              <div class="form-error">{{ form.non_field_errors }}</div>
+              <div class="form-error text-danger">{{ form.non_field_errors }}</div>
               
               {% for i in form %}
               <div class="mb-3">
                   <label class="form-label" for="{{ i.id_for_label }}">{{ i.label }}</label>
                   {{ i }}  <!-- Здесь выводится само поле ввода -->
-                  <div class="form-error">{{ i.errors }}</div>  <!-- Ошибки отображаются здесь -->
+                  <div class="form-error text-danger">{{ i.errors }}</div>  <!-- Ошибки отображаются здесь -->
               </div>
               {% endfor %}
               

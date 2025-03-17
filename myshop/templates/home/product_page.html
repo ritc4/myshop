@@ -48,19 +48,20 @@
       <div class="bg-white product-content p-3 h-100">
         <div class="product-title-favorites mb-0 d-flex justify-content-between align-items-center">
           <h1 class="section-title h3 mb-0"><span>{{ product.title }}</span></h1>
-            <a href="#" class="btn add-favorites">
+            <!-- <a href="#" class="btn add-favorites">
               <i class="bi bi-heart-fill me-2"></i>
               <span>В избранное</span>
-            </a>
-        </div>
+            </a> -->
+            <div class="productView__articles mb-0">
+              <span>Артикул:</span>
+              <span class="goodsModArtNumber">{{ product.article_number }}</span>
+            </div>
+          </div>
         <div class="product-price-article_number d-flex justify-content-between align-items-center">
           <div class="product-price mb-0" id="price-display">
                 {{ price }} ₽ <!-- Устанавливаем цену по умолчанию из первого элемента -->
           </div>
-          <div class="productView__articles mb-0">
-            <span>Артикул:</span>
-            <span class="goodsModArtNumber">{{ product.article_number }}</span>
-          </div>
+          
         </div>        
         <div class="product-add2cart">
           <div class="input-group">

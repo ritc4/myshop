@@ -1,11 +1,13 @@
 from .forms import LoginUserForm,RegisterUserForm,ProfileUserForm,UserPasswordChangeForm
 from django.contrib.auth.views import LoginView,PasswordChangeView
-from django.views.generic import CreateView,UpdateView
+from django.views.generic import CreateView,UpdateView,DetailView
 from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin 
 from django.contrib.auth import get_user_model
 from orders.models import Order  # Импортируйте вашу модель заказов
 from django.core.paginator import Paginator
+
+
 
 
 
@@ -27,6 +29,8 @@ class RegisterUser(CreateView):
 
 
 
+
+
 class ProfileUser(LoginRequiredMixin, UpdateView):
     model = get_user_model()
     form_class = ProfileUserForm
@@ -41,8 +45,10 @@ class ProfileUser(LoginRequiredMixin, UpdateView):
             {'name': 'Профиль пользователя', 'slug': '/profile/'},
             ]
         
-        # Получаем заказы пользователя
-        orders = Order.objects.filter(email=self.request.user.email)  # Измените на правильное поле, если нужно
+        # Получаем заказы пользователя с использованием select_related и prefetch_related
+        orders = Order.objects.filter(email=self.request.user.email) \
+            .select_related('delivery_method') \
+            .prefetch_related('items', 'items__product')
         
         # Пагинация
         paginator = Paginator(orders, 20)  # Разбиваем на страницы по 5 заказов
@@ -59,6 +65,35 @@ class ProfileUser(LoginRequiredMixin, UpdateView):
     def get_object(self, queryset=None):
         return self.request.user
     
+
+
+
+
+class OrderDetailView(LoginRequiredMixin, DetailView):
+    model = Order
+    template_name = 'orders/order/order_detail.html'  # Укажите ваш шаблон для деталей заказа
+    context_object_name = 'order'
+
+    def get_queryset(self):
+        # Используем select_related для оптимизации запросов
+        return Order.objects.select_related('delivery_method').prefetch_related('items__product')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # Получаем конкретный заказ
+        order = self.object
+
+        # Настройка хлебных крошек
+        context['breadcrumbs'] = [
+            {'name': 'Детали заказа', 'slug': f'/order_detail/{order.id}/'},
+        ]
+
+        return context
+
+
+
+
 
 class UserPasswordChange(PasswordChangeView):
     form_class = UserPasswordChangeForm

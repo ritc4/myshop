@@ -4,6 +4,7 @@ from django.utils.safestring import mark_safe
 from django_ckeditor_5.fields import CKEditor5Field
 from decimal import Decimal, ROUND_HALF_UP
 from django.core.validators import RegexValidator
+from django.urls import reverse_lazy
 
 
 
@@ -68,6 +69,7 @@ class Order(models.Model):
             message='Паспортные данные должны состоять из 10 цифр.'
         )])
     comment = CKEditor5Field(config_name='extends',blank=True, null=True, verbose_name="Комментарий")
+    my_comment = CKEditor5Field(config_name='extends',blank=True, null=True, verbose_name="Комментарий, скрытый от покупателя")
     created = models.DateTimeField(auto_now_add=True) 
     updated = models.DateTimeField(auto_now=True) 
     paid = models.BooleanField(default=False, verbose_name="Товар Оплачен")
@@ -91,6 +93,10 @@ class Order(models.Model):
     
     def __str__(self):
         return f"Заказ №{self.id} от {self.first_name_last_name}"
+    
+
+    def get_absolute_url(self):
+        return reverse_lazy("users:order_detail", kwargs={"pk":self.pk})
     
     
 

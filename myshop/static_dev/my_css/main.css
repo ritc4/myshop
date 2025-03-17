@@ -5,6 +5,13 @@ img {
   height: auto;
 }
 
+
+.dropdown-menu {
+  top: 30px !important; /* Сдвиг вниз */
+  transform: translateY(0) !important; /* Уберите сдвиг по оси Y */
+}
+
+
 .btn,
 .dropdown-menu,
 .form-control {
@@ -23,6 +30,8 @@ img {
 .btn-outline-dark:hover {
   background-color: dodgerblue;
 }
+
+
 
 /*==========================General rules======================*/
 
@@ -848,6 +857,17 @@ textarea{
 
 
 /*==========================Profile_page======================*/
+
+.page-detail-order a {
+  text-decoration: none;
+  transition: all .3s;
+}
+
+.page-detail-order a:hover {
+  color: dodgerblue;
+  text-decoration: underline;
+}
+
 .profile-img {
   max-width: 100px;       /* Максимальная ширина */
   max-height: 100px;      /* Максимальная высота */

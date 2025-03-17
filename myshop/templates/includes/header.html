@@ -16,8 +16,6 @@
         </div>
         <div class="col-sm-4 d-none d-sm-flex justify-content-center">
           <div class="header-time-work">
-            <a href="#" class="me-2"><i class="bi bi-twitter"></i></a>
-            <a href="#" class="me-2"><i class="bi bi-instagram"></i></a>
             <a href="#" class="me-2"><i class="bi bi-telegram"></i></a>
             <a href="#"><i class="bi bi-whatsapp"></i></a>
           </div>
@@ -27,24 +25,25 @@
             class="header-top-account text-end"
           >
             <div class="btn-group">
+              {% if user.is_authenticated %}
               <div class="dropdown">
-                <button
-                  class="btn btn-sm dropdown-toggle"
-                  type="button"
-                  data-bs-toggle="dropdown"
-                  aria-expanded="false">
-                  <i class="bi bi-person-circle me-2"></i><span class="account-label">Личный кабинет</span>
+                <button class="btn btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  <i class="bi bi-person-circle me-2"></i><span class="account-label">{{ user.username }}</span>
                 </button>
                 <ul class="dropdown-menu">
-                  {% if user.is_authenticated %}
-                  <li><a href="{% url 'users:profile' %}" class="dropdown-item">Привет! {{ user.username }}</a></li>
+                  <li><a href="{% url 'users:profile' %}" class="dropdown-item">Перейти в профиль</a></li>
                   <form action="{% url 'users:logout' %}" method="post">
                     {% csrf_token %}
                     <li><button class="dropdown-item" href="{% url 'users:logout' %}">Выйти</button></li>
                   </form>
                   {% else %}
-                  <li><a class="dropdown-item" href="{% url 'users:login' %}">Войти</a></li>
-                  <li><a class="dropdown-item" href="{% url 'users:register' %}">Регистрация</a></li>
+                  <div class="dropdown">
+                    <button class="btn btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                      <i class="bi bi-person-circle me-2"></i><span class="account-label">Личный кабинет</span>
+                    </button>
+                    <ul class="dropdown-menu">
+                      <li><a class="dropdown-item" href="{% url 'users:login' %}">Войти</a></li>
+                      <li><a class="dropdown-item" href="{% url 'users:register' %}">Регистрация</a></li>
                   {% endif %}
                 </ul>
               </div>
@@ -89,18 +88,17 @@
         </div>
         <div class="col-md-3 header-cart-bottom text-end h-100">
           <div class="cart-buttons-navbar h-100">
-            <a href="#" class="btn p-1">
+            <!-- <a href="#" class="btn p-1">
               <i class="bi bi-heart-fill"></i>
               <span class="badge text-bg-light cart-badge rounded-circle">1</span>
-            </a>
+            </a> -->
             <button
               class="btn p-1"
               id="cart-open"
               type="button"
               data-bs-toggle="offcanvas2"
               data-bs-target="#offcanvasCart"
-              aria-controls="offcanvasCart"
-            >
+              aria-controls="offcanvasCart">
               <i class="bi bi-cart4"></i>
               <span class="badge text-bg-light cart-badge rounded-circle">
                 <div class="cart">
