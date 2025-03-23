@@ -188,17 +188,21 @@ aria-labelledby="offcanvasCartLabel"
   <div class="table-responsive">
     <table class="table offcanvasCart-table">
       <tbody>
-        {% for item in cart %} 
+        {% for item in cart %}
         {% with product=item.product %} 
         <tr>
           <td class="product-img-td">
-            {% with first_image=product.images.first %}
             <a href="{{ product.get_absolute_url }}">
-              <img src="{% if first_image.image.url %}{{ first_image.image.url }}
-            {% else %}{% static "img/no_image.png" %}{% endif %}"> 
+              {% if item.image %}
+                  <img src="{{ item.image }}">
+              {% else %}
+                  <img src="{% static "img/no_image.png" %}">
+              {% endif %}
             </a>
-            {% endwith %}
           </td>
+          <script>
+            console.log('{{product.id}}')
+          </script>
           <td class="product-img-td"><a href="{{ product.get_absolute_url }}">{{ product.title }}</a></td>
           <td class="num">{{ item.price }} ₽</td> 
           <td class="item-quantity">&times;{{ item.quantity }}</td>

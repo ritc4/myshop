@@ -61,6 +61,7 @@ class ProductPrice(models.Model):
         verbose_name_plural = 'Размеры и Цены товара'
         indexes = [
             models.Index(fields=['product']),  # Индекс для поля product
+            models.Index(fields=['size']),  # Индекс для поля size
         ]
     
 
@@ -92,7 +93,7 @@ class Product(models.Model):
     
     def get_absolute_url(self):
         return reverse("home:product_detail", kwargs={"slug": self.slug, "id":self.id})
-    
+
 
     class Meta:
         verbose_name = 'Товар'
@@ -172,6 +173,10 @@ class Politica_firm(models.Model):
 
 class ImageSliderHome(models.Model):
     image = models.ImageField(upload_to='slider_home/%Y/%m/%d', blank=True,null=True, verbose_name='Изображение')
+
+
+    def __str__(self):
+        return f"{self.image}"
 
 
     class Meta:

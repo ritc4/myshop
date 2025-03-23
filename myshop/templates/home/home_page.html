@@ -109,7 +109,7 @@
     </div>
     <div class="row">
     {% for product, cart_product_form in cart_product_form %}
-    {% with first_image=product.images.first %}
+    {% with first_image=product.images.all|slice:":1" %}
         <div class="col-lg-3 col-md-4 col-sm-6 mb-3">
           <div class="product-card">
           <div class="product-card-offer">
@@ -118,7 +118,7 @@
           </div>
           <div class="product-thumb">
               <a href="{{ product.get_absolute_url }}">
-                  <img src="{{ first_image.image.url }}" alt="{{ product.title }}"/>
+                  <img src="{{ first_image.0.image.url }}" alt="{{ product.title }}"/>
               </a>
           </div>
           <div class="product-details">

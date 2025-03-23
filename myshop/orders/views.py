@@ -2,7 +2,7 @@ from cart.cart import Cart
 from django.shortcuts import get_object_or_404,render,redirect
 from .forms import OrderCreateForm
 from .models import OrderItem,Order
-from home.models import Category,Politica_firm,Uslovie_firm
+from home.models import Category,Politica_firm,Uslovie_firm,Size
 from django.template.loader import render_to_string
 from django.http import HttpResponse 
 from django.contrib.admin.views.decorators import staff_member_required
@@ -12,6 +12,53 @@ from django.conf import settings
 from django.templatetags.static import static
 from .signals import order_created_signal  # Импортируйте ваш сигнал
 
+
+# def order_create(request): 
+#     categories = Category.objects.all()
+#     cart = Cart(request)
+#     get_root_catalog = categories.first().get_absolute_url()
+#     politica = Politica_firm.objects.first()
+#     uslovia = Uslovie_firm.objects.first()
+
+#     # Проверка на наличие товаров в корзине
+#     if not cart or not any(item['quantity'] > 0 for item in cart):
+#         return redirect(get_root_catalog)  # Перенаправляем на страницу товаров
+    
+#     # Создание хлебных крошек
+#     breadcrumbs = [
+#         {'name': 'Оформление заказа', 'slug': '/orders/'}  # Текущая страница без ссылки
+#         ]
+    
+    
+#     if request.method == 'POST':
+#         form = OrderCreateForm(request.POST, user=request.user)  # Передаем пользователя в форму
+#         if form.is_valid():
+#             order = form.save(commit=False)  # Создаем объект заказа, но не сохраняем его еще
+#             order.user = request.user  # Если у вас есть связь с пользователем
+#             order.save()
+#             for item in cart:
+#                 OrderItem.objects.create(
+#                     order=order, 
+#                     product=item['product'], 
+#                     price=item['price'], 
+#                     quantity=item['quantity'],
+#                     size=item['size'],  # Передаем размер
+#                 )
+#             # Очистить корзину
+#             cart.clear()
+#             # Отправить сигнал после успешного создания заказа
+#             order_created_signal.send(sender=OrderItem, order_id=order.id, request=request)
+#             return render(
+#                 request, 'orders/order/checkout_finish_page.html', {'order': order, 'categories': categories, 'breadcrumbs': breadcrumbs}
+#             )
+#     else:
+#         form = OrderCreateForm(user=request.user)  # Передаем пользователя в форму
+
+#     return render(
+#         request,
+#         'orders/order/checkout_page.html',
+#         {'cart': cart, 'form': form, 'categories': categories, 'politica': politica, 'uslovia': uslovia, 'breadcrumbs': breadcrumbs}
+#     )
 
 def order_create(request): 
     categories = Category.objects.all()
@@ -27,8 +74,7 @@ def order_create(request):
     # Создание хлебных крошек
     breadcrumbs = [
         {'name': 'Оформление заказа', 'slug': '/orders/'}  # Текущая страница без ссылки
-        ]
-    
+    ]
     
     if request.method == 'POST':
         form = OrderCreateForm(request.POST, user=request.user)  # Передаем пользователя в форму
@@ -36,14 +82,27 @@ def order_create(request):
             order = form.save(commit=False)  # Создаем объект заказа, но не сохраняем его еще
             order.user = request.user  # Если у вас есть связь с пользователем
             order.save()
+            
             for item in cart:
+                # Получаем экземпляр Size по его идентификатору
+                size_id = item.get('size')  # Предполагаем, что size хранит идентификатор
+                size_instance = None
+                
+                if size_id:  # Если size_id существует
+                    try:
+                        size_instance = Size.objects.get(title=size_id)  # Получаем экземпляр Size
+                    except Size.DoesNotExist:
+                        print(f"Size with id {size_id} does not exist.")  # Обработка ошибки
+
+                # Создаем OrderItem с экземпляром Size
                 OrderItem.objects.create(
                     order=order, 
                     product=item['product'], 
                     price=item['price'], 
                     quantity=item['quantity'],
-                    size=item['size'],  # Передаем размер
+                    size=size_instance,  # Передаем экземпляр модели Size
                 )
+
             # Очистить корзину
             cart.clear()
             # Отправить сигнал после успешного создания заказа
@@ -59,7 +118,6 @@ def order_create(request):
         'orders/order/checkout_page.html',
         {'cart': cart, 'form': form, 'categories': categories, 'politica': politica, 'uslovia': uslovia, 'breadcrumbs': breadcrumbs}
     )
-
 
 
 

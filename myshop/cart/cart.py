@@ -1,6 +1,7 @@
 from decimal import Decimal
 from django.conf import settings
-from home.models import Product,ProductPrice,Size
+from home.models import Product, ProductPrice, Size
+from django.shortcuts import get_object_or_404
 
 
 
@@ -23,7 +24,7 @@ class Cart:
         product_id = str(product.id)
         unique_key = f"{product_id}_{size}"
 
-        print(f"Добавление товара: {product_id}, размер: {size}, количество: {quantity}, переопределить: {override_quantity}")
+        print(f"{unique_key}: Добавление товара: {product_id}, размер: {size}, количество: {quantity}, переопределить: {override_quantity}")
 
         # Получаем объект Size
         try:
@@ -37,10 +38,16 @@ class Cart:
             return
 
         if unique_key not in self.cart:
+
+            # Получаем первое изображение
+            first_image = product.images.first()  # Получаем первое изображение
+            image_url = first_image.image.url if first_image else None  # Сохраняем URL изображения
+
             self.cart[unique_key] = {
                 'quantity': 0,
                 'price': str(product_price.price),
                 'size': size,
+                'image': image_url,  # Сохраняем изображение
             }
 
         # Обновление количества товара в корзине
@@ -94,10 +101,13 @@ class Cart:
 
             if product:
                 item['product'] = product
+                print(f"Loading product: {product.id}")  # Отладочное сообщение
                 item['price'] = Decimal(item['price'])
                 item['total_price'] = item['price'] * item['quantity']
                 item['size'] = size_key.split('_')[1]  # Получаем размер из ключа
+                
                 yield item
+
 
     
     def __len__(self):
@@ -121,3 +131,5 @@ class Cart:
     
     def get_cart_items(self):
         return self.cart
+
+

@@ -10,11 +10,9 @@ from django.urls import reverse
 
 
 
-
-
 @admin.register(Visit)
 class VisitAdmin(admin.ModelAdmin):
-    list_display = ('user', 'ip_address', 'referrer', 'visit_time')
+    list_display = ('id', 'user', 'ip_address', 'referrer', 'visit_time')
     list_filter = ('visit_time',)
 
     change_list_template = "admin/visit_user/change_list.html"  # Укажите свой шаблон
@@ -25,6 +23,14 @@ class VisitAdmin(admin.ModelAdmin):
             path('visit/', self.admin_site.admin_view(self.visit_view), name='visit'),
         ]
         return custom_urls + urls
+
+
+
+    def get_queryset(self, request):
+        # Используем select_related для загрузки связанных моделей
+        qs = super().get_queryset(request)
+        return qs.select_related('user')  # Замените 'user' на все другие связанные модели, если необходимо
+
 
     
     def visit_view(self, request):

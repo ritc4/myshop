@@ -18,3 +18,8 @@ class CustomUserAdmin(UserAdmin):
 
     # Указываем поля для поиска
     search_fields = UserAdmin.search_fields + ('phone', 'region', 'city')
+
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.select_related('delivery_method') 

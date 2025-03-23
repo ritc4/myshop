@@ -24,8 +24,7 @@ class ProductPriceAdminForm(forms.ModelForm):
         # Получаем текущий объект продукта
         product = self.instance.product
 
-        # Обновляем цены для всех размеров продукта
-        # Сначала обновляем саму запись, к которой относится форма
+        # Обновляем текущую запись
         if self.cleaned_data['new_sale_price'] is not None:
             self.instance.price = self.cleaned_data['new_sale_price']
         if self.cleaned_data['new_purchase_price'] is not None:
@@ -38,6 +37,7 @@ class ProductPriceAdminForm(forms.ModelForm):
             self.instance.save()
 
         # Обновляем остальные записи
+        prices_to_update = []
         for price_entry in product.product_prices.exclude(id=self.instance.id):  # Исключаем текущую запись
             if self.cleaned_data['new_sale_price'] is not None:
                 price_entry.price = self.cleaned_data['new_sale_price']
@@ -46,9 +46,12 @@ class ProductPriceAdminForm(forms.ModelForm):
             if self.cleaned_data['new_old_price'] is not None:
                 price_entry.old_price = self.cleaned_data['new_old_price']
 
-            # Сохраняем обновленную запись
-            price_entry.save()
-    
+            prices_to_update.append(price_entry)
+
+        # Обновляем все записи в одном запросе
+        if prices_to_update:
+            ProductPrice.objects.bulk_update(prices_to_update, ['price', 'zacup_price', 'old_price'])
+
         return super().save(commit)
 
 
@@ -66,6 +69,7 @@ class ProductImageInline(admin.TabularInline):
     extra = 1
     readonly_fields = ('image_tag',)
     fields = ('image_tag', 'image')
+
 
     def image_tag(self, obj):
         if obj.image:
@@ -90,12 +94,16 @@ class ProductPriceInline(admin.TabularInline):
     model = ProductPrice
     extra = 1  # Количество пустых форм для добавления новых записей
     fields = ('size', 'price','zacup_price','old_price','new_sale_price', 'new_purchase_price', 'new_old_price')
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request).select_related('size','product')  # Это загружает размер вместе с ценами
+        return queryset
     
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     inlines = [ProductImageInline, ProductPriceInline]  # Подключаем инлайн для изображений
-    list_display = ('get_image','title', 'article_number','stock','description', 'unit','get_prices_and_sizes','get_zacup_prices_and_sizes','get_old_prices_and_sizes','is_hidden','category','mesto')  # Отображение полей продукта в админке
+    list_display = ('get_image','title', 'article_number','stock','description','display_price','display_zacup_price','display_old_price', 'unit','is_hidden','category','mesto')  # Отображение полей продукта в админке
     list_filter = ('is_hidden','category','created','updated','mesto')
     prepopulated_fields = {'slug':('title','article_number',)}
     search_fields = ['title','article_number','description']  # Позволяет искать продукты по названию
@@ -104,34 +112,47 @@ class ProductAdmin(admin.ModelAdmin):
     list_display_links=['get_image','title',]
 
 
-    def get_prices_and_sizes(self, obj):
-        prices = obj.product_prices.select_related('size')  # Оптимизация запросов
-        price_size_list = [f"{price.size.title if price.size else 'Без размера'} - {price.price}" for price in prices]
-        if price_size_list:
-            return format_html('<br>'.join(price_size_list))  # Используем <br> для разделения строк
+
+    def get_queryset(self, request):
+        # Используем prefetch_related для оптимизации запросов к ценам и размерам
+        queryset = super().get_queryset(request).prefetch_related('product_prices__size')
+        return queryset
+
+
+    def get_prices_info(self, obj):
+        prices = obj.product_prices.all()
+        price_info_list = []
+
+        for price in prices:
+            size_title = price.size.title if price.size else 'Без размера'
+            price_info_list.append({
+                'size': size_title,
+                'price': price.price,
+                'zacup_price': price.zacup_price,
+                'old_price': price.old_price,
+            })
+
+        return price_info_list
+
+    def display_prices(self, obj, price_type):
+        price_info_list = self.get_prices_info(obj)
+        if price_info_list:
+            return format_html('<br>'.join([f"{info['size']} - {info[price_type]}" for info in price_info_list]))
         return 'Нет цен'
-    
-    get_prices_and_sizes.short_description = 'Размер и цена'  # Размер и цена:
 
-    def get_zacup_prices_and_sizes(self, obj):
-        prices = obj.product_prices.select_related('size')  # Оптимизация запросов
-        price_list = [f"{price.zacup_price}" for price in prices]  # Выводим только цену закупки
+    def display_price(self, obj):
+        return self.display_prices(obj, 'price')
 
-        if price_list:
-            return format_html('<br>'.join(price_list))  # Используем <br> для разделения строк
-        return 'Нет цен'
+    def display_zacup_price(self, obj):
+        return self.display_prices(obj, 'zacup_price')
 
-    get_zacup_prices_and_sizes.short_description = 'Цена закупки'  # Цена закупки:
+    def display_old_price(self, obj):
+        return self.display_prices(obj, 'old_price')
 
-    def get_old_prices_and_sizes(self, obj):
-        prices = obj.product_prices.select_related('size')  # Оптимизация запросов
-        price_list = [f"{price.old_price}" for price in prices]  # Выводим только старую цену
-
-        if price_list:
-            return format_html('<br>'.join(price_list))  # Используем <br> для разделения строк
-        return 'Нет цен'
-
-    get_old_prices_and_sizes.short_description = 'Старая цена'  # Старая цена:
+    # Устанавливаем заголовки для колонок
+    display_price.short_description = 'Обычная цена'
+    display_zacup_price.short_description = 'Закупочная цена'
+    display_old_price.short_description = 'Старая цена'
 
     
 
@@ -147,7 +168,7 @@ class ProductAdmin(admin.ModelAdmin):
                 new_product = product
                 new_product.pk = None  # Сбрасываем первичный ключ
                 new_product.title = f"{product.title}"
-                new_product.slug = self.generate_unique_slug(product.title, product.article_number)
+                new_product.slug = self.generate_unique_slug(product.title, self.generate_unique_article_number(product.article_number))
                 new_product.article_number = self.generate_unique_article_number(product.article_number)
                 new_product.save()
                 print(f"Создан новый продукт: {new_product.title} с slug: {new_product.slug} и article_number: {new_product.article_number}")
@@ -190,14 +211,15 @@ class ProductAdmin(admin.ModelAdmin):
 
 
     def hide_products(self, request, queryset):
-        queryset.update(is_hidden=True)  # Скрываем выбранные товары
-        self.message_user(request, f"{queryset.count()} товаров успешно скрыто.")
+        count = queryset.update(is_hidden=True)  # Скрываем выбранные товары
+        self.message_user(request, f"{count} товаров успешно скрыто.")
     hide_products.short_description = "Скрыть выбранные товары"  # Описание действия
 
     def show_products(self, request, queryset):
-        queryset.update(is_hidden=False)  # Показываем выбранные товары
-        self.message_user(request, f"{queryset.count()} товаров успешно показано.")
+        count = queryset.update(is_hidden=False)  # Показываем выбранные товары
+        self.message_user(request, f"{count} товаров успешно показано.")
     show_products.short_description = "Показать выбранные товары"  # Описание действия
+    
 
 
     def get_image(self, obj):
@@ -240,7 +262,7 @@ class Politica_firmAdmin(admin.ModelAdmin):
 
 @admin.register(ImageSliderHome)
 class ImageSliderHome(admin.ModelAdmin):
-    list_display = ('image',)
+    list_display = ('id','image', )
 
 
 
@@ -248,12 +270,22 @@ class ImageSliderHome(admin.ModelAdmin):
 class ReviewImageAdmin(admin.ModelAdmin):
     list_display = ('review','image',)
 
+    def get_queryset(self, request):
+        # Используем prefetch_related для загрузки связанных изображений
+        qs = super().get_queryset(request)
+        return qs.select_related('review').prefetch_related('review__user')
+
 
 class ReviewImageInline(admin.TabularInline):
     model = ReviewImage
     extra = 1
     readonly_fields = ('image_tag',)
     fields = ('image_tag', 'image')
+
+    def get_queryset(self, request):
+        # Используем prefetch_related для загрузки связанных изображений
+        qs = super().get_queryset(request)
+        return qs.select_related('review').prefetch_related('review__user')
 
     def image_tag(self, obj):
         if obj.image:
@@ -270,7 +302,7 @@ class ReviewAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         # Используем prefetch_related для загрузки связанных изображений
         qs = super().get_queryset(request)
-        return qs.prefetch_related('images')
+        return qs.select_related('user').prefetch_related('images')
 
     def get_image_review(self, obj):
         images = obj.images.all()  # Получаем все изображения, связанные с отзывом

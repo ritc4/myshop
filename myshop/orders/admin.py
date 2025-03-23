@@ -1,17 +1,11 @@
 from django.contrib import admin
-from .models import Order, OrderItem,DeliveryMethod,Discount
+from .models import Order, OrderItem, DeliveryMethod, Discount
 from django.utils.safestring import mark_safe
-from django.db.models import Q
-from django.urls import reverse
-from django.db.models import Sum, Count,Max,F,DecimalField
-from django.urls import path
+from django.db.models import Q, Sum
+from django.urls import reverse, path
 from django.shortcuts import render
 from django.utils import timezone
 from datetime import timedelta
-
-
-
-
 
 
 
@@ -26,43 +20,50 @@ order_pdf.short_description = 'Чеки'
 class OrderItemInline(admin.TabularInline):
     model = OrderItem
     raw_id_fields = ['product']
-    fields = ['product_image','product','product_article_number','size','product_mesto','product_zacup_price','quantity', 'price','get_cost',]  # Добавьте поле product_image
-    readonly_fields = ['product_image','product_article_number','product_mesto','product_zacup_price','get_cost']  # Убедитесь, что это поле только для чтения
+    fields = ['product_image','product','product_article_number','size','product_mesto','product_zacup_price','quantity', 'price','get_cost',]
+    readonly_fields = ['product_image','product_article_number','product_mesto','product_zacup_price','get_cost']
 
 
-    
-    def get_cost(self, obj):  # Добавляем obj как второй аргумент
-        return obj.get_cost() if obj else 0  # Проверяем, что obj не равен None
-    get_cost.short_description = 'Стоимость'  # Заголовок столбца
-    
-    
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        # Используйте select_related для загрузки связанных данных
+        return qs.select_related('product','size').prefetch_related('product__images')
+
+
     def product_article_number(self, obj):
-        return obj.product_article_number()  # Вызов метода product_image из модели
+        return obj.product.article_number
     product_article_number.short_description = 'Артикул'
-    
-    def product_image(self, obj):
-        return obj.product_image()  # Вызов метода product_image из модели
-    product_image.short_description = 'Фото'
-    
-    def product_mesto(self, obj):
-        mesto = obj.product_mesto()  # Вызов метода product_mesto из модели
-        return mesto if mesto else 'Не указано'  # Возврат значения или 'Не указано'
 
+    def product_mesto(self, obj):
+        return obj.product.mesto
     product_mesto.short_description = 'Место'
-    
+
+
     def product_zacup_price(self, obj):
-        return obj.product_zacup_price()  # Вызов метода product_image из модели  
+        product_prices = obj.product.product_prices.get(size=obj.size)
+        print(product_prices.zacup_price)
+        return product_prices.zacup_price
     product_zacup_price.short_description = 'Закупочная цена'
 
-    
+
+    def product_image(self, obj):
+        # Получаем все изображения заранее
+        images = list(obj.product.images.all())
+        if images:
+            first_image = images[0]
+            return mark_safe(f"<img src='{first_image.image.url}' width='50'>")
+        else:
+            return 'Нет фото'
+    product_image.short_description = 'Фото товара'
+
  
- 
+
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
     list_display = [
-        'email',
         'id',
         'first_name_last_name',
+        'email',
         'paid',
         'status',
         'phone',
@@ -82,6 +83,14 @@ class OrderAdmin(admin.ModelAdmin):
     search_fields = ['items__product__article_number','first_name_last_name', 'email', 'phone','city']
     list_display_links=['id','first_name_last_name',]  # Поля для поиска
 
+    
+    def get_queryset(self, request):
+        # Загружаем связанные модели для оптимизации запросов
+        queryset = super().get_queryset(request)
+        return queryset.select_related('delivery_method','discount').prefetch_related('items__product__product_prices')
+
+
+    
     def get_delivery_price(self, obj):
         # Проверяем, установлен ли способ доставки
         if obj.delivery_method:
@@ -92,14 +101,6 @@ class OrderAdmin(admin.ModelAdmin):
     get_delivery_price.short_description = 'Цена доставки'  # Заголовок колонки
 
     
-    def get_total_cost(self, obj):
-        return obj.get_total_cost()
-    get_total_cost.short_description = 'Общая стоимость'
-
-
-    def get_total_zakup_cost(self, obj):
-        return obj.get_total_zakup_cost()
-    get_total_zakup_cost.short_description = 'Общая закупочная стоимость'
 
 
     def get_search_results(self, request, queryset, search_term):
@@ -112,7 +113,6 @@ class OrderAdmin(admin.ModelAdmin):
             ).distinct()
         return super().get_search_results(request, queryset, search_term)
     
-    
 
     change_list_template = "admin/orders/order/change_list.html"  # Укажите свой шаблон
 
@@ -122,52 +122,12 @@ class OrderAdmin(admin.ModelAdmin):
             path('top_client/', self.admin_site.admin_view(self.top_client_view), name='top_client'),
         ]
         return custom_urls + urls
-    
-    
-
-    # def top_client_view(self, request):
-    #     now = timezone.now()
-        
-    #     # Получаем топ клиентов с необходимыми аннотациями
-    #     top_clients = (
-            
-    #         Order.objects.values('email')
-    #         .annotate(
-    #             first_name_last_name=Max('first_name_last_name'),  # Берем максимальное значение ФИО
-    #             phone=Max('phone'),  # Берем максимальное значение телефона
-    #             city=Max('city'),  # Берем максимальное значение города
-    #             total_orders=Count('id'),  # Количество заказов
-    #             total_spent=Sum(F('items__price') * F('items__quantity'), output_field=DecimalField()),  # Общая сумма по заказам
-    #             last_purchase=Max('created')  # Дата последнего заказа
-    #         )
-    #         .filter(total_orders__gt=0)  # Убедитесь, что у клиентов есть заказы
-    #         .order_by('-total_spent')[:100]  # Сортируем по убыванию и берем топ-60
-    #     )
-        
-    #     for order in Order.objects.all():
-    #         print(f"Заказ ID: {order.id}, Email: {order.email}, Сумма: {order.get_total_cost()}")
-    #     # Рассчитываем средний чек и период
-    #     for client in top_clients:
-    #         print(client)
-    #         client['average_check'] = (
-    #             client['total_spent'] / client['total_orders'] 
-    #             if client['total_orders'] > 0 else 0
-    #         )
-    #         client['average_period'] = (
-    #             (now - client['last_purchase']).days // client['total_orders'] 
-    #             if client['total_orders'] > 0 else 0
-    #         )
-    
-    #     return render(request, 'admin/orders/order/top_client.html', {
-    #         'top_clients': top_clients,
-    #     })
-    
 
     def top_client_view(self, request):
         now = timezone.now()
 
-        # Получаем все заказы
-        orders = Order.objects.all()
+        # Получаем все заказы с оптимизацией
+        orders = self.get_queryset(request)  # Используем get_queryset для загрузки заказов
         print(f"Количество заказов: {orders.count()}")
 
         # Создаем словарь для хранения информации о клиентах
@@ -176,6 +136,8 @@ class OrderAdmin(admin.ModelAdmin):
         for order in orders:
             print(f"Заказ ID: {order.id}, Email: {order.email}, Сумма: {order.get_total_cost()}")
             email = order.email
+
+            # Проверяем, существует ли email в словаре
             if email not in client_data:
                 client_data[email] = {
                     'first_name_last_name': order.first_name_last_name,
@@ -186,6 +148,7 @@ class OrderAdmin(admin.ModelAdmin):
                     'last_purchase': order.created,
                 }
 
+            # Обновляем информацию о клиенте
             client_data[email]['total_orders'] += 1
             client_data[email]['total_spent'] += order.get_total_cost()  # Используем метод get_total_cost
             client_data[email]['last_purchase'] = max(client_data[email]['last_purchase'], order.created)
@@ -212,10 +175,6 @@ class OrderAdmin(admin.ModelAdmin):
             'top_clients': top_clients,
         })
 
-
-
-
-    
     def changelist_view(self, request, extra_context=None):
         extra_context = extra_context or {}
         extra_context['top_client_url'] = reverse('admin:top_client')
@@ -223,29 +182,27 @@ class OrderAdmin(admin.ModelAdmin):
 
 
 
-
 @admin.register(OrderItem)
 class OrderItemAdmin(admin.ModelAdmin):
-    list_display =[
-        'order','product','price','quantity','size',
-        ]
-
+    list_display = ['order', 'product', 'price', 'quantity', 'size']
     change_list_template = "admin/orders/orderitem/change_list.html"  # Укажите свой шаблон
 
+    def get_queryset(self, request):
+        # Загружаем связанные модели для оптимизации запросов
+        queryset = super().get_queryset(request)
+        return queryset.select_related('product','size','order')
+    
     def get_urls(self):
         urls = super().get_urls()
         custom_urls = [
             path('top_product/', self.admin_site.admin_view(self.top_products_view), name='top_product'),
         ]
         return custom_urls + urls
-    
 
     def changelist_view(self, request, extra_context=None):
         extra_context = extra_context or {}
         extra_context['top_product_url'] = reverse('admin:top_product')
         return super().changelist_view(request, extra_context=extra_context)
-    
-
 
     def top_products_view(self, request):
         now = timezone.now()
@@ -260,6 +217,7 @@ class OrderItemAdmin(admin.ModelAdmin):
         # Получаем все заказы за последний год и группируем по продуктам
         all_orders = (
             OrderItem.objects.filter(order__created__gte=period_mapping['1_year'])
+            .select_related('product')  # Используем select_related для оптимизации
             .values('product__title', 'product__article_number')  # Используем article_number
             .annotate(total_quantity=Sum('quantity'))  # Суммируем количество
         )
@@ -284,13 +242,6 @@ class OrderItemAdmin(admin.ModelAdmin):
             'top_products_three_months': top_products_three_months,
             'top_products_year': top_products_year,
         })
-    
-
-    def changelist_view(self, request, extra_context=None):
-        extra_context = extra_context or {}
-        extra_context['top_product_url'] = reverse('admin:top_product')
-        return super().changelist_view(request, extra_context=extra_context)
-
 
 
 @admin.register(DeliveryMethod)

@@ -46,3 +46,5 @@ class CartAddProductForm(forms.Form):
         size = self.cleaned_data.get('size')
         # Здесь можно добавить дополнительную логику валидации, если нужно
         return size
+
+

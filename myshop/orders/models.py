@@ -1,5 +1,5 @@
 from django.db import models
-from home.models import Product
+from home.models import Product,Size
 from django.utils.safestring import mark_safe
 from django_ckeditor_5.fields import CKEditor5Field
 from decimal import Decimal, ROUND_HALF_UP
@@ -98,7 +98,6 @@ class Order(models.Model):
     def get_absolute_url(self):
         return reverse_lazy("users:order_detail", kwargs={"pk":self.pk})
     
-    
 
 
     def get_total_cost(self):
@@ -126,23 +125,28 @@ class Order(models.Model):
             print("Скидка не найдена.")
 
         return max(total_cost, 0)  # Обеспечиваем, чтобы стоимость не была отрицательной
-    
-
-
+    get_total_cost.short_description = 'Общая стоимость'
 
 
     def get_total_zakup_cost(self):
         total_zakup_cost = 0
-        for item in self.items.all():
-            # Получаем все цены для текущего продукта
-            product_prices = item.product.product_prices.all()  # Получаем все связанные ProductPrice
-            if product_prices.exists():
-                # Получаем первую цену (или используйте другую логику для выбора нужной цены)
-                zacup_price = product_prices.first().zacup_price
-                total_zakup_cost += zacup_price * item.quantity  # Умножаем на количество
+
+        # Предварительная загрузка всех элементов и связанных объектов
+        items = self.items.select_related('size').prefetch_related('size__product_size')
+
+        for item in items:
+            if item.size:  # Проверяем, что размер существует
+                # Получаем все закупочные цены для текущего размера
+                for price in item.size.product_size.all():
+                    print(f"Закупочная цена для размера '{item.size.title}': {price.zacup_price}")
+                    total_zakup_cost += price.zacup_price * item.quantity  # Учитываем количество
+
         return total_zakup_cost
+    get_total_zakup_cost.short_description = 'Общая закупочная стоимость'
 
 
+
+    
     def get_article_numbers(self):
         return [item.product.article_number for item in self.items.all() if item.product.article_number]
     
@@ -153,9 +157,10 @@ class OrderItem(models.Model):
     product = models.ForeignKey(Product,related_name='order_items', on_delete=models.CASCADE,verbose_name="Название товара") 
     price = models.DecimalField(max_digits=10,decimal_places=0, verbose_name="Цена") 
     quantity = models.PositiveIntegerField(default=1,verbose_name="Количество")
-    size = models.CharField(max_length=50, verbose_name="Размер", blank=True, null=True)  # Поле для размера
-
-
+    # size = models.CharField(max_length=50, verbose_name="Размер", blank=True, null=True)  # Поле для размера
+    size = models.ForeignKey(Size, on_delete=models.SET_NULL, null=True, verbose_name="Размер")  # Изменено на ForeignKey
+    
+    
     def __str__(self):
         return str(self.product.title) 
     
@@ -164,31 +169,7 @@ class OrderItem(models.Model):
         if self.price is not None and self.quantity is not None:
             return self.price * self.quantity
         return 0  # Возвращаем 0, если одно из значений отсутствует
-
-    
-    def product_article_number(self):
-        return self.product.article_number
-    
-    def product_mesto(self):
-        return self.product.mesto
-    
-    def product_zacup_price(self):
-        # Получаем все цены для текущего продукта
-        product_prices = self.product.product_prices.all()  # Получаем все связанные ProductPrice
-        if product_prices.exists():
-            return product_prices.first().zacup_price  # Возвращаем первую цену
-        return None  # Если цен нет, возвращаем None
-    
-    
-    def product_image(self):
-        # Получаем первое изображение, если оно существует
-        first_image = self.product.images.first()  # Здесь используем related_name 'images'
-        if first_image:
-            return mark_safe(f"<img src='{first_image.image.url}' width='50'>")
-        else:
-            return 'Нет фото'
-
-    product_image.short_description = 'Фото товара'
+    get_cost.short_description = 'Общая стоимость'  # Заголовок столбца
 
       
     class Meta:

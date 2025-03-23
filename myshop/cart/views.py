@@ -60,3 +60,4 @@ def cart_detail(request):
         'categories': categories,
         'get_root_catalog': get_root_catalog, 'is_cart_empty': is_cart_empty,'breadcrumbs': breadcrumbs,  # Добавляем хлебные крошки в контекст
     })
+

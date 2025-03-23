@@ -29,7 +29,7 @@ class HomeView(ListView):
             .annotate(total_quantity=Sum('quantity'))  # Суммируем количество
             .order_by('-total_quantity')[:8]  # Ограничиваем до 8 самых продаваемых
         )
-
+    
         # Получаем ID товаров в порядке их продаж
         product_ids = [item['product__id'] for item in top_selling_products]
 
@@ -47,6 +47,7 @@ class HomeView(ListView):
 
         return products
 
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['slider_image'] = ImageSliderHome.objects.all()
@@ -59,7 +60,6 @@ class HomeView(ListView):
         return context
 
 
-
 class ProductListView(ListView):
     model = Product
     template_name = 'home/category_page.html'
@@ -69,10 +69,10 @@ class ProductListView(ListView):
     def get_queryset(self):
         # Получаем категорию по слагу
         slug = self.kwargs.get('slug')
-        category = get_object_or_404(Category, slug=slug)
+        self.category = get_object_or_404(Category, slug=slug)
 
         # Фильтруем продукты по выбранной категории
-        products = Product.objects.filter(category=category, is_hidden=False).prefetch_related(
+        products = Product.objects.filter(category=self.category, is_hidden=False).prefetch_related(
             'product_prices__size',  # Предварительная загрузка цен и их размеров
             'images'  # Предварительная загрузка изображений
         ).select_related('category')  # Предварительная загрузка категории продукта
@@ -90,8 +90,7 @@ class ProductListView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        slug = self.kwargs.get('slug')
-        context['category'] = get_object_or_404(Category, slug=slug)
+        context['category'] = self.category  # Используем ранее полученную категорию
         context['get_root_cat'] = context['category'].get_root()  # Получаем корневую категорию
         context['get_children_cat'] = context['category'].get_children()  # Получаем дочерние категории
         context['get_descendants_cat'] = context['get_root_cat'].get_children()  # Получаем все дочерние категории корня
