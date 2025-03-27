@@ -125,24 +125,6 @@ class Order(models.Model):
         return max(total_cost, 0)  # Обеспечиваем, чтобы стоимость не была отрицательной
     get_total_cost.short_description = 'Общая стоимость'
 
-
-    def get_total_zakup_cost(self):
-        total_zakup_cost = 0
-
-        # Предварительная загрузка всех элементов и связанных объектов
-        items = self.items.select_related('size').prefetch_related('size__product_size')
-
-        for item in items:
-            if item.size:  # Проверяем, что размер существует
-                # Получаем все закупочные цены для текущего размера
-                for price in item.size.product_size.all():
-                    print(f"Закупочная цена для размера '{item.size.title}': {price.zacup_price}")
-                    total_zakup_cost += price.zacup_price * item.quantity  # Учитываем количество
-
-        return total_zakup_cost
-    get_total_zakup_cost.short_description = 'Общая закупочная стоимость'
-
-
     
     def get_article_numbers(self):
         return [item.product.article_number for item in self.items.all() if item.product.article_number]
@@ -154,7 +136,6 @@ class OrderItem(models.Model):
     product = models.ForeignKey(Product,related_name='order_items', on_delete=models.CASCADE,verbose_name="Название товара", db_index=True) 
     price = models.DecimalField(max_digits=10,decimal_places=0, verbose_name="Цена", db_index=True) 
     quantity = models.PositiveIntegerField(default=1,verbose_name="Количество", db_index=True)
-    # size = models.CharField(max_length=50, verbose_name="Размер", blank=True, null=True)  # Поле для размера
     size = models.ForeignKey(Size, on_delete=models.SET_NULL, null=True, verbose_name="Размер", db_index=True)  # Изменено на ForeignKey
     
     

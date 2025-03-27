@@ -6,6 +6,7 @@ from django.urls import reverse, path
 from django.shortcuts import render
 from django.utils import timezone
 from datetime import timedelta
+from home.models import ProductPrice
 
 
 
@@ -23,12 +24,15 @@ class OrderItemInline(admin.TabularInline):
     fields = ['product_image','product','product_article_number','size','product_mesto','product_zacup_price','quantity', 'price','get_cost',]
     readonly_fields = ['product_image','product_article_number','product_mesto','product_zacup_price','get_cost']
 
-
     def get_queryset(self, request):
-        qs = super().get_queryset(request)
-        # Используйте select_related для загрузки связанных данных
-        return qs.select_related('product','size').prefetch_related('product__images')
-
+        # Загружаем связанные модели для оптимизации запросов
+        queryset = super().get_queryset(request)
+        return queryset.select_related('size','product','order').prefetch_related(
+            'product__images',
+            # 'product__product_prices',  # Предварительная загрузка цен для продукта
+            # 'size__product_size',  # Если есть связанные размеры
+        )
+    
 
     def product_article_number(self, obj):
         return obj.product.article_number
@@ -44,6 +48,7 @@ class OrderItemInline(admin.TabularInline):
         print(product_prices.zacup_price)
         return product_prices.zacup_price
     product_zacup_price.short_description = 'Закупочная цена'
+
 
 
     def product_image(self, obj):
@@ -87,10 +92,19 @@ class OrderAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         # Загружаем связанные модели для оптимизации запросов
         queryset = super().get_queryset(request)
-        return queryset.select_related('delivery_method','discount').prefetch_related('items__product__product_prices')
 
+        # Загружаем все цены в словарь для дальнейшего использования
+        self.product_prices = {
+            (price.product.id, price.size.id): price.zacup_price
+            for price in ProductPrice.objects.all().select_related('product', 'size')
+        }
 
+        return queryset.select_related('delivery_method', 'discount').prefetch_related(
+            'items__product__product_prices', 
+            'items__size__product_size'
+        )
     
+
     def get_delivery_price(self, obj):
         # Проверяем, установлен ли способ доставки
         if obj.delivery_method:
@@ -101,8 +115,36 @@ class OrderAdmin(admin.ModelAdmin):
     get_delivery_price.short_description = 'Цена доставки'  # Заголовок колонки
 
     
+    # def get_total_zakup_cost(self, obj):
+    #     total_cost = 0
+    #     for item in obj.items.all():  # Предполагаем, что у вас есть связь с элементами заказа
+    #         # Получаем все цены для каждого товара, которые уже загружены
+    #         product_prices = {price.size: price for price in item.product.product_prices.all()}
+    #         print(product_prices)
+    #         total_cost += product_prices.get(item.size).zacup_price * item.quantity  # Умножаем на количество
+    #     return total_cost
+
+    # get_total_zakup_cost.short_description = 'Общая закупочная стоимость'  # Заголовок для отображения
+    
 
 
+    def get_total_zakup_cost(self, obj):
+        total_cost = 0
+        for item in obj.items.all():  # Проходим по всем элементам заказа
+            # Получаем цену для данного размера из словаря
+            price = self.product_prices.get((item.product.id, item.size.id))
+
+            if price is not None:  # Проверяем, существует ли цена
+                total_cost += price * item.quantity  # Умножаем на количество
+            else:
+                print(f'Цена для размера {item.size} не найдена для продукта {item.product.name}')
+
+        return total_cost
+
+    get_total_zakup_cost.short_description = 'Общая закупочная стоимость'  # Заголовок для отображения
+    
+
+    
     def get_search_results(self, request, queryset, search_term):
         if search_term:
             queryset = queryset.filter(
