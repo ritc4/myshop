@@ -3,58 +3,20 @@
 
 {% block content %}
 
-<div id="carousel" class="carousel slide carousel-fade" data-bs-ride="true">
-  <div class="carousel-indicators">
-    <button
-      type="button"
-      data-bs-target="#carousel"
-      data-bs-slide-to="0"
-      class="active"
-      aria-current="true"
-      aria-label="Slide 1"
-    ></button>
-    <button
-      type="button"
-      data-bs-target="#carousel"
-      data-bs-slide-to="1"
-      aria-label="Slide 2"
-    ></button>
-    <button
-      type="button"
-      data-bs-target="#carousel"
-      data-bs-slide-to="2"
-      aria-label="Slide 3"
-    ></button>
-  </div>
+<div id="carousel" class="carousel slide" data-bs-ride="carousel">
   <div class="carousel-inner">
-    {% for i in slider_image %}
-    <div class="carousel-item {% if forloop.first %}active{% endif %}">
-      <img
-        src="{{ i.image.url }}"
-        class="d-block w-100"
-        alt="..."
-      />
-    </div>
-    {% endfor %}
+    {% if slider_image %}
+      {% for i in slider_image %}
+        <div class="carousel-item {% if forloop.first %}active{% endif %}">
+          <img src="{{ i.image.url }}" class="d-block w-100" alt="Slide {{ forloop.counter }}"/>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="carousel-item active">
+        <img src="{% static 'img/no_image.png' %}" class="d-block w-100" alt="Default Image" />
+      </div>
+    {% endif %}
   </div>
-  <button
-    class="carousel-control-prev"
-    type="button"
-    data-bs-target="#carousel"
-    data-bs-slide="prev"
-  >
-    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-    <span class="visually-hidden">Previous</span>
-  </button>
-  <button
-    class="carousel-control-next"
-    type="button"
-    data-bs-target="#carousel"
-    data-bs-slide="next"
-  >
-    <span class="carousel-control-next-icon" aria-hidden="true"></span>
-    <span class="visually-hidden">Next</span>
-  </button>
 </div>
 
 <section class="advantages">
@@ -71,25 +33,25 @@
                 <div class="col-lg-3 col-sm-6">
                     <div class="item">
                         <p><i class="bi bi-truck"></i></p>
-                        <p>Прямые поставки от производителей брендов</i></p>
+                        <p>Прямые поставки от производителей брендов</p>
                     </div>
                 </div>
                 <div class="col-lg-3 col-sm-6">
                     <div class="item">
-                        <p><i class="bi bi-boxes"></i></i></p>
-                        <p>Широкий ассортимент товаров</i></p>
+                        <p><i class="bi bi-boxes"></i></p>
+                        <p>Широкий ассортимент товаров</p>
                     </div>
                 </div>
                 <div class="col-lg-3 col-sm-6">
                     <div class="item">
-                        <p><i class="bi bi-currency-exchange"></i></i></p>
-                        <p>Конкурентные цены</i></p>
+                        <p><i class="bi bi-currency-exchange"></i></p>
+                        <p>Конкурентные цены</p>
                     </div>
                 </div>
                 <div class="col-lg-3 col-sm-6">
                     <div class="item">
-                        <p><i class="bi bi-person-square"></i></i></p>
-                        <p>Быстрая консультация клиентов</i></p>
+                        <p><i class="bi bi-person-square"></i></p>
+                        <p>Быстрая консультация клиентов</p>
                     </div>
                 </div>
             </div>

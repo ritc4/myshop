@@ -1,15 +1,14 @@
 from django.db import models
-from home.models import Product,Size
-from django.utils.safestring import mark_safe
+from home.models import Product,Size,ProductPrice
 from django_ckeditor_5.fields import CKEditor5Field
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import Decimal
 from django.core.validators import RegexValidator
 from django.urls import reverse_lazy
 
 
 
 class DeliveryMethod(models.Model):
-    title = models.CharField(max_length=255, verbose_name="Способ доставки")
+    title = models.CharField(max_length=255, verbose_name="Способ доставки", db_index=True)
 
     class Meta:
         verbose_name = 'Способ доставки'
@@ -32,8 +31,8 @@ class Order(models.Model):
     ]
 
 
-    first_name_last_name = models.CharField(max_length=255, verbose_name="Фамилия Имя Отчество") 
-    email = models.EmailField(verbose_name="Электронная почта")
+    first_name_last_name = models.CharField(max_length=255, verbose_name="Фамилия Имя Отчество", db_index=True) 
+    email = models.EmailField(verbose_name="Электронная почта", db_index=True)
     phone = models.CharField(
         max_length=20,  # Увеличьте длину для учета пробелов и символов
         verbose_name="Телефон",
@@ -43,7 +42,7 @@ class Order(models.Model):
                 message='Телефон должен быть в формате: +7 (XXX) XXX-XX-XX, 8 (XXX) XXX-XX-XX, +7XXXXXX или 8XXXXXXXXXX, где X - цифры.'
             )
         ]
-    )
+    , db_index=True)
     
     
     region = models.CharField(max_length=250, verbose_name="Регион")
@@ -68,19 +67,19 @@ class Order(models.Model):
             regex=r'^\d{10}$',  # Регулярное выражение для 10 цифр
             message='Паспортные данные должны состоять из 10 цифр.'
         )])
-    comment = CKEditor5Field(config_name='extends',blank=True, null=True, verbose_name="Комментарий")
-    my_comment = CKEditor5Field(config_name='extends',blank=True, null=True, verbose_name="Комментарий, скрытый от покупателя")
-    created = models.DateTimeField(auto_now_add=True) 
+    comment = models.TextField(blank=True, null=True, verbose_name="Комментарий")
+    my_comment = models.TextField(blank=True, null=True, verbose_name="Комментарий, скрытый от покупателя")
+    created = models.DateTimeField(auto_now_add=True, db_index=True) 
     updated = models.DateTimeField(auto_now=True) 
-    paid = models.BooleanField(default=False, verbose_name="Товар Оплачен")
+    paid = models.BooleanField(default=False, verbose_name="Товар Оплачен", db_index=True)
     zamena_product = models.BooleanField(default=True, verbose_name="Предлагать замену товара")
     strahovat_gruz = models.BooleanField(default=True, verbose_name="Застраховать груз")
     soglasie_na_obrabotku_danyh = models.BooleanField(default=True,blank=False, verbose_name="Согласие на обработку персональных данных")
     soglasie_na_uslovie_sotrudnichestva = models.BooleanField(default=True,blank=False, verbose_name="Согласие с условиями сотрудничества")
-    status = models.CharField(max_length=20,choices=STATUS_CHOICES,default='new',verbose_name="Статус заказа")
-    delivery_method = models.ForeignKey(DeliveryMethod, blank=False,on_delete=models.SET_NULL, null=True, verbose_name="Способ доставки")
-    price_delivery = models.DecimalField(max_digits=10,decimal_places=0,blank=True,null=True, verbose_name="Цена доставки")
-    discount = models.ForeignKey('Discount', on_delete=models.SET_NULL, blank=True, null=True, verbose_name="Скидка")
+    status = models.CharField(max_length=20,choices=STATUS_CHOICES,default='new',verbose_name="Статус заказа", db_index=True)
+    delivery_method = models.ForeignKey(DeliveryMethod, blank=False,on_delete=models.SET_NULL, null=True, verbose_name="Способ доставки", db_index=True)
+    price_delivery = models.DecimalField(max_digits=10,decimal_places=0,blank=True,null=True, verbose_name="Цена доставки", db_index=True)
+    discount = models.ForeignKey('Discount', on_delete=models.SET_NULL, blank=True, null=True, verbose_name="Скидка", db_index=True)
 
 
     class Meta:
@@ -98,7 +97,6 @@ class Order(models.Model):
     def get_absolute_url(self):
         return reverse_lazy("users:order_detail", kwargs={"pk":self.pk})
     
-
 
     def get_total_cost(self):
         total_cost = sum(item.get_cost() for item in self.items.all())
@@ -145,7 +143,6 @@ class Order(models.Model):
     get_total_zakup_cost.short_description = 'Общая закупочная стоимость'
 
 
-
     
     def get_article_numbers(self):
         return [item.product.article_number for item in self.items.all() if item.product.article_number]
@@ -153,12 +150,12 @@ class Order(models.Model):
 
 
 class OrderItem(models.Model):
-    order = models.ForeignKey(Order,related_name='items',on_delete=models.CASCADE) 
-    product = models.ForeignKey(Product,related_name='order_items', on_delete=models.CASCADE,verbose_name="Название товара") 
-    price = models.DecimalField(max_digits=10,decimal_places=0, verbose_name="Цена") 
-    quantity = models.PositiveIntegerField(default=1,verbose_name="Количество")
+    order = models.ForeignKey(Order,related_name='items',on_delete=models.CASCADE, db_index=True) 
+    product = models.ForeignKey(Product,related_name='order_items', on_delete=models.CASCADE,verbose_name="Название товара", db_index=True) 
+    price = models.DecimalField(max_digits=10,decimal_places=0, verbose_name="Цена", db_index=True) 
+    quantity = models.PositiveIntegerField(default=1,verbose_name="Количество", db_index=True)
     # size = models.CharField(max_length=50, verbose_name="Размер", blank=True, null=True)  # Поле для размера
-    size = models.ForeignKey(Size, on_delete=models.SET_NULL, null=True, verbose_name="Размер")  # Изменено на ForeignKey
+    size = models.ForeignKey(Size, on_delete=models.SET_NULL, null=True, verbose_name="Размер", db_index=True)  # Изменено на ForeignKey
     
     
     def __str__(self):
@@ -183,8 +180,8 @@ class Discount(models.Model):
         ('percentage', 'Скидка в %'),
     ]
 
-    discount_type = models.CharField(max_length=20, choices=DISCOUNT_TYPE_CHOICES, verbose_name="Тип скидки")
-    discount_value = models.DecimalField(max_digits=20, decimal_places=0, verbose_name="Размер скидки")
+    discount_type = models.CharField(max_length=20, choices=DISCOUNT_TYPE_CHOICES, verbose_name="Тип скидки", db_index=True)
+    discount_value = models.DecimalField(max_digits=20, decimal_places=0, verbose_name="Размер скидки", db_index=True)
 
     def __str__(self):
         if self.discount_type == 'amount':

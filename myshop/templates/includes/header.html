@@ -189,10 +189,9 @@ aria-labelledby="offcanvasCartLabel"
     <table class="table offcanvasCart-table">
       <tbody>
         {% for item in cart %}
-        {% with product=item.product %} 
         <tr>
           <td class="product-img-td">
-            <a href="{{ product.get_absolute_url }}">
+            <a href="{{ item.url }}">
               {% if item.image %}
                   <img src="{{ item.image }}">
               {% else %}
@@ -200,14 +199,11 @@ aria-labelledby="offcanvasCartLabel"
               {% endif %}
             </a>
           </td>
-          <script>
-            console.log('{{product.id}}')
-          </script>
-          <td class="product-img-td"><a href="{{ product.get_absolute_url }}">{{ product.title }}</a></td>
+          <td class="product-img-td"><a href="{{ item.url }}">{{ item.title }}</a></td>
           <td class="num">{{ item.price }} ₽</td> 
           <td class="item-quantity">&times;{{ item.quantity }}</td>
           <td class="form-remove">
-            <form action="{% url 'cart:cart_remove' product.id %}" method="post">
+            <form action="{% url 'cart:cart_remove' item.product_id %}" method="post">
               <input type="hidden" name="size" value="{{ item.size }}">
               <button class="btn btn-danger" type="submit">
                 <i class="bi bi-x-square"></i>
@@ -216,7 +212,6 @@ aria-labelledby="offcanvasCartLabel"
             </form> 
         </td> 
         </tr>
-        {% endwith %} 
         {% endfor %}
       </tbody>
       <tfoot>

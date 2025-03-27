@@ -1,29 +1,53 @@
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
-from home.models import Product,Category
+from home.models import Product,Category,ProductPrice
 from .cart import Cart
 from .forms import CartAddProductForm
+
+
+# @require_POST
+# def cart_add(request, product_id):
+#     cart = Cart(request)
+#     product = get_object_or_404(Product, id=product_id)
+#     form = CartAddProductForm(request.POST,product=product)
+#     print("Данные из формы:", request.POST)
+#     if form.is_valid():
+#         cd = form.cleaned_data
+#         cart.add(product=product,quantity=cd['quantity'],override_quantity=cd['override'],size=cd['size'],)
+        
+#     else:
+#         # Обработка ошибки: форма не валидна
+#         print("Форма не валидна:", form.errors)  # Вывод ошибок формы для отладки
+#         # print(f"Форма валидна: {form.is_valid()}, данные: {cd}")
+
+#     # Получаем URL страницы, с которой был запрос
+#     referer = request.META.get('HTTP_REFERER', 'cart:cart_detail')
+
+#     return redirect(referer)
+
 
 
 @require_POST
 def cart_add(request, product_id):
     cart = Cart(request)
     product = get_object_or_404(Product, id=product_id)
-    form = CartAddProductForm(request.POST,product=product)
-    print("Данные из формы:", request.POST)
+
+    sizes = ProductPrice.objects.filter(product_id=product_id).select_related('size')
+    size_price_map = [(str(size.size.title), size.price) for size in sizes]
+
+    form = CartAddProductForm(request.POST, product=product, sizes=size_price_map)
+
     if form.is_valid():
         cd = form.cleaned_data
-        cart.add(product=product,quantity=cd['quantity'],override_quantity=cd['override'],size=cd['size'],)
-        
+        size = cd.get('size')
+        cart.add(product=product, quantity=cd['quantity'], override_quantity=cd['override'], size=size)
     else:
-        # Обработка ошибки: форма не валидна
-        print("Форма не валидна:", form.errors)  # Вывод ошибок формы для отладки
-        # print(f"Форма валидна: {form.is_valid()}, данные: {cd}")
+        print("Форма не валидна:", form.errors)
 
-    # Получаем URL страницы, с которой был запрос
     referer = request.META.get('HTTP_REFERER', 'cart:cart_detail')
-
     return redirect(referer)
+
+
 
 
 @require_POST

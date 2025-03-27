@@ -1,6 +1,7 @@
 from django import forms
 from home.models import ProductPrice  # Импортируем модель ProductPrice для получения размеров
 
+
 PRODUCT_QUANTITY_CHOICES = [(i, str(i)) for i in range(1, 101)]
 
 class CartAddProductForm(forms.Form):
@@ -24,27 +25,27 @@ class CartAddProductForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         product = kwargs.pop('product', None)  # Получаем продукт из аргументов
+        sizes = kwargs.pop('sizes', [])  # Получаем размеры из аргументов
         super().__init__(*args, **kwargs)
+        self.fields['size'].choices = sizes  # Устанавливаем доступные размеры
         
-        if product:
-            try:
-                sizes = ProductPrice.objects.filter(product=product).select_related('size')
-                self.fields['size'].choices = [(size.size.title, size.price) for size in sizes]
 
-                if self.fields['size'].choices:
-                    min_price_size = min(sizes, key=lambda x: x.price)  # Находим размер с минимальной ценой
-                    self.fields['size'].initial = min_price_size.size.title
-                else:
-                    # Если размеров нет, можно оставить поле обязательным или выдать ошибку
-                    self.fields['size'].required = True  # Оставляем обязательным, если размеры отсутствуют
+        if sizes:
+            self.fields['size'].choices = sizes  # Устанавливаем размеры и цены
 
-            except Exception as e:
-                # Логируем ошибку
-                print(f"Ошибка при загрузке размеров: {e}")
+            # Устанавливаем начальное значение для размера с минимальной ценой
+            if self.fields['size'].choices:
+                min_price_size = min(sizes, key=lambda x: x[1])  # Находим размер с минимальной ценой
+                self.fields['size'].initial = min_price_size[0]  # Устанавливаем начальное значение
+            else:
+                # Если размеров нет, можно оставить поле обязательным или выдать ошибку
+                self.fields['size'].required = True  # Оставляем обязательным, если размеры отсутствуют
 
     def clean_size(self):
         size = self.cleaned_data.get('size')
-        # Здесь можно добавить дополнительную логику валидации, если нужно
+        print(f"Полученное значение размера: {size}")
+        print(f"Допустимые значения: {dict(self.fields['size'].choices)}")
+        if size not in dict(self.fields['size'].choices):
+            raise forms.ValidationError("Выберите корректный вариант.")
         return size
-
 

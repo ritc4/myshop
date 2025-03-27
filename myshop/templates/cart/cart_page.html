@@ -29,10 +29,9 @@
             </div>
       {% else %}
       {% for item in cart %} 
-      {% with product=item.product %} 
       <tr>
         <td>
-          <a href="{{ product.get_absolute_url }}">
+          <a href="{{ item.url }}">
             {% if item.image %}
                   <img src="{{ item.image }}">
             {% else %}
@@ -40,13 +39,13 @@
             {% endif %}
           </a>
         </td>
-        <td class="product-img-td"><a href="{{ product.get_absolute_url }}">{{ product.title }}</a></td>
+        <td class="product-img-td"><a href="{{ item.url }}">{{ item.title }}</a></td>
         <td>
           {{item.size}}
       </td> 
         <td class="num">{{ item.price }} ₽</td> 
         <td>
-            <form action="{% url 'cart:cart_add' product.id %}" method="post" class="update-form">
+            <form action="{% url 'cart:cart_add' item.product_id %}" method="post" class="update-form">
               {% csrf_token %}
                 <input type="number" name="quantity" value="{{ item.update_quantity_form.quantity.value}}" min="1" class="form-control cart-qty quantity-input"> 
                 {{ item.update_quantity_form.override }}
@@ -54,7 +53,7 @@
             </form> 
         </td>
         <td class="num">{{ item.total_price }} ₽</td>
-        <td><form action="{% url 'cart:cart_remove' product.id %}" 
+        <td><form action="{% url 'cart:cart_remove' item.product_id %}" 
             method="post">
             <input type="hidden" name="size" value="{{ item.size }}">
             <button class="btn btn-danger" type="submit">
@@ -65,8 +64,6 @@
         </td>
         
         </tr>
-        
-        {% endwith %} 
         {% endfor %}
         {% endif %} 
         <tr class="total fw-bold h5">

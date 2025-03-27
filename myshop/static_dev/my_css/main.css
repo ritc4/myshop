@@ -32,7 +32,6 @@ img {
 }
 
 
-
 /*==========================General rules======================*/
 
 html,
@@ -762,6 +761,16 @@ section{
 }
 
 /*==========================Cart page======================*/
+
+.product-img-td a{
+  text-decoration: none;
+  display: block; 
+}
+
+.product-img-td a:hover{
+  text-decoration: underline;
+}
+
 
 .cart-content table img{
   max-width: 50px;

@@ -1,5 +1,5 @@
 from django.shortcuts import render,get_object_or_404
-from .models import Category,Product,News,SizeTable,ImageSliderHome,DeliveryInfo,Review,ReviewImage
+from .models import Category,Product,News,SizeTable,ImageSliderHome,DeliveryInfo,Review,ReviewImage,ProductPrice
 from cart.forms import CartAddProductForm
 from .forms import ReviewForm
 from django.db.models import Case, When,Min,Sum
@@ -52,12 +52,84 @@ class HomeView(ListView):
         context = super().get_context_data(**kwargs)
         context['slider_image'] = ImageSliderHome.objects.all()
 
+        # Получаем все размеры и цены для всех продуктов
+        products = context['products']
+        product_ids = [product.id for product in products]
+        sizes = ProductPrice.objects.filter(product_id__in=product_ids).select_related('size')
+
+        # Создаем словарь для быстрого доступа к размерам и ценам
+        size_price_map = {}
+        for size in sizes:
+            if size.product_id not in size_price_map:
+                size_price_map[size.product_id] = []
+            size_price_map[size.product_id].append((size.size.title, size.price))
+
+        print(size_price_map)  # Для отладки
         # Создаем формы для добавления в корзину
         context['cart_product_form'] = [
-            (product, CartAddProductForm(product=product)) for product in context['products']
+            (product, CartAddProductForm(product=product, sizes=size_price_map.get(product.id, []))) 
+            for product in products
         ]
 
         return context
+
+
+# class ProductListView(ListView):
+#     model = Product
+#     template_name = 'home/category_page.html'
+#     context_object_name = 'products'
+#     paginate_by = 30  # Значение по умолчанию для количества продуктов на странице
+
+#     def get_queryset(self):
+#         # Получаем категорию по слагу
+#         slug = self.kwargs.get('slug')
+#         self.category = get_object_or_404(Category, slug=slug)
+
+#         # Фильтруем продукты по выбранной категории
+#         products = Product.objects.filter(category=self.category, is_hidden=False).prefetch_related(
+#             'product_prices__size',  # Предварительная загрузка цен и их размеров
+#             'images'  # Предварительная загрузка изображений
+#         ).select_related('category')  # Предварительная загрузка категории продукта
+
+#         # Обработка сортировки
+#         sort_by = self.request.GET.get('sort', 'created')  # По умолчанию сортируем по времени добавления
+#         if sort_by == 'min_price':
+#             products = products.annotate(min_price=Min('product_prices__price')).order_by('min_price')
+#         elif sort_by == '-min_price':
+#             products = products.annotate(min_price=Min('product_prices__price')).order_by('-min_price')
+#         else:
+#             products = products.annotate(min_price=Min('product_prices__price')).order_by('-created')
+
+#         return products
+
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         context['category'] = self.category  # Используем ранее полученную категорию
+#         context['get_root_cat'] = context['category'].get_root()  # Получаем корневую категорию
+#         context['get_children_cat'] = context['category'].get_children()  # Получаем дочерние категории
+#         context['get_descendants_cat'] = context['get_root_cat'].get_children()  # Получаем все дочерние категории корня
+
+#         # Получаем хлебные крошки
+#         context['breadcrumbs'] = context['category'].get_breadcrumbs()
+
+
+#         # Создаем формы для добавления продуктов в корзину
+#         context['cart_product_form'] = [
+#             (product, CartAddProductForm(product=product)) for product in context['products']
+#         ]
+
+#         # Устанавливаем количество продуктов на странице
+#         per_page = self.request.GET.get('per_page', self.paginate_by)  # Получаем значение per_page из GET-запроса
+#         context['per_page'] = per_page
+
+#         return context
+
+#     def get_paginate_by(self, request):
+#         per_page = self.request.GET.get('per_page', self.paginate_by)  # Получаем значение per_page из GET-запроса
+#         if isinstance(per_page, str) and per_page.isdigit():
+#             return int(per_page)
+#         return self.paginate_by  # Вернуть значение по умолчанию
+
 
 
 class ProductListView(ListView):
@@ -99,9 +171,23 @@ class ProductListView(ListView):
         context['breadcrumbs'] = context['category'].get_breadcrumbs()
 
 
-        # Создаем формы для добавления продуктов в корзину
+        # Получаем все размеры и цены для всех продуктов
+        products = context['products']
+        product_ids = [product.id for product in products]
+        sizes = ProductPrice.objects.filter(product_id__in=product_ids).select_related('size')
+
+        # Создаем словарь для быстрого доступа к размерам и ценам
+        size_price_map = {}
+        for size in sizes:
+            if size.product_id not in size_price_map:
+                size_price_map[size.product_id] = []
+            size_price_map[size.product_id].append((size.size.title, size.price))
+
+        print(size_price_map)  # Для отладки
+        # Создаем формы для добавления в корзину
         context['cart_product_form'] = [
-            (product, CartAddProductForm(product=product)) for product in context['products']
+            (product, CartAddProductForm(product=product, sizes=size_price_map.get(product.id, []))) 
+            for product in products
         ]
 
         # Устанавливаем количество продуктов на странице

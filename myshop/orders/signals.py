@@ -13,8 +13,12 @@ from django.templatetags.static import static
 order_created_signal = Signal()
 
 @receiver(order_created_signal)
-def handle_order_created(request, order_id, **kwargs):
-    order = get_object_or_404(Order, id=order_id)
+def handle_order_created(sender, **kwargs):
+    print(f"Sender: {sender}")  # Отладочное сообщение
+    request = kwargs.get('request')
+    order_id = kwargs.get('order_id')
+
+    order = Order.objects.select_related('delivery_method').prefetch_related('items__product', 'items__size').get(id=order_id)
 
     # Логика для создания и отправки письма
     total_quantity = sum(item.quantity for item in order.items.all())
@@ -36,15 +40,15 @@ def handle_order_created(request, order_id, **kwargs):
             weasyprint.CSS(settings.STATIC_ROOT / 'css/pdf.css')
         ]
     )
-    subject = f'Заказ № {order.id} в интернет магазине Cozy.su'
+    subject = f'Заказ № {order.id} в интернет-магазине Cozy.su'
     # Отправка письма с PDF как вложением
 
     email = EmailMessage(
         subject=subject,
         body='Спасибо за ваш заказ! В скором времени мы с вами свяжемся.',
         from_email=settings.DEFAULT_FROM_EMAIL,
-        to=[order.email, 'ccozy@yandex.ru'],  # Используйте email покупателя из заказа и добавить адрес админа
+        to=[order.email],  # order.email, Используйте email покупателя из заказа и добавить адрес админа
     )
-    print(order.email, settings.DEFAULT_FROM_EMAIL)
+    print(settings.DEFAULT_FROM_EMAIL, order.email)
     email.attach(f'Ваш Заказ № {order.id}.pdf', pdf, 'application/pdf')
     email.send()
