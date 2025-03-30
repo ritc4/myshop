@@ -55,7 +55,7 @@ class OrderCreateForm(forms.ModelForm):
 
 
         widgets = {
-            'delivery_method': forms.Select(attrs={'class': 'form-control', 'id': 'delivery_method', 'name': 'delivery_method'}),
+            # 'delivery_method': forms.Select(attrs={'class': 'form-control', 'id': 'delivery_method', 'name': 'delivery_method'}),
             'first_name_last_name': forms.TextInput(attrs={'class': 'form-control', 'id': 'first_name_last_name', 'name': 'first_name_last_name', 'autocomplete': 'name'}),
             'email': forms.EmailInput(attrs={'class': 'form-control', 'id': 'email', 'name': 'email', 'autocomplete': 'email'}),
             'phone': forms.TextInput(attrs={'class': 'form-control', 'id': 'phone', 'name': 'phone', 'autocomplete': 'tel'}),

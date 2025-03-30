@@ -361,7 +361,7 @@ class ReviewsView(LoginRequiredMixin, FormView, ListView):
     
     def get_queryset(self):
         # Ограничиваем выборку до 5 последних отзывов
-        return Review.objects.all().select_related('user').order_by('-created_at')
+        return Review.objects.all().select_related('user').prefetch_related('images').order_by('-created_at')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

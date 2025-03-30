@@ -9,7 +9,44 @@ from django.contrib.admin.views.decorators import staff_member_required
 import weasyprint 
 from django.conf import settings
 from django.templatetags.static import static
-from .signals import order_created_signal  # Импортируйте ваш сигнал
+from django.core.mail import EmailMessage
+
+
+def handle_order_created(order, request):
+    order = Order.objects.select_related('delivery_method').prefetch_related('items__product', 'items__size').get(id=order.id)
+
+    # Логика для создания и отправки письма
+    total_quantity = sum(item.quantity for item in order.items.all())
+    total_items = order.items.count()
+    logo_path = request.build_absolute_uri(static('img/logo.png'))
+
+    html = render_to_string(
+        'orders/order/pdf.html', {
+            'order': order,
+            'total_quantity': total_quantity,
+            'total_items': total_items,
+            'logo_path': logo_path,
+        }
+    )
+
+    # Создание PDF
+    pdf = weasyprint.HTML(string=html).write_pdf(
+        stylesheets=[
+            weasyprint.CSS(settings.STATIC_ROOT / 'css/pdf.css')
+        ]
+    )
+    subject = f'Заказ № {order.id} в интернет-магазине Cozy.su'
+    # Отправка письма с PDF как вложением
+
+    email = EmailMessage(
+        subject=subject,
+        body='Спасибо за ваш заказ! В скором времени мы с вами свяжемся.',
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        to=[order.email],  # order.email, Используйте email покупателя из заказа и добавить адрес админа
+    )
+    print(settings.DEFAULT_FROM_EMAIL, order.email)
+    email.attach(f'Ваш Заказ № {order.id}.pdf', pdf, 'application/pdf')
+    email.send()
 
 
 def order_create(request): 
@@ -70,11 +107,8 @@ def order_create(request):
             # Очистить корзину
             cart.clear()
 
-            # Убедитесь, что order.id теперь не None
-            if order.id is not None:
-                order_created_signal.send(sender=Order, order_id=order.id, request=request)
-            else:
-                print("Ошибка: Заказ не был сохранен корректно.")
+            # Вызов функции обработки события
+            handle_order_created(order, request)
 
             return render(request, 'orders/order/checkout_finish_page.html')
     else:

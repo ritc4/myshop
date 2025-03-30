@@ -21,18 +21,18 @@ order_pdf.short_description = 'Чеки'
 class OrderItemInline(admin.TabularInline):
     model = OrderItem
     raw_id_fields = ['product']
-    fields = ['product_image','product','product_article_number','size','product_mesto','product_zacup_price','quantity', 'price','get_cost',]
+    extra = 1  # Количество пустых форм для добавления новых элементов
+    fields = ['product_image','product','product_article_number','product_mesto','size','product_zacup_price','quantity', 'price','get_cost']
     readonly_fields = ['product_image','product_article_number','product_mesto','product_zacup_price','get_cost']
 
     def get_queryset(self, request):
         # Загружаем связанные модели для оптимизации запросов
         queryset = super().get_queryset(request)
-        return queryset.select_related('size','product','order').prefetch_related(
+        
+        return queryset.select_related('size','product').prefetch_related(
             'product__images',
-            # 'product__product_prices',  # Предварительная загрузка цен для продукта
-            # 'size__product_size',  # Если есть связанные размеры
-        )
-    
+            'product__product_prices',  # Предварительная загрузка цен для продукта
+            )
 
     def product_article_number(self, obj):
         return obj.product.article_number
@@ -42,25 +42,15 @@ class OrderItemInline(admin.TabularInline):
         return obj.product.mesto
     product_mesto.short_description = 'Место'
 
-
-    def product_zacup_price(self, obj):
-        product_prices = obj.product.product_prices.get(size=obj.size)
-        print(product_prices.zacup_price)
-        return product_prices.zacup_price
-    product_zacup_price.short_description = 'Закупочная цена'
-
-
-
     def product_image(self, obj):
         # Получаем все изображения заранее
-        images = list(obj.product.images.all())
+        images = obj.product.images.all()  # Используем предзагруженные изображения
         if images:
             first_image = images[0]
             return mark_safe(f"<img src='{first_image.image.url}' width='50'>")
         else:
             return 'Нет фото'
     product_image.short_description = 'Фото товара'
-
  
 
 @admin.register(Order)
@@ -101,7 +91,7 @@ class OrderAdmin(admin.ModelAdmin):
 
         return queryset.select_related('delivery_method', 'discount').prefetch_related(
             'items__product__product_prices', 
-            'items__size__product_size'
+            'items__size__product_size',
         )
     
 
@@ -113,38 +103,19 @@ class OrderAdmin(admin.ModelAdmin):
         return "Не указано"  # Если способ доставки не указан
 
     get_delivery_price.short_description = 'Цена доставки'  # Заголовок колонки
-
     
-    # def get_total_zakup_cost(self, obj):
-    #     total_cost = 0
-    #     for item in obj.items.all():  # Предполагаем, что у вас есть связь с элементами заказа
-    #         # Получаем все цены для каждого товара, которые уже загружены
-    #         product_prices = {price.size: price for price in item.product.product_prices.all()}
-    #         print(product_prices)
-    #         total_cost += product_prices.get(item.size).zacup_price * item.quantity  # Умножаем на количество
-    #     return total_cost
-
-    # get_total_zakup_cost.short_description = 'Общая закупочная стоимость'  # Заголовок для отображения
-    
-
 
     def get_total_zakup_cost(self, obj):
         total_cost = 0
-        for item in obj.items.all():  # Проходим по всем элементам заказа
-            # Получаем цену для данного размера из словаря
+        for item in obj.items.all():
             price = self.product_prices.get((item.product.id, item.size.id))
-
-            if price is not None:  # Проверяем, существует ли цена
-                total_cost += price * item.quantity  # Умножаем на количество
-            else:
-                print(f'Цена для размера {item.size} не найдена для продукта {item.product.name}')
-
+            if price is not None:
+                total_cost += price * item.quantity
         return total_cost
-
     get_total_zakup_cost.short_description = 'Общая закупочная стоимость'  # Заголовок для отображения
     
 
-    
+
     def get_search_results(self, request, queryset, search_term):
         if search_term:
             queryset = queryset.filter(
@@ -286,12 +257,13 @@ class OrderItemAdmin(admin.ModelAdmin):
         })
 
 
+
 @admin.register(DeliveryMethod)
 class DeliveryMethodAdmin(admin.ModelAdmin):
     list_display =[
         'title'
         ]
-
+    
 
 @admin.register(Discount)
 class DiscountAdmin(admin.ModelAdmin):

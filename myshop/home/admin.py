@@ -115,7 +115,7 @@ class ProductAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         # Используем prefetch_related для оптимизации запросов к ценам и размерам
-        queryset = super().get_queryset(request).prefetch_related('product_prices__size')
+        queryset = super().get_queryset(request).prefetch_related('product_prices','images','product_prices__size')
         return queryset
 
 
@@ -222,12 +222,22 @@ class ProductAdmin(admin.ModelAdmin):
     
 
 
+    # def get_image(self, obj):
+    #     first_image = obj.images.first()
+    #     if first_image:
+    #         return mark_safe(f"<img src='{first_image.image.url}' width='50'>")
+    #     return 'Нет фото'
+    # get_image.short_description = "Фото"
+
     def get_image(self, obj):
-        first_image = obj.images.first()
-        if first_image:
+        # Получаем все изображения заранее
+        images = obj.images.all()  # Используем предзагруженные изображения
+        if images:
+            first_image = images[0]
             return mark_safe(f"<img src='{first_image.image.url}' width='50'>")
-        return 'Нет фото'
-    get_image.short_description = "Фото"
+        else:
+            return 'Нет фото'
+    get_image.short_description = 'Фото товара'
 
 
 

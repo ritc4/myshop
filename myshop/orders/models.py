@@ -77,7 +77,7 @@ class Order(models.Model):
     soglasie_na_obrabotku_danyh = models.BooleanField(default=True,blank=False, verbose_name="Согласие на обработку персональных данных")
     soglasie_na_uslovie_sotrudnichestva = models.BooleanField(default=True,blank=False, verbose_name="Согласие с условиями сотрудничества")
     status = models.CharField(max_length=20,choices=STATUS_CHOICES,default='new',verbose_name="Статус заказа", db_index=True)
-    delivery_method = models.ForeignKey(DeliveryMethod, blank=False,on_delete=models.SET_NULL, null=True, verbose_name="Способ доставки", db_index=True)
+    delivery_method = models.ForeignKey(DeliveryMethod,blank=False,on_delete=models.SET_NULL, null=True, verbose_name="Способ доставки", db_index=True)
     price_delivery = models.DecimalField(max_digits=10,decimal_places=0,blank=True,null=True, verbose_name="Цена доставки", db_index=True)
     discount = models.ForeignKey('Discount', on_delete=models.SET_NULL, blank=True, null=True, verbose_name="Скидка", db_index=True)
 
@@ -148,6 +148,13 @@ class OrderItem(models.Model):
             return self.price * self.quantity
         return 0  # Возвращаем 0, если одно из значений отсутствует
     get_cost.short_description = 'Общая стоимость'  # Заголовок столбца
+
+
+    def product_zacup_price(self):
+        """Возвращает закупочную цену для текущего размера товара."""
+        prices = {price.size_id: price.zacup_price for price in self.product.product_prices.all()}
+        return prices.get(self.size.id, 'Нет цены')  # Возвращаем цену для текущего размера или 'Нет цены'
+    product_zacup_price.short_description = 'Закупочная цена'
 
       
     class Meta:
