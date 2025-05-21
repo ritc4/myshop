@@ -7,7 +7,6 @@ from django.conf import settings
 
 
 
-
 class Category(MPTTModel):
     name = models.CharField(max_length=255, unique=True,verbose_name='Категория')
     parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children',verbose_name='Подкатегория')
@@ -35,7 +34,7 @@ class Category(MPTTModel):
 
 
 class Size(models.Model):
-    title = models.CharField(max_length=50, unique=True,verbose_name="Размеры")  # Название размера
+    title = models.CharField(max_length=50, unique=True,verbose_name="Размеры",db_index=True)  # Название размера
 
     def __str__(self):
         return f"{self.title}"
@@ -49,9 +48,9 @@ class Size(models.Model):
 class ProductPrice(models.Model):
     product = models.ForeignKey('Product', related_name='product_prices', on_delete=models.CASCADE)
     size = models.ForeignKey(Size, related_name='product_size', on_delete=models.CASCADE,verbose_name='Размер')
-    price = models.DecimalField(max_digits=10, decimal_places=0,verbose_name='Цена продажи')
-    old_price = models.DecimalField(max_digits=10, decimal_places=0, verbose_name='Цена старая ', null=True, blank=True)
-    zacup_price = models.DecimalField(max_digits=10, decimal_places=0,verbose_name='Цена закупки')
+    price = models.DecimalField(max_digits=10, decimal_places=0,verbose_name='Цена продажи',db_index=True)
+    old_price = models.DecimalField(max_digits=10, decimal_places=0, verbose_name='Цена старая ', null=True, blank=True,db_index=True)
+    zacup_price = models.DecimalField(max_digits=10, decimal_places=0,verbose_name='Цена закупки',db_index=True)
     
     def __str__(self):
         return f"{self.product.title}"
@@ -67,12 +66,12 @@ class ProductPrice(models.Model):
 
 class Product(models.Model):
     title = models.CharField(max_length=255,verbose_name='Название товара')
-    description = CKEditor5Field(config_name='extends',max_length=255,blank=True,verbose_name='Описание')
-    article_number = models.IntegerField(unique=True,verbose_name='Артикул')
-    stock = models.IntegerField(default=100, validators=[MinValueValidator(0)],verbose_name='Остаток')  # Остаток товара в штуках
-    unit = models.CharField(max_length=10, default='шт',verbose_name='Единица измерения')  # Единица измерения, по умолчанию 'шт'
-    is_hidden = models.BooleanField(default=False,verbose_name='Скрыть товар')  # Поле для скрытия товара
-    mesto = models.CharField(max_length=20,blank=True,null=True,verbose_name='Место')
+    description = CKEditor5Field(config_name='extends',max_length=255,blank=True,verbose_name='Описание',db_index=True)
+    article_number = models.IntegerField(unique=True,verbose_name='Артикул',db_index=True)
+    stock = models.IntegerField(default=100, validators=[MinValueValidator(0)],verbose_name='Остаток',db_index=True)  # Остаток товара в штуках
+    unit = models.CharField(max_length=10, default='шт',verbose_name='Единица измерения',db_index=True)  # Единица измерения, по умолчанию 'шт'
+    is_hidden = models.BooleanField(default=False,verbose_name='Скрыть товар',db_index=True)  # Поле для скрытия товара
+    mesto = models.CharField(max_length=20,blank=True,null=True,verbose_name='Место',db_index=True)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     slug = models.SlugField(max_length=200, unique=True)  # Поле slug
@@ -103,7 +102,7 @@ class Product(models.Model):
 
 class ProductImage(models.Model):
     product = models.ForeignKey(Product, related_name='images', on_delete=models.CASCADE)
-    image = models.ImageField(upload_to='products/%Y/%m/%d', blank=True, null=True, verbose_name='Изображение')
+    image = models.ImageField(upload_to='products/%Y/%m/%d', blank=True, null=True, verbose_name='Изображение',db_index=True)
     
     def __str__(self):
         return f"Изображение {self.id}"
@@ -199,12 +198,12 @@ class DeliveryInfo(models.Model):
 
 
 class Review(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)  # Связь с пользователем
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True,db_index=True)  # Связь с пользователем
     content = models.TextField(verbose_name="Отзыв", blank=False)
-    kachestvo_rating = models.PositiveIntegerField(default=0,blank=False,verbose_name='Качество товара')  # Рейтинг за качество
-    obsluga_rating = models.PositiveIntegerField(default=0,blank=False,verbose_name='Качество обслуживания')    # Рейтинг за обслуживание
-    sroki_rating = models.PositiveIntegerField(default=0,blank=False,verbose_name='Соблюдение сроков')  # Рейтинг за сроки
-    created_at = models.DateTimeField(auto_now_add=True)  
+    kachestvo_rating = models.PositiveIntegerField(default=0,blank=False,verbose_name='Качество товара',db_index=True)  # Рейтинг за качество
+    obsluga_rating = models.PositiveIntegerField(default=0,blank=False,verbose_name='Качество обслуживания',db_index=True)    # Рейтинг за обслуживание
+    sroki_rating = models.PositiveIntegerField(default=0,blank=False,verbose_name='Соблюдение сроков',db_index=True)  # Рейтинг за сроки
+    created_at = models.DateTimeField(auto_now_add=True,db_index=True)  
 
     def __str__(self):
         return str(self.user) if self.user else "Анонимный пользователь"  # Возвращаем строку
@@ -217,7 +216,7 @@ class Review(models.Model):
 
 class ReviewImage(models.Model):
     review = models.ForeignKey(Review, related_name='images', on_delete=models.CASCADE)
-    image = models.ImageField(upload_to='review_home/%Y/%m/%d', blank=True, null=True, verbose_name='Изображение')
+    image = models.ImageField(upload_to='review_home/%Y/%m/%d', blank=True, null=True, verbose_name='Изображение',db_index=True)
 
     
     def __str__(self):

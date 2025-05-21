@@ -49,6 +49,8 @@ def handle_order_created(order, request):
     email.send()
 
 
+
+
 def order_create(request): 
     categories = Category.objects.all()
     cart = Cart(request)
@@ -110,7 +112,7 @@ def order_create(request):
             # Вызов функции обработки события
             handle_order_created(order, request)
 
-            return render(request, 'orders/order/checkout_finish_page.html')
+            return redirect(request, 'orders/order/checkout_finish_page.html')
     else:
         form = OrderCreateForm(user=request.user)
 

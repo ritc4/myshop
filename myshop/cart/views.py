@@ -26,6 +26,27 @@ def cart_add(request, product_id):
     return redirect(referer)
 
 
+# def cart_add(request):
+#     cart = Cart(request)
+
+#     # Получаем уникальные продукты (первые 500)
+#     products = Product.objects.all()[:500]
+
+#     for product in products:
+#         # Получаем связанные размеры и цены для продукта
+#         sizes = ProductPrice.objects.filter(product=product).select_related('size')
+
+#         if sizes.exists():
+#             # Берем первый размер и его цену
+#             first_size = sizes.first()
+#             size_title = str(first_size.size.title)
+#             price = first_size.price  # Цена не используется в добавлении, но можно сохранить для дальнейшего использования
+
+#             # Добавляем продукт в корзину с первым размером
+#             cart.add(product=product, quantity=1, override_quantity=False, size=size_title)
+
+#     referer = request.META.get('HTTP_REFERER', 'cart:cart_detail')
+#     return redirect(referer)
 
 
 @require_POST

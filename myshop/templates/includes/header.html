@@ -199,7 +199,7 @@ aria-labelledby="offcanvasCartLabel"
               {% endif %}
             </a>
           </td>
-          <td class="product-img-td"><a href="{{ item.url }}">{{ item.title }}</a></td>
+          <td class="product-img-td"><a href="{{ item.url }}">{{ item.title }} Арт:{{ item.article_number }} Размер:{{ item.size }}</a></td>
           <td class="num">{{ item.price }} ₽</td> 
           <td class="item-quantity">&times;{{ item.quantity }}</td>
           <td class="form-remove">
@@ -224,9 +224,7 @@ aria-labelledby="offcanvasCartLabel"
   </div>
   <div class="text-end mt-3">
     <a href="{% url 'cart:cart_detail' %}" class="btn btn-outline-dark">Корзина</a>
-    <a href="{% url 'orders:order_create' %}" class="btn btn-outline-dark"
-      >Оформления заказа</a
-    >
+    <a href="{% url 'orders:order_create' %}" class="btn btn-outline-dark">Оформления заказа</a>
   </div>
 </div>
 </div>

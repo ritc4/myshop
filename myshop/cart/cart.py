@@ -86,6 +86,7 @@ class Cart:
 
             self.cart[unique_key] = {
                 'product_id': product_id,  # Сохраняем id продукта
+                'article_number': product.article_number,
                 'title': product.title,  # Сохраняем название продукта
                 'size': size,
                 'quantity': 0,

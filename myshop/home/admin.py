@@ -19,6 +19,7 @@ class ProductPriceAdminForm(forms.ModelForm):
     class Meta:
         model = ProductPrice
         fields = '__all__'
+        
 
     def save(self, commit=True):
         # Получаем текущий объект продукта
@@ -93,10 +94,11 @@ class ProductPriceInline(admin.TabularInline):
     form = ProductPriceAdminForm
     model = ProductPrice
     extra = 1  # Количество пустых форм для добавления новых записей
-    fields = ('size', 'price','zacup_price','old_price','new_sale_price', 'new_purchase_price', 'new_old_price')
+    fields = ('size', 'price','zacup_price','old_price','new_sale_price', 'new_purchase_price','new_old_price')
 
+    
     def get_queryset(self, request):
-        queryset = super().get_queryset(request).select_related('size','product')  # Это загружает размер вместе с ценами
+        queryset = super().get_queryset(request).select_related('product').prefetch_related('size')  # Это загружает размер вместе с ценами
         return queryset
     
 
@@ -162,7 +164,7 @@ class ProductAdmin(admin.ModelAdmin):
             try:
                 # Получаем цены для исходного продукта
                 prices = product.product_prices.all()
-                print(f"Количество цен для исходного продукта {product.title}: {prices.count()}")
+                # print(f"Количество цен для исходного продукта {product.title}: {prices.count()}")
 
                 # Создаем новый продукт
                 new_product = product

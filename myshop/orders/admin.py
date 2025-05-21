@@ -6,9 +6,8 @@ from django.urls import reverse, path
 from django.shortcuts import render
 from django.utils import timezone
 from datetime import timedelta
-from home.models import ProductPrice
-
-
+from home.models import ProductPrice,Size,Product
+from django import forms
 
 
 def order_pdf(obj):
@@ -18,28 +17,76 @@ order_pdf.short_description = 'Чеки'
 
 
 
+class OrderItemForm(forms.ModelForm):
+    class Meta:
+        model = OrderItem
+        fields = ['product', 'size']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # Устанавливаем начальный queryset для поля size
+        self.fields['size'].queryset = Size.objects.all()
+        self.fields['product'].queryset = Product.objects.all()
+
+        # Если есть данные о продукте, фильтруем размеры
+        product_id = self.data.get('product') or (self.instance.product.id if self.instance.pk else None)
+        if product_id:
+            try:
+                # Преобразуем product_id в целое число
+                product_id = int(product_id)
+                # Фильтруем размеры по выбранному продукту
+                self.fields['size'].queryset = Size.objects.filter(product_size__product__id=product_id)
+            except (ValueError, TypeError):
+                # Если возникла ошибка, оставляем все размеры
+                self.fields['size'].queryset = Size.objects.all()
+
+    def clean(self):
+        cleaned_data = super().clean()
+        product = cleaned_data.get('product')
+
+        # Если продукт выбран, фильтруем размеры по этому продукту
+        if product:
+            self.fields['size'].queryset = Size.objects.filter(product_size__product=product)
+
+        return cleaned_data
+
+
 class OrderItemInline(admin.TabularInline):
     model = OrderItem
+    show_change_link = True
+    form = OrderItemForm
     raw_id_fields = ['product']
     extra = 1  # Количество пустых форм для добавления новых элементов
-    fields = ['product_image','product','product_article_number','product_mesto','size','product_zacup_price','quantity', 'price','get_cost']
+    fields = ['product_image','product','product_article_number','size','product_mesto','product_zacup_price','quantity', 'price','get_cost']
     readonly_fields = ['product_image','product_article_number','product_mesto','product_zacup_price','get_cost']
 
+
     def get_queryset(self, request):
-        # Загружаем связанные модели для оптимизации запросов
-        queryset = super().get_queryset(request)
-        
-        return queryset.select_related('size','product').prefetch_related(
+        queryset = super().get_queryset(request).select_related('product','size').prefetch_related(
             'product__images',
-            'product__product_prices',  # Предварительная загрузка цен для продукта
-            )
+            'product__product_prices',
+        )
+        
+        # # Для отладки: выводим информацию о загруженных элементах
+        # for item in queryset:
+        #     # Получаем все размеры и цены, связанные с продуктом
+        #     all_sizes = item.product.product_prices.all()  # Получаем все ProductPrice для текущего продукта
+        #     sizes_list = ', '.join([f"{i.size.title}" for i in all_sizes])  # Формируем список размеров и цен
+
+        #     print(f"Заказ: {item.order}, Продукт: {item.product.title}, "
+        #           f"Артикул: {item.product.article_number}, Выбранный размер: {item.size.title if item.size else 'Нет размера'}, "
+        #           f"Все размеры {sizes_list}")
+        
+        return queryset
+
 
     def product_article_number(self, obj):
-        return obj.product.article_number
+        return obj.product.article_number if obj.product and obj.product.article_number else 'Артикул не указан'
     product_article_number.short_description = 'Артикул'
 
     def product_mesto(self, obj):
-        return obj.product.mesto
+        return obj.product.mesto if obj.product and obj.product.mesto else 'Место не указано'
     product_mesto.short_description = 'Место'
 
     def product_image(self, obj):
@@ -76,12 +123,15 @@ class OrderAdmin(admin.ModelAdmin):
     list_filter = ['paid', 'created', 'updated'] 
     inlines = [OrderItemInline]
     search_fields = ['items__product__article_number','first_name_last_name', 'email', 'phone','city']
-    list_display_links=['id','first_name_last_name',]  # Поля для поиска
+    list_display_links=['id','first_name_last_name',] 
 
     
     def get_queryset(self, request):
         # Загружаем связанные модели для оптимизации запросов
-        queryset = super().get_queryset(request)
+        queryset = super().get_queryset(request).select_related('delivery_method', 'discount').prefetch_related(
+            'items__product',
+            'items__size',
+        )
 
         # Загружаем все цены в словарь для дальнейшего использования
         self.product_prices = {
@@ -89,10 +139,12 @@ class OrderAdmin(admin.ModelAdmin):
             for price in ProductPrice.objects.all().select_related('product', 'size')
         }
 
-        return queryset.select_related('delivery_method', 'discount').prefetch_related(
-            'items__product__product_prices', 
-            'items__size__product_size',
-        )
+        return queryset
+
+        # return queryset.select_related('delivery_method', 'discount').prefetch_related(
+        #     'items__product__product_prices', 
+        #     'items__size__product_size',
+        # )
     
 
     def get_delivery_price(self, obj):
@@ -113,7 +165,7 @@ class OrderAdmin(admin.ModelAdmin):
                 total_cost += price * item.quantity
         return total_cost
     get_total_zakup_cost.short_description = 'Общая закупочная стоимость'  # Заголовок для отображения
-    
+
 
 
     def get_search_results(self, request, queryset, search_term):
@@ -141,13 +193,13 @@ class OrderAdmin(admin.ModelAdmin):
 
         # Получаем все заказы с оптимизацией
         orders = self.get_queryset(request)  # Используем get_queryset для загрузки заказов
-        print(f"Количество заказов: {orders.count()}")
+        
 
         # Создаем словарь для хранения информации о клиентах
         client_data = {}
 
         for order in orders:
-            print(f"Заказ ID: {order.id}, Email: {order.email}, Сумма: {order.get_total_cost()}")
+            # print(f"Заказ ID: {order.id}, Email: {order.email}, Сумма: {order.get_total_cost()}")
             email = order.email
 
             # Проверяем, существует ли email в словаре
@@ -268,6 +320,5 @@ class DeliveryMethodAdmin(admin.ModelAdmin):
 @admin.register(Discount)
 class DiscountAdmin(admin.ModelAdmin):
     list_display = ('discount_type', 'discount_value')
-
 
 

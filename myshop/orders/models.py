@@ -126,10 +126,9 @@ class Order(models.Model):
     get_total_cost.short_description = 'Общая стоимость'
 
     
-    def get_article_numbers(self):
-        return [item.product.article_number for item in self.items.all() if item.product.article_number]
+    # def get_article_numbers(self):
+    #     return [item.product.article_number for item in self.items.all() if item.product.article_number]
     
-
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order,related_name='items',on_delete=models.CASCADE, db_index=True) 
@@ -137,6 +136,7 @@ class OrderItem(models.Model):
     price = models.DecimalField(max_digits=10,decimal_places=0, verbose_name="Цена", db_index=True) 
     quantity = models.PositiveIntegerField(default=1,verbose_name="Количество", db_index=True)
     size = models.ForeignKey(Size, on_delete=models.SET_NULL, null=True, verbose_name="Размер", db_index=True)  # Изменено на ForeignKey
+
     
     
     def __str__(self):
@@ -160,6 +160,7 @@ class OrderItem(models.Model):
     class Meta:
         verbose_name = 'Заказанный товар'
         verbose_name_plural = 'Заказанные товары'
+        unique_together = ('order', 'product', 'size')  # Уникальная комбинация
 
 
 class Discount(models.Model):

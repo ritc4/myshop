@@ -58,4 +58,4 @@ class VisitMiddleware:
             visit.save()  # Сохраняем изменения
 
         # Отладочные сообщения
-        print(f"Visit recorded for user: {user}, IP: {ip_address}, Views: {visit.views_count}, Last Visit: {visit.last_visit}")
+        # print(f"Visit recorded for user: {user}, IP: {ip_address}, Views: {visit.views_count}, Last Visit: {visit.last_visit}")
