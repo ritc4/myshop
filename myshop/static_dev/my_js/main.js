@@ -376,27 +376,129 @@ $(document).ready(function() {
 
 
 
+// Обработчик обноления и удаления товаров в корзине через Ajax в cart_page.html///////////////////////////////////////
+$(document).ready(function() {
+  console.log("jQuery загружен:", typeof $);
+  console.log("Формы найдены:", $('.update-form').length, $('.remove-form').length);
 
-// Обработчик показать или скрыть пароль при регистрации в register.html
+  // AJAX для обновления количества
+  $('.quantity-input').on('change', function() {
+      console.log("Изменение количества, значение:", $(this).val());
+      if ($(this).data('updating')) return;  // Пропустить, если обновляется программно
+      $(this).closest('.update-form').trigger('submit');
+  });
+
+  $('.update-form').on('submit', function(e) {
+      e.preventDefault();
+      console.log("Перехват submit для update-form");
+      
+      var form = $(this);
+      console.log("Отправка формы обновления:", form.serialize());
+      
+      $.ajax({
+          type: 'POST',
+          url: form.attr('action'),
+          data: form.serialize(),
+          headers: {'X-Requested-With': 'XMLHttpRequest'},
+          success: function(response) {
+              console.log("Успешный ответ сервера:", response);
+              if (response.success) {
+                  var row = form.closest('.cart-item-row');
+                  var input = row.find('.quantity-input');
+                  input.data('updating', true).val(response.quantity).data('updating', false);  // Обновляем без вызова change
+                  row.find('.item-total-price').text(response.item_total_price + ' ₽');
+                  $('.cart-total-price').text(response.cart_total_price + ' ₽');
+              } else {
+                  alert('Ошибка: ' + response.error);
+              }
+          },
+          error: function(xhr, status, error) {
+              console.log("Ошибка AJAX:", xhr.responseText, status, error);
+              alert('Произошла ошибка при обновлении.');
+          }
+      });
+  });
+
+  // AJAX для удаления
+  $('.remove-form').on('submit', function(e) {
+      e.preventDefault();
+      console.log("Перехват submit для remove-form");
+      
+      var form = $(this);
+      console.log("Отправка формы удаления:", form.serialize());
+      
+      $.ajax({
+          type: 'POST',
+          url: form.attr('action'),
+          data: form.serialize(),
+          headers: {'X-Requested-With': 'XMLHttpRequest'},
+          success: function(response) {
+              console.log("Успешный ответ сервера:", response);
+              if (response.success) {
+                  var row = form.closest('.cart-item-row');
+                  row.remove();
+                  $('.cart-total-price').text(response.cart_total_price + ' ₽');
+                  if (response.is_empty) {
+                      $('tbody').prepend('<tr><td colspan="8"><div class="alert alert-warning" role="alert">Ваша корзина пуста. Пожалуйста, добавьте товары в корзину перед оформлением заказа.</div></td></tr>');
+                      $('.total').hide();
+                  }
+              }
+          },
+          error: function(xhr, status, error) {
+              console.log("Ошибка AJAX:", xhr.responseText, status, error);
+              alert('Произошла ошибка при удалении.');
+          }
+      });
+  });
+});
+
+
+
+
+
+
+
 // $(document).ready(function() {
-//   $('#togglePasswords').on('click', function() {
-//       // Получаем только поля пароля на странице
-//       const passwordInputs = $('input[type="password"]');
-      
-//       // Проверяем, есть ли поля пароля на странице
-//       if (passwordInputs.length === 0) {
-//           console.warn('Нет полей пароля на странице.');
-//           return; // Прерываем выполнение, если нет полей пароля
+//   {% for item in cart %}
+//     // Обновление цены при изменении размера для каждого товара
+//     $('#size-select_product-{{ item.product.id }}').on('change', function() {
+//       var selectedOption = $(this).find('option:selected');
+//       var price = selectedOption.data('price');
+//       if (price) {
+//         $('#price-display-{{ item.product.id }}').text(price + ' ₽');
 //       }
+//     });
 
-//       // Переключаем тип только для полей пароля
-//       let isPasswordVisible = passwordInputs.first().attr('type') === 'password';
-      
-//       passwordInputs.each(function() {
-//           $(this).attr('type', isPasswordVisible ? 'text' : 'password');
+//     // AJAX для добавления товара в корзину для каждого товара
+//     $('#add-to-cart-form-{{ item.product.id }}').on('submit', function(e) {
+//       e.preventDefault();
+//       console.log("Перехват submit для add-to-cart-form-{{ item.product.id }}");
+
+//       var form = $(this);
+//       console.log("Отправка формы добавления:", form.serialize());
+
+//       $.ajax({
+//         type: 'POST',
+//         url: form.attr('action'),
+//         data: form.serialize(),
+//         headers: {'X-Requested-With': 'XMLHttpRequest'},
+//         success: function(response) {
+//           console.log("Успешный ответ сервера:", response);
+//           if (response.success) {
+//             // Обновите количество в корзине, если нужно
+//             location.reload();  // Или обновите конкретные элементы без перезагрузки
+//           } else {
+//             console.log('Ошибка:', response.error);
+//           }
+//         },
+//         error: function(xhr, status, error) {
+//           console.log("Ошибка AJAX:", xhr.responseText, status, error);
+//         }
 //       });
-      
-//       // Меняем текст кнопки
-//       $(this).text(isPasswordVisible ? 'Показать пароли' : 'Скрыть пароли');
-//   });
+//     });
+//   {% endfor %}
 // });
+
+
+
+

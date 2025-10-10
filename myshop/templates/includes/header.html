@@ -66,13 +66,13 @@
           /></a>
         </div>
         <div class="col-md-6 header-search h-100">
-          <form action="">
+          <form action="{% url 'home:search' %}" method="get">
             <div class="input-group">
               <input
                 type="text"
                 class="form-control"
-                name="Search"
-                placeholder=""
+                name="search"
+                placeholder="Поиск..."
                 aria-label="Searching..."
                 aria-describedby="button-Search"
               />
@@ -80,6 +80,7 @@
                 class="btn btn-outline-dark"
                 type="submit"
                 id="button-Search"
+                value="search"
               >
                 <i class="bi bi-search"></i>
               </button>

@@ -83,8 +83,10 @@ class Product(models.Model):
             models.Index(fields=['id', 'slug']),
             models.Index(fields=['title']),
             models.Index(fields=['-created']),
-            models.Index(fields=['category']),  # Индекс для поля category
+            models.Index(fields=['category']),
         ]
+        verbose_name = 'Товар'
+        verbose_name_plural = 'Товары'
     
     
     def __str__(self):

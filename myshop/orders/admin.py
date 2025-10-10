@@ -8,6 +8,8 @@ from django.utils import timezone
 from datetime import timedelta
 from home.models import ProductPrice,Size,Product
 from django import forms
+from django.db.models import Subquery, OuterRef, F
+from django.contrib.admin.widgets import ForeignKeyRawIdWidget
 
 
 def order_pdf(obj):
@@ -17,88 +19,180 @@ order_pdf.short_description = 'Чеки'
 
 
 
+# class OrderItemForm(forms.ModelForm):
+#     class Meta:
+#         model = OrderItem
+#         fields = ['product', 'size']
+
+#     def __init__(self, *args, **kwargs):
+#         super().__init__(*args, **kwargs)
+
+#         # Устанавливаем начальный queryset для поля size
+#         self.fields['size'].queryset = Size.objects.all()
+#         self.fields['product'].queryset = Product.objects.all()
+
+#         # Если есть данные о продукте, фильтруем размеры
+#         product_id = self.data.get('product') or (self.instance.product.id if self.instance.pk else None)
+#         if product_id:
+#             try:
+#                 # Преобразуем product_id в целое число
+#                 product_id = int(product_id)
+#                 # Фильтруем размеры по выбранному продукту
+#                 self.fields['size'].queryset = Size.objects.filter(product_size__product__id=product_id)
+#             except (ValueError, TypeError):
+#                 # Если возникла ошибка, оставляем все размеры
+#                 self.fields['size'].queryset = Size.objects.all()
+
+#     def clean(self):
+#         cleaned_data = super().clean()
+#         product = cleaned_data.get('product')
+
+#         # Если продукт выбран, фильтруем размеры по этому продукту
+#         if product:
+#             self.fields['size'].queryset = Size.objects.filter(product_size__product=product)
+
+#         return cleaned_data
+
+
+# class OrderItemInline(admin.TabularInline):
+#     model = OrderItem
+#     show_change_link = True
+#     form = OrderItemForm
+#     raw_id_fields = ['product']
+#     extra = 1  # Количество пустых форм для добавления новых элементов
+#     fields = ['product_image','product','product_article_number','size','product_mesto','product_zacup_price','quantity', 'price','get_cost']
+#     readonly_fields = ['product_image','product_article_number','product_mesto','product_zacup_price','get_cost']
+
+
+#     def get_queryset(self, request):
+#         queryset = super().get_queryset(request).select_related('product','size').prefetch_related(
+#             'product__images',
+#             'product__product_prices',
+#         )
+
+#         return queryset
+    
+
+
+#     def product_article_number(self, obj):
+#         return obj.product.article_number if obj.product and obj.product.article_number else 'Артикул не указан'
+#     product_article_number.short_description = 'Артикул'
+
+#     def product_mesto(self, obj):
+#         return obj.product.mesto if obj.product and obj.product.mesto else 'Место не указано'
+#     product_mesto.short_description = 'Место'
+
+#     def product_image(self, obj):
+#         # Получаем все изображения заранее
+#         images = obj.product.images.all()  # Используем предзагруженные изображения
+#         if images:
+#             first_image = images[0]
+#             return mark_safe(f"<img src='{first_image.image.url}' width='50'>")
+#         else:
+#             return 'Нет фото'
+#     product_image.short_description = 'Фото товара'
+
+
+class CachedForeignKeyRawIdWidget(ForeignKeyRawIdWidget):
+    _label_cache = {}
+
+    def label_and_url_for_value(self, value):
+        if value in self._label_cache:
+            return self._label_cache[value]
+        # Fallback to original if not cached (though we preload)
+        obj = self.rel.model._default_manager.using(self.db).get(**{self.rel.get_related_field().name: value})
+        label = self.label_for_value(obj)
+        # Construct the URL manually since url_for_result may not be available
+        url = f"/admin/{obj._meta.app_label}/{obj._meta.model_name}/{obj.pk}/change/"
+        self._label_cache[value] = (label, url)
+        return label, url
+
 class OrderItemForm(forms.ModelForm):
     class Meta:
         model = OrderItem
-        fields = ['product', 'size']
+        fields = '__all__'
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-        # Устанавливаем начальный queryset для поля size
-        self.fields['size'].queryset = Size.objects.all()
-        self.fields['product'].queryset = Product.objects.all()
-
-        # Если есть данные о продукте, фильтруем размеры
-        product_id = self.data.get('product') or (self.instance.product.id if self.instance.pk else None)
-        if product_id:
-            try:
-                # Преобразуем product_id в целое число
-                product_id = int(product_id)
-                # Фильтруем размеры по выбранному продукту
-                self.fields['size'].queryset = Size.objects.filter(product_size__product__id=product_id)
-            except (ValueError, TypeError):
-                # Если возникла ошибка, оставляем все размеры
-                self.fields['size'].queryset = Size.objects.all()
-
-    def clean(self):
-        cleaned_data = super().clean()
-        product = cleaned_data.get('product')
-
-        # Если продукт выбран, фильтруем размеры по этому продукту
-        if product:
-            self.fields['size'].queryset = Size.objects.filter(product_size__product=product)
-
-        return cleaned_data
-
+        if self.instance and self.instance.product_id:
+            sizes = list(set(pp.size for pp in self.instance.product.product_prices.all()))
+            self.fields['size'].choices = [(size.id, str(size)) for size in sizes]
+        else:
+            self.fields['size'].choices = []
 
 class OrderItemInline(admin.TabularInline):
     model = OrderItem
     show_change_link = True
     form = OrderItemForm
     raw_id_fields = ['product']
-    extra = 1  # Количество пустых форм для добавления новых элементов
-    fields = ['product_image','product','product_article_number','size','product_mesto','product_zacup_price','quantity', 'price','get_cost']
-    readonly_fields = ['product_image','product_article_number','product_mesto','product_zacup_price','get_cost']
+    extra = 1
+    fields = ['product_image', 'product', 'product_article_number', 'size', 'product_mesto', 'product_zacup_price', 'quantity', 'price', 'get_cost']
+    readonly_fields = ['product_image', 'product_article_number', 'product_mesto', 'product_zacup_price', 'get_cost']
 
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == 'product':
+            kwargs['widget'] = CachedForeignKeyRawIdWidget(db_field.remote_field, self.admin_site)
+            return db_field.formfield(**kwargs)
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
 
     def get_queryset(self, request):
-        queryset = super().get_queryset(request).select_related('product','size').prefetch_related(
-            'product__images',
-            'product__product_prices',
+        queryset = super().get_queryset(request)
+        queryset = queryset.select_related('product', 'size')
+        queryset = queryset.prefetch_related('product__product_prices__size', 'product__images')
+        queryset = queryset.annotate(
+            zacup_price=Subquery(
+                ProductPrice.objects.filter(
+                    product=OuterRef('product'),
+                    size=OuterRef('size')
+                ).values('zacup_price')[:1]
+            ),
+            article_number=F('product__article_number'),
+            mesto=F('product__mesto'),
+            total_cost=F('quantity') * F('price'),
         )
         
-        # # Для отладки: выводим информацию о загруженных элементах
-        # for item in queryset:
-        #     # Получаем все размеры и цены, связанные с продуктом
-        #     all_sizes = item.product.product_prices.all()  # Получаем все ProductPrice для текущего продукта
-        #     sizes_list = ', '.join([f"{i.size.title}" for i in all_sizes])  # Формируем список размеров и цен
-
-        #     print(f"Заказ: {item.order}, Продукт: {item.product.title}, "
-        #           f"Артикул: {item.product.article_number}, Выбранный размер: {item.size.title if item.size else 'Нет размера'}, "
-        #           f"Все размеры {sizes_list}")
+        product_ids = set(queryset.values_list('product_id', flat=True))
+        if product_ids:
+            # Предварительная загрузка продуктов в кэш DB
+            products = list(Product.objects.filter(id__in=product_ids))
+            # Заполнение кэша виджета метками и URL
+            for p in products:
+                url = f"/admin/{p._meta.app_label}/{p._meta.model_name}/{p.pk}/change/"
+                CachedForeignKeyRawIdWidget._label_cache[p.pk] = (str(p), url)
+        
+        size_ids = set(queryset.values_list('size_id', flat=True))
+        if size_ids:
+            list(Size.objects.filter(id__in=size_ids))  # Загружаем sizes в кэш
         
         return queryset
 
-
     def product_article_number(self, obj):
-        return obj.product.article_number if obj.product and obj.product.article_number else 'Артикул не указан'
+        return obj.article_number if obj.article_number else 'Артикул не указан'
     product_article_number.short_description = 'Артикул'
 
     def product_mesto(self, obj):
-        return obj.product.mesto if obj.product and obj.product.mesto else 'Место не указано'
+        return obj.mesto if obj.mesto else 'Место не указано'
     product_mesto.short_description = 'Место'
 
     def product_image(self, obj):
-        # Получаем все изображения заранее
-        images = obj.product.images.all()  # Используем предзагруженные изображения
+        images = obj.product.images.all()
         if images:
             first_image = images[0]
             return mark_safe(f"<img src='{first_image.image.url}' width='50'>")
         else:
             return 'Нет фото'
     product_image.short_description = 'Фото товара'
+
+    def product_zacup_price(self, obj):
+        return obj.zacup_price if obj.zacup_price is not None else 'Нет цены'
+    product_zacup_price.short_description = 'Закупочная цена'
+
+    def get_cost(self, obj):
+        return obj.total_cost
+    get_cost.short_description = 'Общая стоимость'
  
+
+
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
@@ -141,11 +235,6 @@ class OrderAdmin(admin.ModelAdmin):
 
         return queryset
 
-        # return queryset.select_related('delivery_method', 'discount').prefetch_related(
-        #     'items__product__product_prices', 
-        #     'items__size__product_size',
-        # )
-    
 
     def get_delivery_price(self, obj):
         # Проверяем, установлен ли способ доставки

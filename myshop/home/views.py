@@ -2,7 +2,7 @@ from django.shortcuts import render,get_object_or_404
 from .models import Category,Product,News,SizeTable,ImageSliderHome,DeliveryInfo,Review,ReviewImage,ProductPrice
 from cart.forms import CartAddProductForm
 from .forms import ReviewForm
-from django.db.models import Case, When,Min,Sum
+from django.db.models import Case, When,Min,Sum,Q
 from orders.models import OrderItem
 from django.views.generic import ListView,DetailView
 from django.contrib.auth.mixins import LoginRequiredMixin 
@@ -13,6 +13,7 @@ from .forms import ContactForm
 from django.contrib import messages
 from django.core.mail import send_mail
 from django.conf import settings
+from django.contrib.postgres.search import SearchVector, SearchQuery
 
 
 
@@ -72,63 +73,6 @@ class HomeView(ListView):
         ]
 
         return context
-
-
-# class ProductListView(ListView):
-#     model = Product
-#     template_name = 'home/category_page.html'
-#     context_object_name = 'products'
-#     paginate_by = 30  # Значение по умолчанию для количества продуктов на странице
-
-#     def get_queryset(self):
-#         # Получаем категорию по слагу
-#         slug = self.kwargs.get('slug')
-#         self.category = get_object_or_404(Category, slug=slug)
-
-#         # Фильтруем продукты по выбранной категории
-#         products = Product.objects.filter(category=self.category, is_hidden=False).prefetch_related(
-#             'product_prices__size',  # Предварительная загрузка цен и их размеров
-#             'images'  # Предварительная загрузка изображений
-#         ).select_related('category')  # Предварительная загрузка категории продукта
-
-#         # Обработка сортировки
-#         sort_by = self.request.GET.get('sort', 'created')  # По умолчанию сортируем по времени добавления
-#         if sort_by == 'min_price':
-#             products = products.annotate(min_price=Min('product_prices__price')).order_by('min_price')
-#         elif sort_by == '-min_price':
-#             products = products.annotate(min_price=Min('product_prices__price')).order_by('-min_price')
-#         else:
-#             products = products.annotate(min_price=Min('product_prices__price')).order_by('-created')
-
-#         return products
-
-#     def get_context_data(self, **kwargs):
-#         context = super().get_context_data(**kwargs)
-#         context['category'] = self.category  # Используем ранее полученную категорию
-#         context['get_root_cat'] = context['category'].get_root()  # Получаем корневую категорию
-#         context['get_children_cat'] = context['category'].get_children()  # Получаем дочерние категории
-#         context['get_descendants_cat'] = context['get_root_cat'].get_children()  # Получаем все дочерние категории корня
-
-#         # Получаем хлебные крошки
-#         context['breadcrumbs'] = context['category'].get_breadcrumbs()
-
-
-#         # Создаем формы для добавления продуктов в корзину
-#         context['cart_product_form'] = [
-#             (product, CartAddProductForm(product=product)) for product in context['products']
-#         ]
-
-#         # Устанавливаем количество продуктов на странице
-#         per_page = self.request.GET.get('per_page', self.paginate_by)  # Получаем значение per_page из GET-запроса
-#         context['per_page'] = per_page
-
-#         return context
-
-#     def get_paginate_by(self, request):
-#         per_page = self.request.GET.get('per_page', self.paginate_by)  # Получаем значение per_page из GET-запроса
-#         if isinstance(per_page, str) and per_page.isdigit():
-#             return int(per_page)
-#         return self.paginate_by  # Вернуть значение по умолчанию
 
 
 
@@ -213,10 +157,18 @@ class ProductDetailView(DetailView):
         # Используем select_related для загрузки связанной категории
         return Product.objects.select_related('category').prefetch_related('product_prices', 'images')
 
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        product = self.object  # Получаем текущий продукт
-        context['cart_product_form'] = CartAddProductForm(product=product)  # Форма добавления в корзину
+        product = self.object
+        
+        # Получить размеры и цены для продукта (исправлено: size__title вместо size__name)
+        sizes_prices = list(
+            product.product_prices.select_related('size')
+            .values_list('size__title', 'price')  # size__title, так как поле в Size называется title
+        )  # Список [(size_title, price), ...]
+        
+        context['cart_product_form'] = CartAddProductForm(sizes=sizes_prices)
         
         # Получаем хлебные крошки из категории и преобразуем в список
         breadcrumbs = list(product.category.get_breadcrumbs())  # Преобразуем TreeQuerySet в список
@@ -386,3 +338,201 @@ class ReviewsView(LoginRequiredMixin, FormView, ListView):
 
     def form_invalid(self, form):
         return super().form_invalid(form)
+    
+
+
+
+# class Search(ListView):
+#     model = Product
+#     template_name = 'home/search.html'
+#     context_object_name = 'products'  # Изменил на 'products', как в ProductListView
+#     paginate_by = 30  # Значение по умолчанию
+
+#     def get_queryset(self):
+#         # Фильтр по поиску (вместо категории)
+#         search_query = self.request.GET.get('search', '').strip()
+#         if search_query:
+#             # Полнотекстовый поиск с использованием SearchVector и SearchQuery
+#             products = Product.objects.annotate(
+#                 search=SearchVector('title', 'category__name', 'description', 'article_number'),  # Исправлено: category__title -> category__name
+#             ).filter(search=SearchQuery(search_query), is_hidden=False).prefetch_related(
+#                 'product_prices__size',  # Предварительная загрузка цен и размеров
+#                 'images'  # Предварительная загрузка изображений
+#             ).select_related('category')  # Предварительная загрузка категории
+#         else:
+#             # Если поиск не задан, не возвращаем товары (чтобы показать главную категорию)
+#             products = Product.objects.none()  # Пустой QuerySet
+
+#         # Обработка сортировки (только если есть товары, т.е. поиск задан)
+#         if search_query:
+#             sort_by = self.request.GET.get('sort', 'created')
+#             if sort_by == 'min_price':
+#                 products = products.annotate(min_price=Min('product_prices__price')).order_by('min_price')
+#             elif sort_by == '-min_price':
+#                 products = products.annotate(min_price=Min('product_prices__price')).order_by('-min_price')
+#             else:
+#                 products = products.annotate(min_price=Min('product_prices__price')).order_by('-created')
+
+#         return products
+
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+        
+#         search_query = self.request.GET.get('search', '').strip()
+#         products = context['products']  # Это Page.object_list (список объектов, не QuerySet)
+        
+#         if search_query:
+#             context['category'] = f'Результаты поиска по "{search_query}"'
+#             context['get_children_cat'] = []  # Для товаров
+
+#             # Хлебные крошки для поиска
+#             context['breadcrumbs'] = [
+#                 {'name': f'Результаты поиска по "{search_query}"', 'url': None},
+#             ]
+            
+#             # Проверка, если ничего не найдено
+#             if not products:  # Если список товаров пустой
+#                 context['no_results'] = True
+#                 context['no_results_message'] = f'К сожалению, по Вашему запросу "{search_query}" ничего не найдено.'
+#             else:
+#                 context['no_results'] = False
+#         else:
+#             context['category'] = 'Каталог'  # Заголовок для главной категории
+#             context['get_children_cat'] = Category.objects.filter(parent=None)
+#             # Хлебные крошки для главной
+#             context['breadcrumbs'] = [
+#                 {'name': 'Каталог', 'url': '/'},
+#             ]  # Корневые категории
+        
+#         # Категории для боковой панели (подкатегории первого уровня, дети главных категорий)
+#         context['get_descendants_cat'] = Category.objects.filter(parent__isnull=False, parent__parent=None)
+#         context['get_root_cat'] = None  # Не используется
+        
+#         # Получаем все размеры и цены для всех продуктов (только если есть товары)
+#         if products:
+#             product_ids = [product.id for product in products]
+#             sizes = ProductPrice.objects.filter(product_id__in=product_ids).select_related('size')
+            
+#             # Создаем словарь для быстрого доступа к размерам и ценам
+#             size_price_map = {}
+#             for size in sizes:
+#                 if size.product_id not in size_price_map:
+#                     size_price_map[size.product_id] = []
+#                 size_price_map[size.product_id].append((size.size.title, size.price))
+            
+#             # Создаем формы
+#             context['cart_product_form'] = [
+#                 (product, CartAddProductForm(product=product, sizes=size_price_map.get(product.id, []))) 
+#                 for product in products
+#             ]
+#         else:
+#             context['cart_product_form'] = []
+        
+#         # per_page (только если есть товары)
+#         if products:
+#             context['per_page'] = self.get_paginate_by(context['products'])
+#         else:
+#             context['per_page'] = self.paginate_by
+        
+#         return context
+
+#     def get_paginate_by(self, queryset):
+#         per_page = self.request.GET.get('per_page', self.paginate_by)
+#         if isinstance(per_page, str) and per_page.isdigit():
+#             return int(per_page)
+#         return self.paginate_by
+
+
+
+class Search(ListView):
+    model = Product
+    template_name = 'home/search.html'
+    context_object_name = 'products'
+    paginate_by = 30
+
+    def get_queryset(self):
+        search_query = self.request.GET.get('search', '').strip()
+        if search_query:
+            # Полнотекстовый поиск: используем annotate для search_vector, затем filter (избегаем @@, чтобы избежать SyntaxError в некоторых средах)
+            products = Product.objects.annotate(
+                search=SearchVector('title', 'category__name', 'description', 'article_number')
+            ).filter(
+                search=SearchQuery(search_query),
+                is_hidden=False
+            ).annotate(
+                min_price=Min('product_prices__price')  # Аннотация min_price всегда, если есть поиск (для сортировки)
+            ).prefetch_related(
+                'product_prices__size',  # Загружаем цены и размеры заранее (без дополнительных запросов)
+                'images'  # Загружаем изображения
+            ).select_related('category')  # Загружаем категорию
+            
+            # Сортировка (только если есть товары)
+            sort_by = self.request.GET.get('sort', 'created')
+            if sort_by == 'min_price':
+                products = products.order_by('min_price')
+            elif sort_by == '-min_price':
+                products = products.order_by('-min_price')
+            else:
+                products = products.order_by('-created')  # По умолчанию -created
+        else:
+            # Если поиск не задан, пустой QuerySet (главная страница)
+            products = Product.objects.none()
+        
+        return products
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        search_query = self.request.GET.get('search', '').strip()
+        products = context['products']  # Page.object_list (список объектов)
+        
+        if search_query:
+            context['category'] = f'Результаты поиска по "{search_query}"'
+            context['get_children_cat'] = []
+            context['breadcrumbs'] = [
+                {'name': f'Результаты поиска по "{search_query}"', 'url': None},
+            ]
+            
+            if not products:
+                context['no_results'] = True
+                context['no_results_message'] = f'К сожалению, по Вашему запросу "{search_query}" ничего не найдено.'
+            else:
+                context['no_results'] = False
+        else:
+            context['category'] = 'Каталог'
+            context['get_children_cat'] = Category.objects.filter(parent=None)
+            context['breadcrumbs'] = [
+                {'name': 'Каталог', 'url': '/'},
+            ]
+        
+        # Категории для боковой панели
+        context['get_descendants_cat'] = Category.objects.filter(parent__isnull=False, parent__parent=None)
+        context['get_root_cat'] = None
+        
+        # Строим size_price_map из уже загруженных данных (prefetch_related), без дополнительных запросов
+        if products:
+            size_price_map = {
+                product.id: [(pp.size.title, pp.price) for pp in product.product_prices.all()]
+                for product in products
+            }
+            
+            context['cart_product_form'] = [
+                (product, CartAddProductForm(product=product, sizes=size_price_map.get(product.id, [])))
+                for product in products
+            ]
+        else:
+            context['cart_product_form'] = []
+        
+        # per_page
+        if products:
+            context['per_page'] = self.get_paginate_by(context['products'])
+        else:
+            context['per_page'] = self.paginate_by
+        
+        return context
+
+    def get_paginate_by(self, queryset):
+        per_page = self.request.GET.get('per_page', self.paginate_by)
+        if isinstance(per_page, str) and per_page.isdigit():
+            return int(per_page)
+        return self.paginate_by

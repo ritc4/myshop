@@ -20,6 +20,10 @@ from django.conf.urls.static import static
 from django.conf import settings
 from debug_toolbar.toolbar import debug_toolbar_urls
 
+
+
+
+
 urlpatterns = [
     path("ckeditor5/", include('django_ckeditor_5.urls')),
     path('admin/', admin.site.urls),
@@ -27,7 +31,7 @@ urlpatterns = [
     path('orders/', include('orders.urls')),
     path('users/', include('users.urls')),
     path('', include('home.urls')),
-    ]
+        ]
 
 
 if settings.DEBUG:

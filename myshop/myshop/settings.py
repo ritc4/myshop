@@ -31,12 +31,17 @@ ALLOWED_HOSTS = []
 
 # Application definition
 
+SITE_ID = 1
+# Определение приложения
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    'django.contrib.sites',
+    'django.contrib.sitemaps',
     'django.contrib.staticfiles',
     "debug_toolbar",
     'mptt',
@@ -46,6 +51,7 @@ INSTALLED_APPS = [
     'orders.apps.OrdersConfig',
     'visit_user.apps.VisitUserConfig',
     'django_ckeditor_5',
+    'django.contrib.postgres',
     
 ]
 
@@ -93,8 +99,11 @@ WSGI_APPLICATION = 'myshop.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+    'ENGINE': 'django.db.backends.postgresql',
+    'NAME': config('DB_NAME'),
+    'USER': config('DB_USER'),
+    'PASSWORD': config('DB_PASSWORD'),
+    'HOST': config('DB_HOST'),
     }
 }
 

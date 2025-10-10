@@ -6,7 +6,7 @@ class Visit(models.Model):
     ip_address = models.GenericIPAddressField()
     referrer = models.URLField(null=True, blank=True)
     visit_time = models.DateTimeField(auto_now_add=True)
-    device_type = models.CharField(max_length=50, null=True, blank=True)
+    device_type = models.CharField(max_length=255, null=True, blank=True)
     views_count = models.PositiveIntegerField(default=1)  # Счетчик просмотров
     last_visit = models.DateTimeField(auto_now=True)  # Дата последнего посещения
 

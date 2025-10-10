@@ -1,17 +1,16 @@
-{% extends "base.html" %} 
+{% extends "base.html" %}
 {% load static %}
 {% block title %}Корзина{% endblock %}
 
 {% block content %}
- 
- <div class="container-fluid">
+<div class="container-fluid">
   <div class="row">
     <div class="col-lg-12 mb-3">
       <div class="cart-content p-3 bg-white">
-          <h1 class="section-title"><span>Корзина</span></h1>
-          <div class="table-responsive">
-            <table class="table align-middle table-hover">
-              <thead class="table-dark">
+        <h1 class="section-title"><span>Корзина</span></h1>
+        <div class="table-responsive">
+          <table class="table align-middle table-hover">
+            <thead class="table-dark">
               <tr>
                 <th>Фото</th>
                 <th>Продукт</th>
@@ -21,71 +20,72 @@
                 <th>Количество</th>
                 <th>Цена общая</th>
                 <th><i class="bi bi-trash"></i></th>
-      </tr>
-    </thead>
-     <tbody>
-      {% if is_cart_empty %}
-            <div class="alert alert-warning" role="alert">
-                Ваша корзина пуста. Пожалуйста, добавьте товары в корзину перед оформлением заказа.
-            </div>
-      {% else %}
-      {% for item in cart %} 
-      <tr>
-        <td>
-          <a href="{{ item.url }}">
-            {% if item.image %}
-                  <img src="{{ item.image }}">
-            {% else %}
-                <img src="{% static "img/no_image.png" %}">
-            {% endif %}
-          </a>
-        </td>
-        <td class="product-img-td"><a href="{{ item.url }}">{{ item.title }}</a></td>
-        <td>{{ item.article_number }}</td>
-        <td>
-          {{item.size}}
-      </td> 
-        <td class="num">{{ item.price }} ₽</td> 
-        <td>
-            <form action="{% url 'cart:cart_add' item.product_id %}" method="post" class="update-form">
-              {% csrf_token %}
-                <input type="number" name="quantity" value="{{ item.update_quantity_form.quantity.value}}" min="1" class="form-control cart-qty quantity-input"> 
-                {{ item.update_quantity_form.override }}
-                <input type="hidden" name="size" value="{{ item.size }}">  
-            </form> 
-        </td>
-        <td class="num">{{ item.total_price }} ₽</td>
-        <td><form action="{% url 'cart:cart_remove' item.product_id %}" 
-            method="post">
-            <input type="hidden" name="size" value="{{ item.size }}">
-            <button class="btn btn-danger" type="submit">
-              <i class="bi bi-x-square"></i>
-            </button>
-                {% csrf_token %}
-            </form> 
-        </td>
-        
-        </tr>
-        {% endfor %}
-        {% endif %} 
-        <tr class="total fw-bold h5">
-          <td>Итого</td>
-          <td colspan="6"></td>
-          <td class="num">{{ cart.get_total_price }} ₽</td>
-        </tr>
-        
-      </tbody>
-    </table>
-  </div>
-    <div class="col-lg-12 mt-3">
-    <div class="link-checkout d-flex justify-content-between">
-      <div class="d-grid me-2">
-        <a href="{{ get_root_catalog }}" class="btn btn-outline-dark">Продолжить покупки</a>
+              </tr>
+            </thead>
+            <tbody>
+              {% if is_cart_empty %}
+                <div class="alert alert-warning" role="alert">
+                  Ваша корзина пуста. Пожалуйста, добавьте товары в корзину перед оформлением заказа.
+                </div>
+              {% else %}
+                {% for item in cart %}
+                  <tr class="cart-item-row">
+                    <td>
+                      <a href="{{ item.url }}">
+                        {% if item.image %}
+                          <img src="{{ item.image }}">
+                        {% else %}
+                          <img src="{% static "img/no_image.png" %}">
+                        {% endif %}
+                      </a>
+                    </td>
+                    <td class="product-img-td"><a href="{{ item.url }}">{{ item.title }}</a></td>
+                    <td>{{ item.article_number }}</td>
+                    <td>{{ item.size }}</td>
+                    <td class="num">{{ item.price }} ₽</td>
+                    <td>
+                      <form action="{% url 'cart:cart_add' item.product_id %}" method="post" class="update-form">
+                        {% csrf_token %}
+                        <input type="number" name="quantity" value="{{ item.update_quantity_form.quantity.value }}" min="1" class="form-control cart-qty quantity-input">
+                        {{ item.update_quantity_form.override }}
+                        <input type="hidden" name="size" value="{{ item.size }}">
+                      </form>
+                    </td>
+                    <td class="num item-total-price">{{ item.total_price }} ₽</td>
+                    <td>
+                      <form action="{% url 'cart:cart_remove' item.product_id %}" method="post" class="remove-form">
+                        <input type="hidden" name="size" value="{{ item.size }}">
+                        <button class="btn btn-danger" type="submit">
+                          <i class="bi bi-x-square"></i>
+                        </button>
+                        {% csrf_token %}
+                      </form>
+                    </td>
+                  </tr>
+                {% endfor %}
+              {% endif %}
+              <tr class="total fw-bold h5">
+                <td>Итого</td>
+                <td colspan="6"></td>
+                <td class="num cart-total-price">{{ cart.get_total_price }} ₽</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
-      <div class="d-grid ms-2">
-        <a href="{% url 'orders:order_create' %}"" class="btn btn-outline-dark">Оформить</a>
+    </div>
+    <div class="col-lg-12 mt-3">
+      <div class="link-checkout d-flex justify-content-between">
+        <div class="d-grid me-2">
+          <a href="{{ get_root_catalog }}" class="btn btn-outline-dark">Продолжить покупки</a>
+        </div>
+        <div class="d-grid ms-2">
+          <a href="{% url 'orders:order_create' %}" class="btn btn-outline-dark">Оформить</a>
+        </div>
       </div>
     </div>
   </div>
+</div>
+
+
 {% endblock %}
-    
