@@ -19,6 +19,8 @@ from django.urls import path,include
 from django.conf.urls.static import static
 from django.conf import settings
 from debug_toolbar.toolbar import debug_toolbar_urls
+from django.contrib.sitemaps.views import sitemap
+from sitemaps import sitemaps  # Импорт из корневого sitemaps.py
 
 
 
@@ -31,6 +33,7 @@ urlpatterns = [
     path('orders/', include('orders.urls')),
     path('users/', include('users.urls')),
     path('', include('home.urls')),
+    path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='sitemap'),
         ]
 
 
