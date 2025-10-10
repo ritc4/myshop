@@ -454,6 +454,75 @@ $(document).ready(function() {
 
 
 
+// Обработчик добавления товара в корзину через модальное окно через Ajax в category_page.html///////////////////////////////////////
+$(document).ready(function() {
+    // Динамическое обновление цены при выборе размера (опционально, для лучшего UX)
+    $('select[name="size"]').on('change', function() {
+        var selectedOption = $(this).find('option:selected');
+        var price = selectedOption.data('price');  // Берем цену из data-price
+        var productId = $(this).attr('id').split('_')[3];  // Извлекаем id товара из id селекта (size-select_product_65)
+        $('#price-display-' + productId).text(price + ' ₽');  // Обновляем отображение цены
+    });
+
+    // Обработчик для форм добавления в корзину (по action, содержащему /cart/add/)
+    $('form[action*="/cart/add/"]').on('submit', function(e) {
+        e.preventDefault();  // Предотвращаем стандартную отправку формы
+
+        var form = $(this);
+        var formData = new FormData(form[0]);  // Собираем данные формы
+        var productId = form.attr('action').split('/')[3];  // Извлекаем id товара из action (например, 76)
+        var modalId = 'product_Link_add_Modal_' + productId;  // Формируем id модала
+
+        // Отправляем AJAX-запрос
+        $.ajax({
+            url: form.attr('action'),  // URL из action формы
+            type: 'POST',
+            data: formData,
+            processData: false,  // Не обрабатывать данные
+            contentType: false,   // Не устанавливать content-type
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'  // Заголовок для Django
+            },
+            success: function(response) {
+                if (response.success) {
+                    // Успешное добавление: показываем toast
+                    $('#toast-message').text('Товар добавлен в корзину!');
+                    $('#cart-toast').toast('show');
+
+                    // Обновляем общую цену корзины, если есть элемент (например, в header)
+                    // $('#cart-total-price').text(response.cart_total_price + ' ₽');
+
+                    // Обновляем счётчик товаров в корзине, если есть
+                    // $('#cart-item-count').text(parseInt($('#cart-item-count').text()) + response.quantity);
+
+                    // Убираем фокус с кнопки перед закрытием модала (исправляет ошибку aria-hidden)
+                    $('#' + modalId + ' button[type="submit"]').blur();
+
+                    // Закрываем модал
+                    $('#' + modalId).modal('hide');
+
+                } else {
+                    // Ошибка: показываем toast с ошибкой
+                    $('#toast-message').text('Ошибка: ' + response.error);
+                    $('#cart-toast').toast('show');
+                }
+            },
+            error: function(xhr, status, error) {
+                // Обработка ошибок сервера: показываем toast
+                $('#toast-message').text('Произошла ошибка при добавлении товара.');
+                $('#cart-toast').toast('show');
+                console.log(xhr.responseText);  // Для отладки
+            }
+        });
+    });
+});
+
+
+
+
+
+
+
 
 
 
