@@ -112,14 +112,18 @@ def order_create(request):
             # Вызов функции обработки события
             handle_order_created(order, request)
 
-            return redirect(request, 'orders/order/checkout_finish_page.html')
+            return render(request, 'orders/order/checkout_finish_page.html')
     else:
         form = OrderCreateForm(user=request.user)
+    
+
+    # Добавлено: передача title в контекст
+    title = breadcrumbs[0]['name'] if breadcrumbs else 'Оформление заказа'
 
     return render(
         request,
         'orders/order/checkout_page.html',
-        {'cart': cart, 'form': form, 'categories': categories, 'politica': politica, 'uslovia': uslovia, 'breadcrumbs': breadcrumbs}
+        {'cart': cart, 'form': form, 'categories': categories, 'politica': politica, 'uslovia': uslovia, 'breadcrumbs': breadcrumbs,'title': title}
     )
 
 

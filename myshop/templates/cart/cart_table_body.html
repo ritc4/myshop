@@ -1,0 +1,51 @@
+{% load static %}
+{% if is_cart_empty %}
+<tr>
+  <td colspan="8">
+    <div class="alert alert-warning" role="alert" id="empty-cart-alert">
+      Ваша корзина пуста. Пожалуйста, добавьте товары в корзину перед оформлением заказа.
+    </div>
+  </td>
+</tr>
+{% else %}
+  {% for item in cart %}
+  <tr id="cart-item-{{ item.product_id }}-{{ item.size|slugify }}" class="cart-item-row">
+      <td>
+        <a href="{{ item.url }}">
+          {% if item.image %}
+            <img src="{{ item.image }}">
+          {% else %}
+            <img src="{% static "img/no_image.png" %}">
+          {% endif %}
+        </a>
+      </td>
+      <td class="product-img-td"><a href="{{ item.url }}">{{ item.title }}</a></td>
+      <td>{{ item.article_number }}</td>
+      <td>{{ item.size }}</td>
+      <td class="num">{{ item.price }} ₽</td>
+      <td>
+        <form action="{% url 'cart:cart_add' item.product_id %}" method="post" class="update-form" data-product-id="{{ item.product_id }}" data-size="{{ item.size }}">
+          {% csrf_token %}
+          <input type="number" name="quantity" value="{{ item.update_quantity_form.quantity.value }}" min="1" class="form-control cart-qty quantity-input">
+          {{ item.update_quantity_form.override }}
+          <input type="hidden" name="size" value="{{ item.size }}">
+        </form>
+      </td>
+      <td class="num item-total-price">{{ item.total_price }} ₽</td>
+      <td>
+        <form action="{% url 'cart:cart_remove' item.product_id %}" method="post" class="remove-form" data-product-id="{{ item.product_id }}" data-size="{{ item.size }}">
+          <input type="hidden" name="size" value="{{ item.size }}">
+          <button class="btn btn-danger remove-btn" type="submit">
+            <i class="bi bi-x-square"></i>
+          </button>
+          {% csrf_token %}
+        </form>
+      </td>
+    </tr>
+  {% endfor %}
+{% endif %}
+<tr class="total fw-bold h5" id="cart-total-row">
+  <td>Итого</td>
+  <td colspan="6"></td>
+  <td class="num cart-total-price">{{ cart.get_total_price }} ₽</td>
+</tr>

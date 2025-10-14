@@ -1,0 +1,10 @@
+{% load static %}
+{% for item in cart %}
+<tr>
+  <td>
+    {{ item.title }} Арт:{{ item.article_number }} Размер:{{ item.size }}<small> {{ item.price }} ₽ x {{ item.quantity }}</small>
+  </td>
+  <td class="text-end"> {{ item.total_price }} ₽</td>
+  <input type="hidden" name="size" value="{{ item.size }}">
+</tr>
+{% endfor %}

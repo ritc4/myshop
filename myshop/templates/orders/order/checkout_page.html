@@ -1,4 +1,5 @@
-{% extends "base.html" %} {% load static %} 
+{% extends "base.html" %} 
+{% load static %} 
 {% block title %}{{ title }}{% endblock %} 
 
 {% block content %} 
@@ -65,15 +66,15 @@
         <div class="cart-summary p-3 bg-white sidebar h-100">
           <h5 class="section-title"><span>Общая сумма заказа</span></h5>
           <div class="table-responsive">
-            <table class="table">
+            <table id="cart-items-table" class="table">
               <thead>
                 <tr>
                   <th>Продукт</th>
                   <th class="text-end">Цена</th>
                 </tr>
               </thead>
-              {% for item in cart %}
-              <tbody>
+              <tbody id="checkout-cart-tbody">  <!-- Добавлен ID для обновления -->
+                {% for item in cart %}
                 <tr>
                   <td>
                     {{ item.title }} Арт:{{ item.article_number }} Размер:{{ item.size }}<small> {{ item.price }} ₽ x {{ item.quantity }}</small>
@@ -81,12 +82,12 @@
                   <td class="text-end"> {{ item.total_price }} ₽</td>
                   <input type="hidden" name="size" value="{{ item.size }}">
                 </tr>
+                {% endfor %}
               </tbody>
-              {% endfor %}
               <tfoot>
                 <tr>
-                  <td colspan="2" class="text-end">
-                    {{ cart.get_total_price }} ₽
+                  <td colspan="2" class="text-end" id="checkout-cart-total-price">  <!-- Добавлен ID для обновления -->
+                    <h3><strong>{{ cart.get_total_price }} ₽</strong></h3>
                   </td>
                 </tr>
               </tfoot>
@@ -148,4 +149,42 @@
     </div>
   </div>
 </div>
+<script src="{% static 'jquery/jquery-3.7.1.min.js' %}"></script>
+<script>
+  $(document).ready(function() {
+      const cartChannel = new BroadcastChannel('cart-updates');
+  
+      function updateCart(data) {
+          // Обновляем таблицу для checkout_page
+          if (data.html_checkout_page && $('#checkout-cart-tbody').length) {
+              $('#checkout-cart-tbody').html(data.html_checkout_page);
+          }
+          // Обновляем итоговую сумму
+          if (data.cart_total_price) {
+              $('#checkout-cart-total-price h3 strong').text(data.cart_total_price + ' ₽');
+          }
+          // Обновляем badge в хедере
+          if (data.cart_item_count !== undefined) {
+              var text = data.pluralized_text || '';
+              $('#cart-item-count').html(text);
+              if (data.cart_item_count === 0) {
+                  $('.cart-badge').addClass('d-none');
+              } else {
+                  $('.cart-badge').removeClass('d-none');
+              }
+          }
+          
+          // НОВОЕ: Если корзина пуста, перенаправляем на главную
+          if (data.is_empty) {
+              window.location.href = '{% url "home:search" %}';
+          }
+      }
+  
+      cartChannel.onmessage = function(event) {
+          updateCart(event.data);
+      };
+  });
+</script>
+
+  
 {% endblock %}

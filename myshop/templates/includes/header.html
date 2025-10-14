@@ -103,18 +103,9 @@
               <i class="bi bi-cart4"></i>
               <span class="badge text-bg-light cart-badge rounded-circle">
                 <div class="cart" id="cart-item-count">
-                  <!-- {% with total_items=cart|length %}
-                    {% if total_items > 0 %}
-                    В корзине:
-                        {{ total_items|pluralize:"товар, товара, товаров" }}
-                        на {{ cart.get_total_price }} ₽
-                    {% else %}
-                      Ваша корзина пуста.
-                    {% endif %}
-                  {% endwith %} -->
                   {% with total_items=cart|length %}
                     {% if total_items > 0 %}
-                        {{ total_items|pluralize:"товар, товара, товаров" }}
+                        {{ total_items|russian_pluralize:"товар,товара,товаров" }}
                     {% endif %}
                   {% endwith %}
                  </div>  
@@ -163,69 +154,149 @@
 </header>
 <!--end ./header-bottom -->
 
-<div class="offcanvas offcanvas-end"
-tabindex="-1"
-id="offcanvasCart"
-aria-labelledby="offcanvasCartLabel"
->
-<div class="offcanvas-header">
-  <h5 class="offcanvas-title" id="offcanvasCartLabel">
-    {% with total_items=cart|length %}
-    {% if total_items > 0 %}
-    В корзине:
-    {% else %}
-      Ваша корзина пуста.
-    {% endif %}
-    {% endwith %}
-  </h5>
-  <button
-    type="button"
-    class="btn-close"
-    data-bs-dismiss="offcanvas"
-    aria-label="Close"
-  ></button>
-</div>
-<div class="offcanvas-body">
-  <div class="table-responsive">
-    <table class="table offcanvasCart-table">
-      <tbody>
-        {% for item in cart %}
-        <tr>
-          <td class="product-img-td">
-            <a href="{{ item.url }}">
-              {% if item.image %}
-                  <img src="{{ item.image }}">
-              {% else %}
-                  <img src="{% static "img/no_image.png" %}">
-              {% endif %}
-            </a>
-          </td>
-          <td class="product-img-td"><a href="{{ item.url }}">{{ item.title }} Арт:{{ item.article_number }} Размер:{{ item.size }}</a></td>
-          <td class="num">{{ item.price }} ₽</td> 
-          <td class="item-quantity">&times;{{ item.quantity }}</td>
-          <td class="form-remove">
-            <form action="{% url 'cart:cart_remove' item.product_id %}" method="post">
-              <input type="hidden" name="size" value="{{ item.size }}">
-              <button class="btn btn-danger" type="submit">
-                <i class="bi bi-x-square"></i>
-              </button>
-                  {% csrf_token %}
-            </form> 
-        </td> 
-        </tr>
-        {% endfor %}
-      </tbody>
-      <tfoot>
-        <tr>
-          <td colspan="4" class="text-end">Итого:</td>
-          <td class="text-end">{{ cart.get_total_price }} ₽</td>
-        </tr>
-      </tfoot>
-    </table>
+<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasCart" aria-labelledby="offcanvasCartLabel" data-offcanvas-url="{% url 'cart:cart_detail' %}?partial=offcanvas">
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title" id="offcanvasCartLabel">
+      {% with total_items=cart|length %}
+        {% if total_items > 0 %}
+          В корзине: {{ total_items|russian_pluralize:"товар,товара,товаров" }}
+        {% else %}
+          Ваша корзина пуста.
+        {% endif %}
+      {% endwith %}
+    </h5>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
   </div>
-  <div class="text-end mt-3">
-    <a href="{% url 'cart:cart_detail' %}" class="btn btn-outline-dark">Корзина</a>
-    <a href="{% url 'orders:order_create' %}" class="btn btn-outline-dark">Оформления заказа</a>
+  <!-- УБРАЛИ initial include: теперь content загружается при открытии -->
+  <div class="offcanvas-body">
+    <!-- Здесь будет загружаться partial через JS -->
   </div>
 </div>
-</div>
+
+
+
+<script src="{% static 'jquery/jquery-3.7.1.min.js' %}"></script>
+<script>
+  $(document).ready(function() {
+      // Функция для получения куки по имени
+      function getCookie(name) {
+          let cookieValue = null;
+          if (document.cookie && document.cookie !== '') {
+              const cookies = document.cookie.split(';');
+              for (let i = 0; i < cookies.length; i++) {
+                  const cookie = cookies[i].trim();
+                  if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                      cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                      break;
+                  }
+              }
+          }
+          return cookieValue;
+      }
+
+      // Настройка CSRF для всех AJAX-запросов с использованием куки
+      $.ajaxSetup({
+          beforeSend: function(xhr, settings) {
+              if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
+                  const csrftoken = getCookie('csrftoken');
+                  if (csrftoken) {
+                      xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                  } else {
+                      console.warn('CSRF cookie not found. Ensure {% csrf_token %} is present on the page.');
+                  }
+              }
+          }
+      });
+
+      const cartChannel = new BroadcastChannel('cart-updates');
+      var offcanvasUrl = "{% url 'cart:cart_detail' %}?partial=offcanvas";
+  
+      $('#offcanvasCart').on('show.bs.offcanvas', function() {
+          $.ajax({
+              url: offcanvasUrl,
+              type: 'GET',
+              success: function(data) {
+                  $('#offcanvasCart .offcanvas-body').html(data.html);
+                  attachCartHandlers();
+              },
+              error: function() { 
+                  alert('Ошибка загрузки корзины'); 
+                  console.error('AJAX error:', arguments);
+              }
+          });
+      });
+      
+      function attachCartHandlers() {
+          $('.offcanvas-update-form, .offcanvas-remove-form').off('submit').on('submit', function(e) {
+              e.preventDefault();
+              var form = $(this);
+              $.ajax({
+                  url: form.attr('action'),
+                  type: 'POST',
+                  data: form.serialize(),  // Убрали добавление токена — он теперь в заголовке
+                  success: function(data) {
+                      if (data.success) {
+                          updateCartUI(data);
+                          cartChannel.postMessage(data);  // Отправляем сообщение другим страницам
+                      } else {
+                          alert('Ошибка обновления корзины: ' + (data.error || 'Неизвестная ошибка'));
+                      }
+                  },
+                  error: function(xhr) { 
+                      if (xhr.status === 403) {
+                          alert('Ошибка CSRF: обновите страницу и попробуйте снова.');
+                      } else {
+                          alert('Ошибка отправки формы'); 
+                      }
+                      console.error('AJAX error:', arguments);
+                  }
+              });
+          });
+      }
+      
+      function updateCartUI(data) {
+    if (data.cart_item_count !== undefined) {
+        var total = data.cart_item_count;
+        var text = data.pluralized_text || (total > 0 ? total + ' товар' : '');
+        $('#cart-item-count').html(text ? text : '');
+        if (total === 0) {
+            $('.cart-badge').addClass('d-none');
+        } else {
+            $('.cart-badge').removeClass('d-none');
+        }
+        console.log('Корзина обновлена: ' + total + ' товаров');
+    }
+    
+    // УБРАЛИ условие: всегда обновляем заголовок офканваса
+    var titleText = data.pluralized_text ? 'В корзине: ' + data.pluralized_text : 'Ваша корзина пуста.';
+    $('#offcanvasCartLabel').text(titleText);
+    
+    // Обновляем офканвас с новым HTML
+    if (data.html_offcanvas) {
+        $('#offcanvasCart .offcanvas-body').html(data.html_offcanvas);
+        attachCartHandlers();
+    }
+}
+
+      
+      // Слушаем сообщения от других страниц
+      cartChannel.onmessage = function(event) {
+          updateCartUI(event.data);
+      };
+      
+      function loadOffcanvasPartial() {
+          $.ajax({
+              url: offcanvasUrl,
+              type: 'GET',
+              success: function(data) {
+                  $('#offcanvasCart .offcanvas-body').html(data.html);
+                  attachCartHandlers();
+              },
+              error: function() { alert('Ошибка перезагрузки корзины'); }
+          });
+      }
+  });
+</script>
+
+  
+

@@ -41,9 +41,15 @@
             <span class="goodsModArtNumber">{{ product.article_number }}</span>
           </div>
         </div>
-        <div class="product-price-article_number d-flex justify-content-between align-items-center">
+        <div class="product-price-article_number d-flex justify-content-between align-items-center position-relative">
           <div class="product-price mb-0" id="price-display">
             {{ price }} ₽ <!-- Устанавливаем цену по умолчанию из первого элемента -->
+          </div>
+          <!-- Toast-контейнер теперь внутри блока с ценой, справа -->
+          <div class="toast-container position-absolute top-0 end-0 p-0">
+            <div id="cart-toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+              <div class="toast-body" id="toast-message"></div>
+            </div>
           </div>
         </div>
         <div class="product-add2cart">
@@ -135,11 +141,146 @@
   </div>
 </div>
 
-<!-- Toast-контейнер -->
-<div class="toast-container position-fixed top-0 end-0 p-3">
-  <div id="cart-toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-      <div class="toast-body" id="toast-message"></div>
-  </div>
-</div>
+
+
+<script src="{% static 'jquery/jquery-3.7.1.min.js' %}"></script>  <!-- Если не подключен глобально -->
+<script>
+  $(document).ready(function() {
+      // Функция для получения куки по имени (копия из header.html)
+      function getCookie(name) {
+          let cookieValue = null;
+          if (document.cookie && document.cookie !== '') {
+              const cookies = document.cookie.split(';');
+              for (let i = 0; i < cookies.length; i++) {
+                  const cookie = cookies[i].trim();
+                  if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                      cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                      break;
+                  }
+              }
+          }
+          return cookieValue;
+      }
+
+      // Настройка CSRF для AJAX (копия из header.html)
+      $.ajaxSetup({
+          beforeSend: function(xhr, settings) {
+              if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
+                  const csrftoken = getCookie('csrftoken');
+                  if (csrftoken) {
+                      xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                  } else {
+                      console.warn('CSRF cookie not found. Ensure {% csrf_token %} is present on the page.');
+                  }
+              }
+          }
+      });
+
+      const cartChannel = new BroadcastChannel('cart-updates');  // Канал для синхронизации
+
+      // Инициализируем toast с кастомной задержкой и скоростью затухания (delay для задержки перед скрытием, CSS для transition)
+      $('#cart-toast').toast({
+          delay: 2000  // Задержка перед началом затухания (3 секунды; изменяй по вкусу, в мс)
+      });
+
+      // Обработка формы добавления в корзину через AJAX
+      $('#add-to-cart-form').on('submit', function(e) {
+          e.preventDefault();  // Предотвращаем обычную отправку формы
+          var form = $(this);
+          $.ajax({
+              url: form.attr('action'),
+              type: 'POST',
+              data: form.serialize(),
+              success: function(data) {
+                  if (data.success) {
+                      updateCartUI(data);  // Обновляем UI локально
+                      cartChannel.postMessage(data);  // Синхронизируем с другими страницами
+                      // Показываем toast-уведомление
+                      $('#toast-message').text(data.message || 'Товар добавлен в корзину!');
+                      $('#cart-toast').toast('show');
+                  } else {
+                      alert('Ошибка добавления в корзину: ' + (data.error || 'Неизвестная ошибка'));
+                  }
+              },
+              error: function(xhr) {
+                  if (xhr.status === 403) {
+                      alert('Ошибка CSRF: обновите страницу и попробуйте снова.');
+                  } else {
+                      alert('Ошибка отправки формы');
+                  }
+                  console.error('AJAX error:', arguments);
+              }
+          });
+      });
+
+      // Функция обновления UI (копия из header.html, адаптированная)
+      function updateCartUI(data) {
+          if (data.cart_item_count !== undefined) {
+              var total = data.cart_item_count;
+              var text = data.pluralized_text || (total > 0 ? total + ' товар' : '');
+              $('#cart-item-count').html(text ? text : '');
+              if (total === 0) {
+                  $('.cart-badge').addClass('d-none');
+              } else {
+                  $('.cart-badge').removeClass('d-none');
+              }
+              console.log('Корзина обновлена: ' + total + ' товаров');
+          }
+          
+          // Всегда обновляем заголовок офканваса
+          var titleText = data.pluralized_text ? 'В корзине: ' + data.pluralized_text : 'Ваша корзина пуста.';
+          $('#offcanvasCartLabel').text(titleText);
+          
+          // Обновляем содержимое офканваса, если оно предоставлено
+          if (data.html_offcanvas) {
+              $('#offcanvasCart .offcanvas-body').html(data.html_offcanvas);
+              attachCartHandlers();  // Если есть формы в офканвасе
+          }
+      }
+
+      // Слушаем сообщения от других страниц (копия из header.html)
+      cartChannel.onmessage = function(event) {
+          updateCartUI(event.data);
+      };
+
+      // Функция attachCartHandlers (если нужно для офканваса, копия из header.html)
+      function attachCartHandlers() {
+          $('.offcanvas-update-form, .offcanvas-remove-form').off('submit').on('submit', function(e) {
+              e.preventDefault();
+              var form = $(this);
+              $.ajax({
+                  url: form.attr('action'),
+                  type: 'POST',
+                  data: form.serialize(),
+                  success: function(data) {
+                      if (data.success) {
+                          updateCartUI(data);
+                          cartChannel.postMessage(data);
+                      } else {
+                          alert('Ошибка обновления корзины: ' + (data.error || 'Неизвестная ошибка'));
+                      }
+                  },
+                  error: function(xhr) {
+                      if (xhr.status === 403) {
+                          alert('Ошибка CSRF: обновите страницу и попробуйте снова.');
+                      } else {
+                          alert('Ошибка отправки формы');
+                      }
+                      console.error('AJAX error:', arguments);
+                  }
+              });
+          });
+      }
+
+      // Обработка изменения размера для динамического обновления цены
+      $('#size-select_product').on('change', function() {
+          var selectedOption = $(this).find('option:selected');
+          var price = selectedOption.data('price');
+          if (price) {
+              $('#price-display').text(price + ' ₽');
+          }
+      });
+  });
+</script>
 
 {% endblock %}

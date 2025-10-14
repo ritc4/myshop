@@ -1,183 +1,163 @@
-# from django.shortcuts import get_object_or_404, redirect, render
-# from django.views.decorators.http import require_POST
-# from home.models import Product,Category,ProductPrice
-# from .cart import Cart
-# from .forms import CartAddProductForm
-
-
-# @require_POST
-# def cart_add(request, product_id):
-#     cart = Cart(request)
-#     product = get_object_or_404(Product, id=product_id)
-
-#     sizes = ProductPrice.objects.filter(product_id=product_id).select_related('size')
-#     size_price_map = [(str(size.size.title), size.price) for size in sizes]
-
-#     form = CartAddProductForm(request.POST, product=product, sizes=size_price_map)
-
-#     if form.is_valid():
-#         cd = form.cleaned_data
-#         size = cd.get('size')
-#         cart.add(product=product, quantity=cd['quantity'], override_quantity=cd['override'], size=size)
-#     else:
-#         print("Форма не валидна:", form.errors)
-
-#     referer = request.META.get('HTTP_REFERER', 'cart:cart_detail')
-#     return redirect(referer)
-
-
-# # def cart_add(request):
-# #     cart = Cart(request)
-
-# #     # Получаем уникальные продукты (первые 500)
-# #     products = Product.objects.all()[:500]
-
-# #     for product in products:
-# #         # Получаем связанные размеры и цены для продукта
-# #         sizes = ProductPrice.objects.filter(product=product).select_related('size')
-
-# #         if sizes.exists():
-# #             # Берем первый размер и его цену
-# #             first_size = sizes.first()
-# #             size_title = str(first_size.size.title)
-# #             price = first_size.price  # Цена не используется в добавлении, но можно сохранить для дальнейшего использования
-
-# #             # Добавляем продукт в корзину с первым размером
-# #             cart.add(product=product, quantity=1, override_quantity=False, size=size_title)
-
-# #     referer = request.META.get('HTTP_REFERER', 'cart:cart_detail')
-# #     return redirect(referer)
-
-
-# @require_POST
-# def cart_remove(request, product_id):
-#     cart = Cart(request)
-#     product = get_object_or_404(Product, id=product_id) 
-#     # Получаем размер из POST-запроса
-#     size = request.POST.get('size')  # Убедитесь, что размер передается
-#     cart.remove(product, size)
-
-#     # Получаем URL страницы, с которой был запрос
-#     referer = request.META.get('HTTP_REFERER', 'cart:cart_detail')
-#     return redirect(referer)
-
-
-# def cart_detail(request):
-#     categories = Category.objects.all()
-#     cart = Cart(request)
-#     # Проверка наличия категорий
-#     if categories.exists():
-#         get_root_catalog = categories.first().get_absolute_url()
-#     else:
-#         get_root_catalog = '#'  # Или можно установить пустую строку или другую логику
-#     # Проверка на наличие товаров в корзине
-#     is_cart_empty = not cart or not any(item['quantity'] > 0 for item in cart)
-#     for item in cart:
-#         item['update_quantity_form'] = CartAddProductForm(
-#             initial={'quantity': item['quantity'], 'override': True, 'size': item['size'],})
-        
-#     # Создание хлебных крошек
-#     breadcrumbs = [
-#         {'name': 'Корзина', 'slug': '/cart/'}  # Текущая страница без ссылки
-#         ]
-    
-#     print("Содержимое корзины:", cart.get_cart_items()) 
-#     return render(request, 'cart/cart_page.html', {
-#         'cart': cart,
-#         'categories': categories,
-#         'get_root_catalog': get_root_catalog, 'is_cart_empty': is_cart_empty,'breadcrumbs': breadcrumbs,  # Добавляем хлебные крошки в контекст
-#     })
-
-
-
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
-from django.http import JsonResponse  # Добавлено для AJAX
+from django.http import JsonResponse
+from django.template.loader import render_to_string
 from home.models import Product, Category, ProductPrice
 from .cart import Cart
 from .forms import CartAddProductForm
+from .templatetags.custom_filters import russian_pluralize
+import logging
 
-
+logger = logging.getLogger(__name__)
 
 @require_POST
 def cart_add(request, product_id):
-    cart = Cart(request)
-    product = get_object_or_404(Product, id=product_id)
+    try:
+        cart = Cart(request)
+        product = get_object_or_404(Product, id=product_id)
 
-    sizes = ProductPrice.objects.filter(product_id=product_id).select_related('size')
-    size_price_map = [(str(size.size.title), size.price) for size in sizes]
+        sizes = ProductPrice.objects.filter(product_id=product_id).select_related('size')
+        size_price_map = [(str(size.size.title), size.price) for size in sizes]
 
-    form = CartAddProductForm(request.POST, product=product, sizes=size_price_map)
+        form = CartAddProductForm(request.POST, product=product, sizes=size_price_map)
 
-    if form.is_valid():
-        cd = form.cleaned_data
-        size = cd.get('size')
-        cart.add(product=product, quantity=cd['quantity'], override_quantity=cd['override'], size=size)
+        if form.is_valid():
+            cd = form.cleaned_data
+            size = cd.get('size')
+            cart.add(product=product, quantity=cd['quantity'], override_quantity=cd['override'], size=size)
 
-        # Проверка на AJAX-запрос
-        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-            item = cart.get_item(str(product.id), size)
-            if item:
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                item = cart.get_item(str(product.id), size)
+                total_items = len(cart)
+                pluralized_text = russian_pluralize(total_items, "товар,товара,товаров") if total_items > 0 else ""
+                is_empty = total_items == 0
+
+                # Обновлённый элемент для оптимизации UI
+                updated_items = [{
+                    'product_id': product.id,
+                    'size': size,
+                    'quantity': item['quantity'],
+                    'total_price': item['total_price']
+                }]
+
+                # Генерация HTML (упрощённая, без request для избежания ошибок)
+                html_cart_page = render_to_string('cart/cart_table_body.html', {
+                    'cart': cart,
+                    'is_cart_empty': is_empty,
+                })
+                html_checkout_page = render_to_string('orders/order/checkout_cart_tbody.html', {
+                    'cart': cart,
+                })
+                html_offcanvas = render_to_string('cart/cart_offcanvas.html', {
+                    'cart': cart,
+                    'is_cart_empty': is_empty,
+                    'categories': Category.objects.all(),
+                })
+
                 return JsonResponse({
                     'success': True,
                     'item_total_price': str(item['total_price']),
                     'cart_total_price': str(cart.get_total_price()),
+                    'cart_item_count': total_items,
+                    'pluralized_text': pluralized_text,
                     'quantity': item['quantity'],
+                    'updated_items': updated_items,
+                    'is_empty': is_empty,
+                    'html_cart_page': html_cart_page,
+                    'html_checkout_page': html_checkout_page,
+                    'html_offcanvas': html_offcanvas,
                 })
             else:
-                return JsonResponse({'success': False, 'error': 'Товар не найден в корзине'})
+                referer = request.META.get('HTTP_REFERER', 'cart:cart_detail')
+                return redirect(referer)
         else:
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({'success': False, 'error': str(form.errors)})
             referer = request.META.get('HTTP_REFERER', 'cart:cart_detail')
             return redirect(referer)
-    else:
-        # Обработка ошибок формы
+    except Exception as e:
+        logger.error(f"Error in cart_add: {e}", exc_info=True)
         if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-            return JsonResponse({'success': False, 'error': str(form.errors)})
-        print("Форма не валидна:", form.errors)
-        referer = request.META.get('HTTP_REFERER', 'cart:cart_detail')
-        return redirect(referer)
+            return JsonResponse({'success': False, 'error': 'Internal server error'})
+        return redirect('cart:cart_detail')
 
 @require_POST
 def cart_remove(request, product_id):
-    cart = Cart(request)
-    product = get_object_or_404(Product, id=product_id)
-    size = request.POST.get('size')
-    cart.remove(product, size)
+    try:
+        cart = Cart(request)
+        product = get_object_or_404(Product, id=product_id)
+        size = request.POST.get('size')
+        cart.remove(product, size)
 
-    # Проверка на AJAX-запрос
-    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-        is_empty = len(cart) == 0  # Проверяем, пуста ли корзина
-        return JsonResponse({
-            'success': True,
-            'cart_total_price': str(cart.get_total_price()),
-            'is_empty': is_empty,  # Добавлено для обработки пустой корзины в JS
-        })
-    else:
-        referer = request.META.get('HTTP_REFERER', 'cart:cart_detail')
-        return redirect(referer)
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            total_items = len(cart)
+            pluralized_text = russian_pluralize(total_items, "товар,товара,товаров") if total_items > 0 else ""
+            is_empty = total_items == 0
+
+            # Для удалённого элемента указываем quantity=0, чтобы JS удалил строку
+            updated_items = [{
+                'product_id': product.id,
+                'size': size,
+                'quantity': 0,
+                'total_price': '0'  # Не актуально, но для consistency
+            }]
+
+            html_cart_page = render_to_string('cart/cart_table_body.html', {
+                'cart': cart,
+                'is_cart_empty': is_empty,
+            })
+            html_checkout_page = render_to_string('orders/order/checkout_cart_tbody.html', {
+                'cart': cart,
+            })
+            html_offcanvas = render_to_string('cart/cart_offcanvas.html', {
+                'cart': cart,
+                'is_cart_empty': is_empty,
+                'categories': Category.objects.all(),
+            })
+
+            return JsonResponse({
+                'success': True,
+                'cart_total_price': str(cart.get_total_price()),
+                'cart_item_count': total_items,
+                'pluralized_text': pluralized_text,
+                'updated_items': updated_items,
+                'is_empty': is_empty,
+                'html_cart_page': html_cart_page,
+                'html_checkout_page': html_checkout_page,
+                'html_offcanvas': html_offcanvas,
+            })
+        else:
+            referer = request.META.get('HTTP_REFERER', 'cart:cart_detail')
+            return redirect(referer)
+    except Exception as e:
+        logger.error(f"Error in cart_remove: {e}", exc_info=True)
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({'success': False, 'error': 'Internal server error'})
+        return redirect('cart:cart_detail')
 
 def cart_detail(request):
-    categories = Category.objects.all()
     cart = Cart(request)
-    if categories.exists():
-        get_root_catalog = categories.first().get_absolute_url()
-    else:
-        get_root_catalog = '#'
-    is_cart_empty = not cart or not any(item['quantity'] > 0 for item in cart)
-    for item in cart:
-        item['update_quantity_form'] = CartAddProductForm(
-            initial={'quantity': item['quantity'], 'override': True, 'size': item['size']})
+    categories = Category.objects.all()
+    is_cart_empty = len(cart) == 0
     
-    breadcrumbs = [
-        {'name': 'Корзина', 'slug': '/cart/'}
-    ]
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest' and request.GET.get('partial') == 'offcanvas':
+        try:
+            html = render_to_string('cart/cart_offcanvas.html', {
+                'cart': cart,
+                'is_cart_empty': is_cart_empty,
+                'categories': categories,
+            })
+            return JsonResponse({'html': html})
+        except Exception as e:
+            logger.error(f"Error in cart_detail offcanvas: {e}", exc_info=True)
+            return JsonResponse({'error': 'Internal server error'})
     
-    print("Содержимое корзины:", cart.get_cart_items())
     return render(request, 'cart/cart_page.html', {
         'cart': cart,
-        'categories': categories,
-        'get_root_catalog': get_root_catalog,
         'is_cart_empty': is_cart_empty,
-        'breadcrumbs': breadcrumbs,
+        'categories': categories,
     })
+
+
+
 

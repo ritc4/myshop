@@ -1,0 +1,48 @@
+{% load custom_filters %}
+{% load static %}
+{% if is_cart_empty %}
+
+{% else %}
+  <div class="table-responsive">
+    <table class="table offcanvasCart-table">
+      <tbody>
+        {% for item in cart %}
+        <tr id="offcanvas-item-{{ item.product_id }}-{{ item.size|slugify }}">
+          <td class="product-img-td">
+            <a href="{{ item.url }}">
+            {% if item.image %}  <!-- ИСПРАВЛЕНО: используем item.image -->
+              <img src="{{ item.image }}" alt="{{ item.title }}" class="img-fluid">
+            {% else %}
+            <a href="{{ i.get_absolute_url }}"><img src="{% static 'img/no_image.png' %}" alt="Нет изображения"></a>
+            {% endif %}
+          </a>
+          </td>
+          <td class="product-img-td">
+            <a href="{{ item.url }}">{{ item.title }} Арт:{{ item.article_number }} Размер:{{ item.size }}</a>
+          </td>
+          <td class="num">{{ item.price }} ₽</td>
+          <td class="item-quantity">&times;{{ item.quantity }}</td>
+          <td class="form-remove">
+            <form action="{% url 'cart:cart_remove' item.product_id %}" method="post" class="offcanvas-remove-form">
+              <!-- {% csrf_token %} УБРАЛИ: теперь CSRF через заголовок -->
+              <input type="hidden" name="size" value="{{ item.size }}">
+              <button class="btn btn-danger" type="submit">
+                <i class="bi bi-x-square"></i>
+              </button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="6" class="text-end">Итого: {{ cart.get_total_price }} ₽</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+  <div class="text-end mt-3">
+    <a href="{% url 'cart:cart_detail' %}" class="btn btn-outline-dark">Корзина</a>
+    <a href="{% url 'orders:order_create' %}" class="btn btn-outline-dark">Оформление заказа</a>
+  </div>
+{% endif %}
