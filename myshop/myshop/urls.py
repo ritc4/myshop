@@ -34,7 +34,7 @@ urlpatterns = [
     path('users/', include('users.urls')),
     path('', include('home.urls')),
     path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='sitemap'),
-    path('api/', include('home.api.urls', namespace='api')),
+    path('api/', include('api.urls', namespace='api')),
         ]
 
 
