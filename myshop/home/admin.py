@@ -73,7 +73,7 @@ class ProductImageInline(admin.TabularInline):
 
 
     def image_tag(self, obj):
-        if obj.image:
+        if obj.image and obj.image.file:  # Добавлена проверка на .file
             return mark_safe(f"<img src='{obj.image.url}' width='75'>")
         return 'Нет фото'
     image_tag.short_description = "Фото"
@@ -232,13 +232,12 @@ class ProductAdmin(admin.ModelAdmin):
     # get_image.short_description = "Фото"
 
     def get_image(self, obj):
-        # Получаем все изображения заранее
-        images = obj.images.all()  # Используем предзагруженные изображения
+        images = obj.images.all()  # Уже предзагружены благодаря prefetch_related
         if images:
             first_image = images[0]
-            return mark_safe(f"<img src='{first_image.image.url}' width='50'>")
-        else:
-            return 'Нет фото'
+            if first_image.image and first_image.image.file:  # Проверка на наличие файла
+                return mark_safe(f"<img src='{first_image.image.url}' width='50'>")
+        return 'Нет фото'
     get_image.short_description = 'Фото товара'
 
 
@@ -300,7 +299,7 @@ class ReviewImageInline(admin.TabularInline):
         return qs.select_related('review').prefetch_related('review__user')
 
     def image_tag(self, obj):
-        if obj.image:
+        if obj.image and obj.image.file:  # Добавлена проверка на .file
             return mark_safe(f"<img src='{obj.image.url}' width='75'>")
         return 'Нет фото'
     image_tag.short_description = "Фото"
@@ -317,12 +316,15 @@ class ReviewAdmin(admin.ModelAdmin):
         return qs.select_related('user').prefetch_related('images')
 
     def get_image_review(self, obj):
-        images = obj.images.all()  # Получаем все изображения, связанные с отзывом
+        images = obj.images.all()  # Предзагружены благодаря prefetch_related
         if images.exists():
-            # Создаем строку с HTML-кодом для отображения всех изображений
-            return mark_safe(" ".join([f"<img src='{image.image.url}' width='50'>" for image in images]))
+            img_tags = []
+            for image in images:
+                if image.image and image.image.file:  # Проверка для каждого изображения
+                    img_tags.append(f"<img src='{image.image.url}' width='50'>")
+            if img_tags:
+                return mark_safe(" ".join(img_tags))
         return 'Нет фото'
-    
     get_image_review.short_description = "Изображение"
 
 

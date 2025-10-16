@@ -1,97 +1,430 @@
+# from unidecode import unidecode
 # from rest_framework import serializers
-# from ..models import Product,Category
+# from rest_framework.exceptions import ValidationError  # Добавлено
+# from home.models import Category, Product, ProductImage, Size, ProductPrice  # Обновите импорты на основе ваших моделей
+# from django.utils.text import slugify
 
+# def generate_article_number():
+#     last_product = Product.objects.order_by('-article_number').first()
+#     if last_product:
+#         return last_product.article_number + 1
+#     return 1
+
+# def generate_unique_slug(title, article_number, exclude_pk=None):
+#     """
+#     Генерирует уникальный slug и article_number.
+#     Формат slug: slugified(title)-article_number.
+#     Если конфликт (slug или article_number), увеличивает article_number до уникальности.
+#     Возвращает (slug, corrected_article_number).
+#     """
+#     if not title or article_number is None:
+#         raise ValidationError("Название и артикул обязательны для генерации slug.")
+    
+#     current_article = article_number
+#     max_attempts = 10000  # Лимит для избежания бесконечного цикла
+#     attempts = 0
+    
+#     while attempts < max_attempts:
+#         base_slug = slugify(f"{unidecode(title)}-{current_article}")
+#         # Проверяем уникальность slug И article_number (исключая exclude_pk)
+#         slug_exists = Product.objects.filter(slug=base_slug).exclude(pk=exclude_pk).exists()
+#         article_exists = Product.objects.filter(article_number=current_article).exclude(pk=exclude_pk).exists()
+        
+#         if not slug_exists and not article_exists:
+#             return base_slug, current_article
+        
+#         current_article += 1
+#         attempts += 1
+    
+#     raise ValidationError(f"Не удалось сгенерировать уникальный slug и article_number после {max_attempts} попыток.")
+
+# def get_unique_article_number(start_article_number):
+#     # Устарело: теперь интегрировано в generate_unique_slug
+#     article_number = start_article_number
+#     while Product.objects.filter(article_number=article_number).exists():
+#         article_number += 1
+#     return article_number
+
+# def generate_unique_category_slug(name, exclude_pk=None):
+#     # Без изменений, но добавьте лимит, если нужно
+#     base_slug = slugify(unidecode(name))
+#     queryset = Category.objects.filter(slug=base_slug)
+#     if exclude_pk:
+#         queryset = queryset.exclude(pk=exclude_pk)
+#     if queryset.exists():
+#         raise ValidationError("Такая категория уже существует.")
+#     return base_slug
+
+# # Определите CategorySerializer ПЕРВЫМ (перед ProductSerializer)
 # class CategorySerializer(serializers.ModelSerializer):
+#     parent = serializers.SerializerMethodField()  # Заменено на SerializerMethodField для рекурсии
+#     parent_id = serializers.PrimaryKeyRelatedField(
+#         queryset=Category.objects.all(), source='parent', write_only=True, required=False
+#     )  # Для записи: передавать ID родителя
+
 #     class Meta:
 #         model = Category
-#         fields = ['id', 'name', 'slug']
+#         fields = ['id', 'name', 'slug', 'image', 'parent', 'parent_id']  # Добавлен parent_id
+#         read_only_fields = ['slug']
+
+#     def get_parent(self, obj):
+#         # Метод для SerializerMethodField: возвращает сериализованные данные родителя, если он есть
+#         if obj.parent:
+#             return CategorySerializer(obj.parent, context=self.context).data  # context для вложенных сериализаторов (например, для request)
+#         return None
+
+#     def validate(self, attrs):
+#         parent = attrs.get('parent')  # Получаем объект parent из attrs (после обработки source='parent')
+#         instance = getattr(self, 'instance', None)  # instance есть только в update
+        
+#         if parent:
+#             if instance and parent == instance:
+#                 raise serializers.ValidationError("Категория не может быть родителем самой себе.")
+#             # Опционально: проверка на цикл (рекурсивно проверяем ancestors)
+#             # Если parent имеет ancestors, и instance (или его descendants) в них — ошибка
+#             # Но для простоты: если дерево плоское, это достаточно. Для глубоких деревьев используйте django-mptt.
+#             current = parent
+#             while current.parent:
+#                 if instance and current.parent == instance:
+#                     raise serializers.ValidationError("Установка этого parent создаст цикл в иерархии.")
+#                 current = current.parent
+        
+#         return attrs
+
+#     def create(self, validated_data):
+#         name = validated_data.get('name')
+#         if not name:
+#             raise serializers.ValidationError("Название категории обязательно.")
+        
+#         # Генерируем slug и проверяем уникальность (exclude_pk=None для нового объекта)
+#         slug = generate_unique_category_slug(name)
+#         validated_data['slug'] = slug
+        
+#         return super().create(validated_data)
+
+#     def update(self, instance, validated_data):
+#         new_name = validated_data.get('name', instance.name)
+        
+#         # Генерируем новый slug только если name изменилось, и проверяем уникальность (исключая текущую категорию)
+#         if new_name != instance.name:
+#             new_slug = generate_unique_category_slug(new_name, exclude_pk=instance.pk)
+#             validated_data['slug'] = new_slug
+        
+#         return super().update(instance, validated_data)
+
+
+
+# class ProductImageSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = ProductImage
+#         fields = ['image']
+#         extra_kwargs = {
+#             'product': {'read_only': True},  # Продукт устанавливается автоматически
+#         }
 
 # class ProductSerializer(serializers.ModelSerializer):
-#     # Кастомное поле для размеров и цен
 #     sizes_and_prices = serializers.SerializerMethodField()
-    
-#     # Вложенная сериализация категории
-#     category = CategorySerializer(read_only=True)  # Вместо простого ID — объект категории
-
+#     category = CategorySerializer(read_only=True)
+#     category_id = serializers.PrimaryKeyRelatedField(
+#         queryset=Category.objects.all(), source='category', write_only=True, required=True
+#     )
+#     images = ProductImageSerializer(many=True, read_only=True)  # Сделано read_only — файлы обрабатываются вручную в views
 
 #     def get_sizes_and_prices(self, obj):
-#         product_prices = obj.product_prices.all()
+#         product_prices = obj.product_prices.all()  # Используем related_name='product_prices' из модели ProductPrice
 #         return [
-#             {
-#                 'size': pp.size.title,
+#             {   'size_id': pp.size.id,  # ID размера (для ссылок)
+#                 'size': pp.size.title,  # Название размера (строка)
 #                 'price': pp.price,
-#                 'old_price': pp.old_price if pp.old_price else None
+#                 'old_price': pp.old_price if pp.old_price else None,
+#                 'zacup_price': pp.zacup_price
 #             }
 #             for pp in product_prices
 #         ]
 
+#     def create(self, validated_data):
+#         title = validated_data.get('title')
+#         if not title:
+#             raise serializers.ValidationError("Название продукта обязательно.")
+        
+#         if 'article_number' not in validated_data or validated_data.get('article_number') is None:
+#             article_number = generate_article_number()
+#             validated_data['article_number'] = article_number
+#         else:
+#             start_article_number = validated_data['article_number']
+#             article_number = get_unique_article_number(start_article_number)
+#             validated_data['article_number'] = article_number
+        
+#         # Генерируем уникальный slug (exclude_pk=None для create — всегда уникален)
+#         slug = generate_unique_slug(title, article_number)
+#         validated_data['slug'] = slug
+        
+#         instance = Product.objects.create(**validated_data)
+#         return instance
+
+#     def update(self, instance, validated_data):
+#         new_title = validated_data.get('title', instance.title)
+#         article_number = instance.article_number
+        
+#         # Генерируем новый slug, исключая текущий продукт из проверки
+#         new_slug = generate_unique_slug(new_title, article_number, exclude_pk=instance.pk)
+        
+#         # Обновляем только если slug изменился (оптимизация)
+#         if new_slug != instance.slug:
+#             validated_data['slug'] = new_slug
+        
+#         validated_data.pop('article_number', None)
+#         instance = super().update(instance, validated_data)
+#         return instance
+
 #     class Meta:
 #         model = Product
-#         fields = '__all__'  # Теперь category будет вложенным объектом
+#         fields = [
+#             'category',
+#             'category_id',
+#             'id',
+#             'title',
+#             'description',
+#             'article_number',  # Может передаваться в create, генерируется автоматически если не передан
+#             'stock',
+#             'unit',
+#             'is_hidden',
+#             'mesto',
+#             'created',
+#             'updated',
+#             'slug',  # Генерируется автоматически
+#             'sizes_and_prices',
+#             'images'  # Теперь read_only
+#         ]
+#         extra_kwargs = {
+#             'slug': {'read_only': True},  # Не передаётся в input
+#             'article_number': {'required': False},  # Не обязательно в create (генерируется автоматически), игнорируется в update
+#         }
+#         read_only_fields = []  # Убрал article_number и slug отсюда для гибкости
 
 
 
 
 
+
+from unidecode import unidecode
 from rest_framework import serializers
-from home.models import Product, Category, ProductImage  # Добавлен ProductImage
+from rest_framework.exceptions import ValidationError  # Добавлено
+from home.models import Category, Product, ProductImage, Size, ProductPrice  # Обновите импорты на основе ваших моделей
+from django.utils.text import slugify
+
+def generate_article_number():
+    last_product = Product.objects.order_by('-article_number').first()
+    if last_product:
+        return last_product.article_number + 1
+    return 1
+
+def generate_unique_slug(title, article_number, exclude_pk=None):
+    """
+    Генерирует уникальный slug и article_number.
+    Формат slug: slugified(title)-article_number.
+    Если конфликт (slug или article_number), увеличивает article_number до уникальности.
+    Возвращает (slug, corrected_article_number).
+    """
+    if not title or article_number is None:
+        raise ValidationError("Название и артикул обязательны для генерации slug.")
+    
+    current_article = article_number
+    max_attempts = 10000  # Лимит для избежания бесконечного цикла
+    attempts = 0
+    
+    while attempts < max_attempts:
+        base_slug = slugify(f"{unidecode(title)}-{current_article}")
+        # Проверяем уникальность slug И article_number (исключая exclude_pk)
+        slug_exists = Product.objects.filter(slug=base_slug).exclude(pk=exclude_pk).exists()
+        article_exists = Product.objects.filter(article_number=current_article).exclude(pk=exclude_pk).exists()
+        
+        if not slug_exists and not article_exists:
+            return base_slug, current_article
+        
+        current_article += 1
+        attempts += 1
+    
+    raise ValidationError(f"Не удалось сгенерировать уникальный slug и article_number после {max_attempts} попыток.")
+
+def get_unique_article_number(start_article_number):
+    # Устарело: теперь интегрировано в generate_unique_slug
+    article_number = start_article_number
+    while Product.objects.filter(article_number=article_number).exists():
+        article_number += 1
+    return article_number
+
+def generate_unique_category_slug(name, exclude_pk=None):
+    # Без изменений, но добавьте лимит, если нужно
+    base_slug = slugify(unidecode(name))
+    queryset = Category.objects.filter(slug=base_slug)
+    if exclude_pk:
+        queryset = queryset.exclude(pk=exclude_pk)
+    if queryset.exists():
+        raise ValidationError("Такая категория уже существует.")
+    return base_slug
+
+# Определите CategorySerializer ПЕРВЫМ (перед ProductSerializer)
+class CategorySerializer(serializers.ModelSerializer):
+    parent = serializers.SerializerMethodField()  # Заменено на SerializerMethodField для рекурсии
+    parent_id = serializers.PrimaryKeyRelatedField(
+        queryset=Category.objects.all(), source='parent', write_only=True, required=False
+    )  # Для записи: передавать ID родителя
+
+    class Meta:
+        model = Category
+        fields = ['id', 'name', 'slug', 'image', 'parent', 'parent_id']  # Добавлен parent_id
+        read_only_fields = ['slug']
+
+    def get_parent(self, obj):
+        # Метод для SerializerMethodField: возвращает сериализованные данные родителя, если он есть
+        if obj.parent:
+            return CategorySerializer(obj.parent, context=self.context).data  # context для вложенных сериализаторов (например, для request)
+        return None
+
+    def validate(self, attrs):
+        parent = attrs.get('parent')  # Получаем объект parent из attrs (после обработки source='parent')
+        instance = getattr(self, 'instance', None)  # instance есть только в update
+        
+        if parent:
+            if instance and parent == instance:
+                raise serializers.ValidationError("Категория не может быть родителем самой себе.")
+            # Опционально: проверка на цикл (рекурсивно проверяем ancestors)
+            # Если parent имеет ancestors, и instance (или его descendants) в них — ошибка
+            # Но для простоты: если дерево плоское, это достаточно. Для глубоких деревьев используйте django-mptt.
+            current = parent
+            while current.parent:
+                if instance and current.parent == instance:
+                    raise serializers.ValidationError("Установка этого parent создаст цикл в иерархии.")
+                current = current.parent
+        
+        return attrs
+
+    def create(self, validated_data):
+        name = validated_data.get('name')
+        if not name:
+            raise serializers.ValidationError("Название категории обязательно.")
+        
+        # Генерируем slug и проверяем уникальность (exclude_pk=None для нового объекта)
+        slug = generate_unique_category_slug(name)
+        validated_data['slug'] = slug
+        
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        new_name = validated_data.get('name', instance.name)
+        
+        # Генерируем новый slug только если name изменилось, и проверяем уникальность (исключая текущую категорию)
+        if new_name != instance.name:
+            new_slug = generate_unique_category_slug(new_name, exclude_pk=instance.pk)
+            validated_data['slug'] = new_slug
+        
+        return super().update(instance, validated_data)
+
+
 
 class ProductImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductImage
         fields = ['image']
-
-class CategorySerializer(serializers.ModelSerializer):
-    image = serializers.ImageField(required=False)  # Добавлено для изображения категории
-
-    class Meta:
-        model = Category
-        fields = ['id', 'name', 'slug', 'parent', 'image']
+        extra_kwargs = {
+            'product': {'read_only': True},  # Продукт устанавливается автоматически
+        }
 
 class ProductSerializer(serializers.ModelSerializer):
-    # Кастомное поле для размеров и цен (read-only)
     sizes_and_prices = serializers.SerializerMethodField()
-    
-    # Вложенная сериализация категории
-    category = CategorySerializer(read_only=True)  # Вместо простого ID — объект категории
-    
-    # Nested для изображений (required=False для создания без изображений)
-    images = ProductImageSerializer(many=True, required=False)
+    category = CategorySerializer(read_only=True)
+    category_id = serializers.PrimaryKeyRelatedField(
+        queryset=Category.objects.all(), source='category', write_only=True, required=True
+    )
+    images = ProductImageSerializer(many=True, read_only=True)  # Сделано read_only — файлы обрабатываются вручную в views
 
     def get_sizes_and_prices(self, obj):
-        product_prices = obj.product_prices.all()
+        product_prices = obj.product_prices.all()  # Используем related_name='product_prices' из модели ProductPrice
         return [
-            {
-                'size': pp.size.title,
+            {   'size_id': pp.size.id,  # ID размера (для ссылок)
+                'size': pp.size.title,  # Название размера (строка)
                 'price': pp.price,
-                'old_price': pp.old_price if pp.old_price else None
+                'old_price': pp.old_price if pp.old_price else None,
+                'zacup_price': pp.zacup_price
             }
             for pp in product_prices
         ]
 
     def create(self, validated_data):
-        # Извлекаем nested изображения
-        images_data = validated_data.pop('images', [])
-        # Создаём продукт (без изображений)
-        product = Product.objects.create(**validated_data)
-        # Создаём связанные изображения
-        for image_data in images_data:
-            ProductImage.objects.create(product=product, **image_data)
-        return product
+        title = validated_data.get('title')
+        if not title:
+            raise serializers.ValidationError("Название продукта обязательно.")
+        
+        article_number = validated_data.get('article_number')
+        if article_number is None:
+            article_number = generate_article_number()
+        
+        # Генерируем slug и корректируем article_number
+        slug, corrected_article_number = generate_unique_slug(title, article_number)
+        validated_data['slug'] = slug
+        validated_data['article_number'] = corrected_article_number
+        
+        # Проверка уникальности article_number перед сохранением (защита от race condition)
+        if Product.objects.filter(article_number=corrected_article_number).exists():
+            raise serializers.ValidationError({"article_number": "Артикул уже занят."})
+        
+        return super().create(validated_data)
 
     def update(self, instance, validated_data):
-        # Извлекаем nested изображения
-        images_data = validated_data.pop('images', [])
-        # Обновляем основные поля продукта
-        for attr, value in validated_data.items():
-            setattr(instance, attr, value)
-        instance.save()
-        # Удаляем старые изображения и создаём новые (простая замена; можно улучшить для частичного обновления)
-        instance.images.all().delete()
-        for image_data in images_data:
-            ProductImage.objects.create(product=instance, **image_data)
-        return instance
+        new_title = validated_data.get('title', instance.title)
+        if not new_title:
+            raise serializers.ValidationError("Название продукта обязательно.")
+        
+        article_number = instance.article_number  # Фиксирован
+        
+        # Генерируем slug с текущим article_number
+        slug, _ = generate_unique_slug(new_title, article_number, exclude_pk=instance.pk)
+        validated_data['slug'] = slug
+        
+        # Fallback: если всё ещё конфликт (редко), добавляем суффикс
+        if Product.objects.filter(slug=slug).exclude(pk=instance.pk).exists():
+            base_slug = slug
+            counter = 1
+            while Product.objects.filter(slug=f"{base_slug}-{counter}").exclude(pk=instance.pk).exists():
+                counter += 1
+            validated_data['slug'] = f"{base_slug}-{counter}"
+        
+        return super().update(instance, validated_data)
 
     class Meta:
         model = Product
-        fields = '__all__'  # Включает все поля Product + кастомные (category, sizes_and_prices, images)
+        fields = [
+            'category',
+            'category_id',
+            'id',
+            'title',
+            'description',
+            'article_number',  # Может передаваться в create, генерируется автоматически если не передан
+            'stock',
+            'unit',
+            'is_hidden',
+            'mesto',
+            'created',
+            'updated',
+            'slug',  # Генерируется автоматически
+            'sizes_and_prices',
+            'images'  # Теперь read_only
+        ]
+        extra_kwargs = {
+            'slug': {'read_only': True},  # Не передаётся в input
+            'article_number': {'required': False},  # Не обязательно в create (генерируется автоматически), игнорируется в update
+        }
+        read_only_fields = []  # Убрал article_number и slug отсюда для гибкости
+
+
+
+
+
+
+
+
+
+
+
+
