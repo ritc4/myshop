@@ -60,15 +60,20 @@ import json
 
 class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = CategorySerializer
-    queryset = Category.objects.all()
+    queryset = Category.objects.select_related(
+        'parent', 
+        'parent__parent', 
+        'parent__parent__parent', 
+        'parent__parent__parent__parent'
+    ).prefetch_related('children').all()
     pagination_class = StandardPagination
     filter_backends = [SearchFilter]  # Включает поиск (можно добавить OrderingFilter для сортировки)
     search_fields = ['id','name', 'slug', 'parent_id']
 
 class ProductViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Product.objects.filter(is_hidden=False).prefetch_related(
-        'product_prices__size', 'images'  # Добавлено prefetch для изображений
-    ).select_related('category')
+    queryset = Product.objects.filter(is_hidden=False).select_related('category', 'category__parent').prefetch_related(
+        'product_prices__size', 'images'
+    )
     serializer_class = ProductSerializer
     pagination_class = StandardPagination
     filter_backends = [SearchFilter]  # Включает поиск (можно добавить OrderingFilter для сортировки)
@@ -76,7 +81,12 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class OrderViewSet(viewsets.ModelViewSet):
-    queryset = Order.objects.all().prefetch_related('items__product', 'items__size','delivery_method')  # Оптимизация, как в ваших views
+    queryset = Order.objects.select_related('delivery_method', 'discount').prefetch_related(
+        'items__product',
+        'items__size',
+        'items__product__product_prices__size',  # Prefetch цен с размерами
+        'items__product__images'  # Prefetch изображений
+    )
     serializer_class = OrderSerializer
     permission_classes = [IsAdminUser]
     pagination_class = StandardPagination

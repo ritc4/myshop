@@ -428,11 +428,43 @@ class OrderItemSerializer(serializers.ModelSerializer):
     size_title = serializers.CharField(source='size.title', read_only=True)
     product_id = serializers.IntegerField(write_only=True)
     size_id = serializers.IntegerField(write_only=True)
+    
+    
+    # Новое поле для изображений продукта
+    product_images = serializers.SerializerMethodField()
+    
+    # Поле для закупочной цены (метод модели)
+    product_zacup_price = serializers.SerializerMethodField()
+
+    # Поле для закупочной цены (метод модели)
+    product_mesto = serializers.SerializerMethodField()
+
+    def get_product_images(self, obj):
+        # Получаем request из контекста
+        request = self.context.get('request')
+        images = []
+        for img in obj.product.images.all():
+            if img.image:
+                # Если request доступен, строим абсолютный URL
+                if request:
+                    full_url = request.build_absolute_uri(img.image.url)
+                else:
+                    # Фallback на относительный URL (для тестов или других случаев)
+                    full_url = img.image.url
+                images.append(full_url)
+        return images  # Возвращаем список абсолютных URL
+
+    def get_product_zacup_price(self, obj):
+        # Возвращаем закупочную цену для текущего размера (из метода модели)
+        return obj.product_zacup_price()
+    
+    def get_product_mesto(self, obj):
+        return obj.product.mesto
 
     class Meta:
         model = OrderItem
-        fields = ['id', 'product_id', 'size_id', 'price', 'quantity', 'product_title', 'size_title']
-        read_only_fields = ['id', 'product_title', 'size_title']
+        fields = ['id', 'product_id', 'size_id', 'product_title', 'size_title','price', 'quantity', 'product_zacup_price', 'product_mesto', 'product_images']
+        read_only_fields = ['id', 'product_title', 'size_title', 'product_zacup_price','product_mesto', 'product_images']
 
     def validate(self, data):
         product_id = data.get('product_id')
@@ -468,7 +500,7 @@ class OrderSerializer(serializers.ModelSerializer):
     def get_discount_title(self, obj):
         if obj.discount:  # Проверяем, есть ли скидка
             return obj.discount.title  # Возвращаем title скидки
-        return None  # Или пустую строку: return "" — решите сами, что лучше для фронтенда
+        return None  
 
     def update(self, instance, validated_data):
         items_data = validated_data.pop('items', None)
