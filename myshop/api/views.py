@@ -44,9 +44,11 @@
 
 
 from rest_framework import generics
-from .serializers import ProductSerializer, CategorySerializer
+from rest_framework.filters import SearchFilter, OrderingFilter
+from .serializers import ProductSerializer, CategorySerializer, OrderSerializer
 from .pagination import StandardPagination
 from home.models import Product, Category, ProductPrice, Size, ProductImage  # Добавлен ProductImage
+from orders.models import Order
 from rest_framework import viewsets
 from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
@@ -60,6 +62,8 @@ class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = CategorySerializer
     queryset = Category.objects.all()
     pagination_class = StandardPagination
+    filter_backends = [SearchFilter]  # Включает поиск (можно добавить OrderingFilter для сортировки)
+    search_fields = ['id','name', 'slug', 'parent_id']
 
 class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Product.objects.filter(is_hidden=False).prefetch_related(
@@ -67,6 +71,19 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     ).select_related('category')
     serializer_class = ProductSerializer
     pagination_class = StandardPagination
+    filter_backends = [SearchFilter]  # Включает поиск (можно добавить OrderingFilter для сортировки)
+    search_fields = ['id','title', 'slug', 'article_number', 'mesto',]
+
+
+class OrderViewSet(viewsets.ModelViewSet):
+    queryset = Order.objects.all().prefetch_related('items__product', 'items__size','delivery_method')  # Оптимизация, как в ваших views
+    serializer_class = OrderSerializer
+    permission_classes = [IsAdminUser]
+    pagination_class = StandardPagination
+    filter_backends = [SearchFilter]  # Включает поиск (можно добавить OrderingFilter для сортировки)
+    search_fields = ['id', 'first_name_last_name', 'address', 'status', 'email', 'phone']
+    ordering = ['-created']
+
 
 # Создание продукта с ценами, размерами и изображениями
 class CreateProductView(APIView):
@@ -292,3 +309,41 @@ class DeleteCategoryView(APIView):
         return Response({'deleted': True}, status=status.HTTP_204_NO_CONTENT)
 
 
+
+
+
+
+
+
+
+
+class UpdateOrderView(APIView):
+    permission_classes = [IsAdminUser]  # Только админы
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
+
+    def get(self, request, pk):
+        order = get_object_or_404(Order.objects.prefetch_related('items__product', 'items__size'), pk=pk)
+        serializer = OrderSerializer(order)
+        return Response(serializer.data)
+
+    def put(self, request, pk):
+        order = get_object_or_404(Order.objects.prefetch_related('items__product', 'items__size'), pk=pk)
+        serializer = OrderSerializer(order, data=request.data, partial=True)  # partial=True для частичного обновления
+        if serializer.is_valid():
+            try:
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            except Exception as e:
+                return Response({"error": f"Ошибка при обновлении заказа: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class DeleteOrderView(APIView):
+    permission_classes = [IsAdminUser]  # Только админы
+
+    def delete(self, request, pk):
+        order = get_object_or_404(Order, pk=pk)
+        try:
+            order.delete()
+            return Response({"message": "Заказ удален"}, status=status.HTTP_204_NO_CONTENT)
+        except Exception as e:
+            return Response({"error": f"Ошибка при удалении заказа: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

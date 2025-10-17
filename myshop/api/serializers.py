@@ -211,6 +211,7 @@ from unidecode import unidecode
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError  # Добавлено
 from home.models import Category, Product, ProductImage, Size, ProductPrice  # Обновите импорты на основе ваших моделей
+from orders.models import Order, OrderItem, DeliveryMethod, Discount
 from django.utils.text import slugify
 
 def generate_article_number():
@@ -417,6 +418,80 @@ class ProductSerializer(serializers.ModelSerializer):
         }
         read_only_fields = []  # Убрал article_number и slug отсюда для гибкости
 
+
+
+
+
+
+class OrderItemSerializer(serializers.ModelSerializer):
+    product_title = serializers.CharField(source='product.title', read_only=True)
+    size_title = serializers.CharField(source='size.title', read_only=True)
+    product_id = serializers.IntegerField(write_only=True)
+    size_id = serializers.IntegerField(write_only=True)
+
+    class Meta:
+        model = OrderItem
+        fields = ['id', 'product_id', 'size_id', 'price', 'quantity', 'product_title', 'size_title']
+        read_only_fields = ['id', 'product_title', 'size_title']
+
+    def validate(self, data):
+        product_id = data.get('product_id')
+        size_id = data.get('size_id')
+        try:
+            product = Product.objects.get(id=product_id)
+            size = Size.objects.get(id=size_id)
+            # Проверяем, есть ли цена для этого размера
+            if not product.product_prices.filter(size=size).exists():
+                raise serializers.ValidationError("Цена для данного размера не найдена.")
+        except (Product.DoesNotExist, Size.DoesNotExist):
+            raise serializers.ValidationError("Продукт или размер не найден.")
+        return data
+
+class OrderSerializer(serializers.ModelSerializer):
+    items = OrderItemSerializer(many=True, required=False)  # Вложенные items для чтения/обновления
+    delivery_method_title = serializers.CharField(source='delivery_method.title', read_only=True)
+    discount_title = serializers.CharField(source='discount.__str__', read_only=True)
+
+    discount_title = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Order
+        fields = [
+            'id', 'first_name_last_name', 'email', 'phone', 'region', 'city', 'address', 'postal_code',
+            'passport_number', 'comment', 'my_comment', 'created', 'updated', 'paid', 'zamena_product',
+            'strahovat_gruz', 'soglasie_na_obrabotku_danyh', 'soglasie_na_uslovie_sotrudnichestva',
+            'status', 'delivery_method', 'delivery_method_title', 'price_delivery', 'discount', 'discount_title',
+            'items', 'get_total_cost'  # Добавлено для чтения общей стоимости
+        ]
+        read_only_fields = ['id', 'created', 'updated', 'get_total_cost']
+
+    def get_discount_title(self, obj):
+        if obj.discount:  # Проверяем, есть ли скидка
+            return obj.discount.title  # Возвращаем title скидки
+        return None  # Или пустую строку: return "" — решите сами, что лучше для фронтенда
+
+    def update(self, instance, validated_data):
+        items_data = validated_data.pop('items', None)
+        
+        # Обновляем поля Order
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        # Обновляем items: Полностью заменяем (как в примере с images)
+        if items_data is not None:
+            instance.items.all().delete()  # Удаляем старые
+            for item_data in items_data:
+                OrderItem.objects.create(order=instance, **item_data)
+        
+        return instance
+
+    def validate(self, data):
+        # Дополнительная валидация: Проверяем, что статус корректный
+        status = data.get('status')
+        if status and status not in dict(Order.STATUS_CHOICES):
+            raise serializers.ValidationError({"status": "Некорректный статус."})
+        return data
 
 
 

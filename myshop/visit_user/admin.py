@@ -175,7 +175,7 @@ class VisitAdmin(admin.ModelAdmin):
                 'view_refferer': average_view_refferer / stats['user_count'] if stats['user_count'] > 0 else 0
             })
 
-        print(visits_by_referrer)
+        # print(visits_by_referrer)
 
         return render(request, 'admin/visit_user/visits.html', {
             'visit_count': visit_count,

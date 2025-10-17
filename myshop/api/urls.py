@@ -2,13 +2,16 @@ from django.urls import include,path
 from .views import (
     ProductViewSet, 
     CategoryViewSet,
+    OrderViewSet,
     CreateProductView, 
     UpdateProductView, 
     DeleteProductView,
     CreateCategoryView,  # Если нужен CRUD для категорий
     UpdateCategoryView,
     DeleteCategoryView,
-    ) #ProductListView, ProductDetailView, CategoryListView,
+    UpdateOrderView,
+    DeleteOrderView
+    )
 
 from rest_framework import routers
 
@@ -18,6 +21,8 @@ app_name = 'product'
 router = routers.DefaultRouter()
 router.register('product', ProductViewSet)
 router.register('category', CategoryViewSet)
+router.register('order', OrderViewSet)
+
 
 urlpatterns = [
         
@@ -33,5 +38,9 @@ urlpatterns = [
         path('products/create/', CreateProductView.as_view(), name='product-create'),
         path('products/<int:pk>/update/', UpdateProductView.as_view(), name='product-update'),
         path('products/<int:pk>/delete/', DeleteProductView.as_view(), name='product-delete'),
+
+
+        path('order/<int:pk>/update/', UpdateOrderView.as_view(), name='update_order'),
+        path('order/<int:pk>/delete/', DeleteOrderView.as_view(), name='delete_order'),
 
         ]

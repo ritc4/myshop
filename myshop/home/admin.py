@@ -160,7 +160,7 @@ class ProductAdmin(admin.ModelAdmin):
 
     def duplicate_product(self, request, queryset):
         for product in queryset:
-            print(f"Дублируем продукт: {product.title}")
+            # print(f"Дублируем продукт: {product.title}")
             try:
                 # Получаем цены для исходного продукта
                 prices = product.product_prices.all()
@@ -173,11 +173,11 @@ class ProductAdmin(admin.ModelAdmin):
                 new_product.slug = self.generate_unique_slug(product.title, self.generate_unique_article_number(product.article_number))
                 new_product.article_number = self.generate_unique_article_number(product.article_number)
                 new_product.save()
-                print(f"Создан новый продукт: {new_product.title} с slug: {new_product.slug} и article_number: {new_product.article_number}")
+                # print(f"Создан новый продукт: {new_product.title} с slug: {new_product.slug} и article_number: {new_product.article_number}")
 
                 # Копируем цены из исходного продукта
                 for price in prices:
-                    print(f"Копируем цену: {price.price} для размера: {price.size.title}")
+                    # print(f"Копируем цену: {price.price} для размера: {price.size.title}")
                     new_price = ProductPrice()  # Создаем новый объект цены
                     new_price.price = price.price  # Копируем цену
                     new_price.size = price.size  # Копируем размер
@@ -185,7 +185,7 @@ class ProductAdmin(admin.ModelAdmin):
                     new_price.old_price = price.old_price  # Копируем old_price
                     new_price.product = new_product  # Привязываем цену к новому продукту
                     new_price.save()  # Сохраняем новый объект
-                    print(f"Создана новая цена: {new_price.price} для продукта: {new_product.title} с размером: {new_price.size.title}")
+                    # print(f"Создана новая цена: {new_price.price} для продукта: {new_product.title} с размером: {new_price.size.title}")
 
             except Exception as e:
                 print(f"Ошибка при дублировании продукта {product.title}: {e}")

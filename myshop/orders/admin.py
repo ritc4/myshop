@@ -308,8 +308,8 @@ class OrderAdmin(admin.ModelAdmin):
             client_data[email]['last_purchase'] = max(client_data[email]['last_purchase'], order.created)
 
         # Проверяем, есть ли собранные данные
-        if not client_data:
-            print("Нет данных о клиентах.")
+        # if not client_data:
+            # print("Нет данных о клиентах.")
 
         # Преобразуем данные в список и сортируем по total_spent
         top_clients = sorted(client_data.items(), key=lambda x: x[1]['total_spent'], reverse=True)[:100]
