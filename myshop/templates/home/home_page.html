@@ -1,5 +1,7 @@
-{% extends "base.html" %} {% load static %} 
-{% block title%}{{ title }}{% endblock %}
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
 
 {% block content %}
 
@@ -57,7 +59,6 @@
             </div>
         </div>
     </div>
-
 </section>
 
 <section class="featured-products">
@@ -80,7 +81,11 @@
           </div>
           <div class="product-thumb">
               <a href="{{ product.get_absolute_url }}">
-                  <img src="{{ first_image.0.image.url }}" alt="{{ product.title }}"/>
+                  {% if first_image %}
+                      <img src="{{ first_image.0.image.url }}" alt="{{ product.title }}"/>
+                  {% else %}
+                      <img src="{% static 'img/no_image.png' %}" alt="Нет изображения"/>
+                  {% endif %}
               </a>
           </div>
           <div class="product-details">
@@ -119,21 +124,20 @@
                               <span class="goodsModArtNumber">{{ product.article_number }}</span>
                           </div>
                           <div class="product-price product-price-category" id="price-display-{{ product.id }}">
-                            
-                            {% if cart_product_form.fields.size.choices %}
-                              {{ cart_product_form.fields.size.choices }}
+                              {% if cart_product_form.fields.size.choices %}
+                                  {{ cart_product_form.fields.size.choices.0.1 }} ₽  <!-- Начальная цена из первого варианта -->
                               {% else %}
-                                Цена не указана
+                                  Цена не указана
                               {% endif %}
                           </div>
-                          <form action="{% url 'cart:cart_add' product.id %}" method="post"> 
+                          <form action="{% url 'cart:cart_add' product.id %}" method="post" class="add-to-cart-form">
                               {% csrf_token %}
                               <div class="col-sm-5 quantity-product-modal">
                               <input name="quantity" type="number" class="form-control" value="{{ cart_product_form.quantity.value|default:1 }}" min="1"/>
                               </div>
                               <br>
                               <div class="col-sm-5 select-size">
-                                <label for="size-select_product_{{ product.id }}" class="form-label">Выбирите размер:</label>
+                                <label for="size-select_product_{{ product.id }}" class="form-label">Выберите размер:</label>
                               <select name="size" class="form-control custom-select" id="size-select_product_{{ product.id }}" aria-label="Выберите размер" {% if cart_product_form.fields.size.required %}required{% endif %}>
                                   {% for value, price in cart_product_form.fields.size.choices %}
                                       <option value="{{ value }}" {% if cart_product_form.size.value == value %}selected{% endif %} data-price="{{ price }}">{{ value }}</option>
@@ -174,5 +178,190 @@
     </div>
   </div>
 </section>
-<iframe id="map" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2867.757590022587!2d42.88130317635388!3d44.047062671086145!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x4057835f9db07e35%3A0x419b107960d50a58!2z0YPQuy4g0J7RgNC00LbQvtC90LjQutC40LTQt9C1LCA0NCwg0JXRgdGB0LXQvdGC0YPQutC4LCDQodGC0LDQstGA0L7Qv9C-0LvRjNGB0LrQuNC5INC60YDQsNC5LCAzNTc2MzU!5e0!3m2!1sru!2sru!4v1737808964578!5m2!1sru!2sru" width="100%" height="450" style="border:0; display:block;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></display:block>></iframe>
+<iframe id="map" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2867.757590022587!2d42.88130317635388!3d44.047062671086145!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x4057835f9db07e35%3A0x419b107960d50a58!2z0YPQuy4g0J7RgNC00LbQvtC90LjQutC40LTQt9C1LCA0NCwg0JXRgdGB0LXQvdGC0YPQutC4LCDQodGC0LDQstGA0L7Qv9C-0LvRjNGB0LrQuNC5INC60YDQsNC5LCAzNTc2MzU!5e0!3m2!1sru!2sru!4v1737808964578!5m2!1sru!2sru" width="100%" height="450" style="border:0; display:block;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+
+<!-- Toast-контейнер -->
+<div class="toast-container position-fixed top-0 end-0 p-3">
+  <div id="cart-toast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="toast-body" id="toast-message"></div>
+  </div>
+</div>
+
+<!-- Стили для toast (добавь в <head> или отдельный CSS-файл) -->
+<style>
+  .toast {
+    transition: opacity 0.5s ease; /* Скорость затухания (изменяй 0.5s на нужную, в секундах) */
+    z-index: 1050; /* Чтобы toast был поверх других элементов */
+  }
+  .toast.show {
+    transition: opacity 0.3s ease; /* Скорость появления */
+  }
+</style>
+
+<script src="{% static 'jquery/jquery-3.7.1.min.js' %}"></script>  <!-- Если не подключен глобально -->
+<script>
+  $(document).ready(function() {
+      // Функция для получения куки по имени (копия из header.html)
+      function getCookie(name) {
+          let cookieValue = null;
+          if (document.cookie && document.cookie !== '') {
+              const cookies = document.cookie.split(';');
+              for (let i = 0; i < cookies.length; i++) {
+                  const cookie = cookies[i].trim();
+                  if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                      cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                      break;
+                  }
+              }
+          }
+          return cookieValue;
+      }
+
+      // Настройка CSRF для AJAX (копия из header.html)
+      $.ajaxSetup({
+          beforeSend: function(xhr, settings) {
+              if (!/^(GET|HEAD|OPTIONS|TRACE)$/i.test(settings.type) && !this.crossDomain) {
+                  const csrftoken = getCookie('csrftoken');
+                  if (csrftoken) {
+                      xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                  } else {
+                      console.warn('CSRF cookie not found. Ensure {% csrf_token %} is present on the page.');
+                  }
+              }
+          }
+      });
+
+      const cartChannel = new BroadcastChannel('cart-updates');  // Канал для синхронизации
+
+      // Инициализируем toast с кастомной задержкой и скоростью затухания (delay для задержки перед скрытием, CSS для transition)
+      $('#cart-toast').toast({
+          delay: 2000  // Задержка перед началом затухания (2 секунды; изменяй по вкусу, в мс)
+      });
+
+      // Обработка форм добавления в корзину через AJAX
+      $('.add-to-cart-form').on('submit', function(e) {
+          e.preventDefault();  // Предотвращаем обычную отправку формы
+          var form = $(this);
+          var modalId = form.closest('.modal').attr('id');  // ID модального окна для закрытия
+          $.ajax({
+              url: form.attr('action'),
+              type: 'POST',
+              data: form.serialize(),
+              success: function(data) {
+                  if (data.success) {
+                      updateCartUI(data);  // Обновляем UI локально
+                      cartChannel.postMessage(data);  // Синхронизируем с другими страницами
+                      // Закрываем модальное окно
+                      $('#' + modalId).modal('hide');
+                      // Показываем toast-уведомление
+                      $('#toast-message').text(data.message || 'Товар добавлен в корзину!');
+                      $('#cart-toast').toast('show');
+                  } else {
+                      alert('Ошибка добавления в корзину: ' + (data.error || 'Неизвестная ошибка'));
+                  }
+              },
+              error: function(xhr) {
+                  if (xhr.status === 403) {
+                      alert('Ошибка CSRF: обновите страницу и попробуйте снова.');
+                  } else {
+                      alert('Ошибка отправки формы');
+                  }
+                  console.error('AJAX error:', arguments);
+              }
+          });
+      });
+
+      // Функция обновления UI (копия из header.html, адаптированная)
+      function updateCartUI(data) {
+          if (data.cart_item_count !== undefined) {
+              var total = data.cart_item_count;
+              var text = data.pluralized_text || (total > 0 ? total + ' товар' : '');
+              $('#cart-item-count').html(text ? text : '');
+              if (total === 0) {
+                  $('.cart-badge').addClass('d-none');
+              } else {
+                  $('.cart-badge').removeClass('d-none');
+              }
+              console.log('Корзина обновлена: ' + total + ' товаров');
+          }
+          
+          // Всегда обновляем заголовок офканваса
+          var titleText = data.pluralized_text ? 'В корзине: ' + data.pluralized_text : 'Ваша корзина пуста.';
+          $('#offcanvasCartLabel').text(titleText);
+          
+          // Обновляем содержимое офканваса, если оно предоставлено
+          if (data.html_offcanvas) {
+              $('#offcanvasCart .offcanvas-body').html(data.html_offcanvas);
+              attachCartHandlers();  // Если есть формы в офканвасе
+          }
+      }
+
+      // Слушаем сообщения от других страниц (копия из header.html)
+      cartChannel.onmessage = function(event) {
+          updateCartUI(event.data);
+      };
+
+      // Функция attachCartHandlers (если нужно для офканваса, копия из header.html)
+      function attachCartHandlers() {
+          $('.offcanvas-update-form, .offcanvas-remove-form').off('submit').on('submit', function(e) {
+              e.preventDefault();
+              var form = $(this);
+              $.ajax({
+                  url: form.attr('action'),
+                  type: 'POST',
+                  data: form.serialize(),
+                  success: function(data) {
+                      if (data.success) {
+                          updateCartUI(data);
+                          cartChannel.postMessage(data);
+                      } else {
+                          alert('Ошибка обновления корзины: ' + (data.error || 'Неизвестная ошибка'));
+                      }
+                  },
+                  error: function(xhr) {
+                      if (xhr.status === 403) {
+                          alert('Ошибка CSRF: обновите страницу и попробуйте снова.');
+                      } else {
+                          alert('Ошибка обновления корзины');
+                      }
+                      console.error('AJAX error in cart update:', arguments);
+                  }
+              });
+          });
+      }
+
+      // Обработчик изменения размера для динамического обновления цены в модальном окне
+      $('select[id^="size-select_product_"]').on('change', function() {
+          var selectedOption = $(this).find('option:selected');
+          var price = selectedOption.data('price');  // Предполагаем, что в <option> есть data-price="цена"
+          var productId = $(this).attr('id').split('_').pop();  // Извлекаем product.id из ID селекта
+          if (price !== undefined) {
+              $('#price-display-' + productId).text(price + ' ₽');  // Обновляем отображение цены
+          }
+      });
+
+      // Инициализация цены для всех модальных окон при загрузке страницы
+      $('select[id^="size-select_product_"]').each(function() {
+          $(this).trigger('change');  // Триггерим change для установки начальной цены
+      });
+
+      // Обработчик для перемещения фокуса при начале закрытия модала (исправляет aria-hidden ошибку)
+      $('.modal').on('hide.bs.modal', function() {
+          var triggerButton = $(this).data('triggerButton');
+          if (triggerButton) {
+              triggerButton.focus();  // Перемещаем фокус на кнопку, открывшую модал, ДО применения aria-hidden
+          }
+      });
+
+      // Сохраняем кнопку-триггер при открытии модала
+      $('.add-to-cart').on('click', function() {
+          var modalId = $(this).data('bs-target');
+          $(modalId).data('triggerButton', $(this));
+      });
+
+      // Вызываем attachCartHandlers при загрузке страницы, если офканвас открыт или содержит формы
+      attachCartHandlers();
+  });
+</script>
+
 {% endblock %}

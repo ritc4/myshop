@@ -1,0 +1,46 @@
+version: '3.8'
+services:
+  web:
+    build: .
+    command: python myshop/manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - rabbitmq  # Добавлено
+    environment:
+      - DEBUG=1
+      - DATABASE_URL=postgresql://user:pass@db:5432/myshop
+      - CELERY_BROKER_URL=amqp://guest:guest@rabbitmq:5672//
+  db:
+  image: postgres:17  # Вместо postgres:13
+  environment:
+    POSTGRES_DB: myshop
+    POSTGRES_USER: user
+    POSTGRES_PASSWORD: pass
+  volumes:
+    - postgres_data:/var/lib/postgresql/data
+  ports:
+    - "5432:5432"
+  rabbitmq:  # Новый сервис для RabbitMQ
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"  # AMQP
+      - "15672:15672"  # Web-интерфейс (http://localhost:15672, логин/пароль: guest/guest)
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+  celery:  # Новый сервис для Celery worker
+    build: .
+    command: celery -A myshop worker --loglevel=info  # myshop - ваш Celery app
+    volumes:
+      - .:/app
+    depends_on:
+      - db
+      - rabbitmq
+    environment:
+      - CELERY_BROKER_URL=amqp://guest:guest@rabbitmq:5672//
+volumes:
+  postgres_data:
+  rabbitmq_data:  # Новый volume для RabbitMQ

@@ -82,27 +82,27 @@
               <div class="row">
                 {% for product, cart_product_form in cart_product_form %}
                 
-                {% with first_image=product.images.all|slice:":1" %}
-                <div class="col-6 col-xl-3 col-lg-4 col-md-6 col-sm-6 mb-3">
-                    <div class="product-card">
-                        <div class="product-card-offer">
-                            <!-- <div class="offer-hit">Hit</div>
-                            <div class="offer-new">New</div> -->
-                        </div>
-                        <div class="product-thumb">
-                            <a href="{{ product.get_absolute_url }}">
-                                {% if first_image %}
-                                    <img src="{{ first_image.0.image.url }}" alt="{{ product.title }}"/>
-                                {% else %}
-                                    <img src="{% static 'img/no_image.png' %}" alt="Нет изображения"/>
-                                {% endif %}
-                            </a>
-                        </div>
-                        <div class="product-details">
-                            <h4>
-                                <a href="{{ product.get_absolute_url }}">{{ product.title }}</a>
-                            </h4>
-                            <div class="product-bottom-details d-flex justify-content-between align-items-center">
+                {% with first_image=product.images.all|first %}
+                    <div class="col-6 col-xl-3 col-lg-4 col-md-6 col-sm-6 mb-3">
+                        <div class="product-card">
+                            <div class="product-card-offer">
+                                <!-- <div class="offer-hit">Hit</div>
+                                <div class="offer-new">New</div> -->
+                            </div>
+                            <div class="product-thumb">
+                                <a href="{{ product.get_absolute_url }}">
+                                    {% if first_image and first_image.image %}  <!-- Проверяем, что объект существует И файл есть -->
+                                        <img src="{{ first_image.image.url }}" alt="{{ product.title }}"/>
+                                    {% else %}
+                                        <img src="{% static 'img/no_image.png' %}" alt="Нет изображения"/>
+                                    {% endif %}
+                                </a>
+                            </div>
+                            <div class="product-details">
+                                <h4>
+                                    <a href="{{ product.get_absolute_url }}">{{ product.title }}</a>
+                                </h4>
+                                <div class="product-bottom-details d-flex justify-content-between align-items-center">
                                 <div class="product-price">
                                     {% if product.min_price %}
                                         {{ product.min_price }} ₽
