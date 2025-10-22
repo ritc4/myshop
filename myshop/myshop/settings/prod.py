@@ -2,17 +2,23 @@ from .base import *
 from decouple import config
 
 DEBUG = False
-ADMINS = [('Antonio M', 'email@mydomain.com'),]
-ALLOWED_HOSTS = ['*']
-# ALLOWED_HOSTS = ['cozy.su', 'www.cozy.su']
+ADMINS = [('Kuksin Alexandr', 'ritc4@rambler.ru'),]
+ALLOWED_HOSTS = ['cozy.su', 'www.cozy.su']
+
+
+# Безопасность
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+SECURE_SSL_REDIRECT = True
+
 
 DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
-            'NAME': config('DB_NAME'),
-            'USER': config('DB_USER'),
-            'PASSWORD': config('DB_PASSWORD'),
-            'HOST': config('DB_HOST', default='db'),  # Изменено на config для гибкости (по умолчанию 'db')
+            'NAME': config('POSTGRES_DB'),
+            'USER': config('POSTGRES_USER'),
+            'PASSWORD': config('POSTGRES_PASSWORD'),
+            'HOST': config('POSTGRES_HOST', default='db'),  # Изменено на config для гибкости (по умолчанию 'db')
             'PORT': 5432,
         }
     }

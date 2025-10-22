@@ -1,111 +1,50 @@
-# version: '3.8'
-# services:
-#   web:
-#     build: .
-#     command: python myshop/manage.py runserver 0.0.0.0:8000
-#     volumes:
-#       - .:/app
-#     ports:
-#       - "8000:8000"
-#     depends_on:
-#       - db
-#       - rabbitmq  # Добавлено
-#     environment:
-#       - DEBUG=1
-#       - DATABASE_URL=postgresql://user:pass@db:5432/myshop
-#       - CELERY_BROKER_URL=amqp://guest:guest@rabbitmq:5672//
-#   db:
-#   image: postgres:17  # Вместо postgres:13
-#   environment:
-#     POSTGRES_DB: myshop
-#     POSTGRES_USER: user
-#     POSTGRES_PASSWORD: pass
-#   volumes:
-#     - postgres_data:/var/lib/postgresql/data
-#   ports:
-#     - "5432:5432"
-#   rabbitmq:  # Новый сервис для RabbitMQ
-#     image: rabbitmq:3-management
-#     ports:
-#       - "5672:5672"  # AMQP
-#       - "15672:15672"  # Web-интерфейс (http://localhost:15672, логин/пароль: guest/guest)
-#     volumes:
-#       - rabbitmq_data:/var/lib/rabbitmq
-#   celery:  # Новый сервис для Celery worker
-#     build: .
-#     command: celery -A myshop worker --loglevel=info  # myshop - ваш Celery app
-#     volumes:
-#       - .:/app
-#     depends_on:
-#       - db
-#       - rabbitmq
-#     environment:
-#       - CELERY_BROKER_URL=amqp://guest:guest@rabbitmq:5672//
-# volumes:
-#   postgres_data:
-#   rabbitmq_data:  # Новый volume для RabbitMQ
-
-
-
-
-# services:
-#   db:
-#     image: postgres:16.2
-#     restart: always
-#     volumes:
-#       - ./data/db:/var/lib/postgresql/data
-#     environment:
-#       - POSTGRES_DB=postgres
-#       - POSTGRES_USER=postgres
-#       - POSTGRES_PASSWORD=postgres
-#   web:
-#     build: .
-#     command: ["./wait-for-it.sh", "db:5432", "--","python", "/app/myshop/manage.py", "runserver","0.0.0.0:8000"]
-#     restart: always
-#     volumes:
-#       - .:/code
-#     ports:
-#       - "8000:8000"
-#     env_file: .env
-#     environment:
-#       - DJANGO_SETTINGS_MODULE=myshop.settings.prod
-#       - POSTGRES_DB=postgres
-#       - POSTGRES_USER=postgres
-#       - POSTGRES_PASSWORD=postgres
-#     depends_on:
-#       - db
-
-
-name: myshop
-
 services:
   db:
     image: postgres:16.2
     restart: always
     volumes:
       - ./data/db:/var/lib/postgresql/data
-    environment:
-      - POSTGRES_DB=myshop
-      - POSTGRES_USER=myshop
-      - POSTGRES_PASSWORD=r12345ws
+    env_file: .env
+  rabbitmq:
+    image: rabbitmq:management
+    restart: always
+    volumes:
+      - ./data/rabbitmq:/var/lib/rabbitmq
+    env_file: .env
   web:
     build: .
+    image: r162809ws/myshop-web:${TAG:-latest}
     command: ["./wait-for-it.sh", "db:5432", "--", "sh", "-c", "python myshop/manage.py migrate && python myshop/manage.py collectstatic --noinput && uwsgi --ini /app/config/uwsgi/uwsgi.ini"]
     restart: always
     volumes:
-      - .:/app  # Исправлено для соответствия WORKDIR /app
-    ports:
-      - "8000:8000"
+      - .:/app
     env_file: .env  # Загружает все переменные из .env
     environment:
       - DJANGO_SETTINGS_MODULE=myshop.settings.prod  # Только не-чувствительные переменные
     depends_on:
       - db
-  ginx:
+      - rabbitmq
+  celery:
+    build: .
+    image: r162809ws/myshop-web:${TAG:-latest}
+    command: ["./wait-for-it.sh", "db:5432", "--", "./wait-for-it.sh", "rabbitmq:5672", "--", "celery", "-A", "myshop:celery_app", "worker", "--loglevel=info"]
+    restart: always
+    volumes:
+      - .:/app
+    env_file: .env
+    environment:
+      - DJANGO_SETTINGS_MODULE=myshop.settings.prod
+    depends_on:
+      - db
+      - rabbitmq
+  nginx:
     image: nginx:1.25.5
     restart: always
     volumes:
       - ./config/nginx:/etc/nginx/templates
       - .:/app
+      
     ports:
       - "80:80"
+      - "443:443"
+
