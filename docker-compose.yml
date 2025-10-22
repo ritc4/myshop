@@ -18,24 +18,24 @@ services:
     restart: always
     volumes:
       - .:/app
-    env_file: .env  # Загружает все переменные из .env
-    environment:
-      - DJANGO_SETTINGS_MODULE=myshop.settings.prod  # Только не-чувствительные переменные
-    depends_on:
-      - db
-      - rabbitmq
-  celery:
-    build: .
-    image: r162809ws/myshop-web:${TAG:-latest}
-    command: ["./wait-for-it.sh", "db:5432", "--", "./wait-for-it.sh", "rabbitmq:5672", "--", "celery", "-A", "myshop:celery_app", "worker", "--loglevel=info"]
-    restart: always
-    volumes:
-      - .:/app
     env_file: .env
     environment:
       - DJANGO_SETTINGS_MODULE=myshop.settings.prod
     depends_on:
       - db
+      - rabbitmq
+  celery:
+    image: r162809ws/myshop-web:latest
+    command: celery -A myshop worker -l info
+    environment:
+      - DJANGO_SETTINGS_MODULE=myshop.settings.prod
+      - PYTHONPATH=/app
+    volumes:
+      - ./myshop:/app
+    env_file: .env
+    depends_on:
+      - db
+      - web
       - rabbitmq
   nginx:
     image: nginx:1.25.5
