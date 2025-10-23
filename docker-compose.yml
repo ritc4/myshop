@@ -5,12 +5,22 @@ services:
     volumes:
       - ./data/db:/var/lib/postgresql/data
     env_file: .env
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
   rabbitmq:
     image: rabbitmq:management
     restart: always
     volumes:
       - ./data/rabbitmq:/var/lib/rabbitmq
     env_file: .env
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
   web:
     build: .
     image: r162809ws/myshop-web:${TAG:-latest}
@@ -22,29 +32,58 @@ services:
     environment:
       - DJANGO_SETTINGS_MODULE=myshop.settings.prod
     depends_on:
-      - db
-      - rabbitmq
+      db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
   celery:
     image: r162809ws/myshop-web:latest
-    command: celery -A myshop worker -l info
+    command: celery -A myshop worker -l info --hostname=celery-worker
     environment:
       - DJANGO_SETTINGS_MODULE=myshop.settings.prod
-      - PYTHONPATH=/app
-    volumes:
-      - ./myshop:/app
+      - PYTHONPATH=/app/myshop
     env_file: .env
     depends_on:
-      - db
-      - web
-      - rabbitmq
+      db:
+        condition: service_healthy
+      web:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
   nginx:
     image: nginx:1.25.5
     restart: always
     volumes:
       - ./config/nginx:/etc/nginx/templates
       - .:/app
-      
+    env_file: .env
     ports:
       - "80:80"
       - "443:443"
+    depends_on:
+      web:
+        condition: service_started
+      flower:
+        condition: service_started
+  flower:
+    image: r162809ws/myshop-web:latest
+    env_file: .env
+    command: celery -A myshop flower --url-prefix=/flower --hostname=flower
+    environment:
+      - DJANGO_SETTINGS_MODULE=myshop.settings.prod
+      - PYTHONPATH=/app/myshop
+    depends_on:
+      celery:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5555/flower/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+
+
 
