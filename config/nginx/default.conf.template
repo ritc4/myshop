@@ -4,15 +4,15 @@ upstream uwsgi_app {
     }
 
 server {
-    listen 80;
+    listen 80 default_server;
     server_name www.cozy.su cozy.su;
     return 301 https://$host$request_uri;
     }
 
 server {
-    listen 443 ssl;
-    ssl_certificate /app/ssl/myshop.crt;
-    ssl_certificate_key /app/ssl/myshop.key;
+    listen 443 ssl default_server;
+    ssl_certificate /run/secrets/myshop.crt;
+    ssl_certificate_key /run/secrets/myshop.key;
     server_name www.cozy.su cozy.su;
 
     location / {

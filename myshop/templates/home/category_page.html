@@ -177,8 +177,16 @@
                                     <a class="page-link" href="?slug={{ category.slug }}&page={{ page_obj.previous_page_number }}&per_page={{ per_page }}&sort={{ request.GET.sort }}">Назад</a>
                                 </li>
                             {% endif %}
-            
-                            {% for num in page_obj.paginator.page_range %}
+              
+                            <!-- Показываем "Первую" с "..." если диапазон обрезан слева -->
+                            {% if show_first %}
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            {% endif %}
+              
+                            <!-- Цикл по ограниченному диапазону (вместо полного page_range) -->
+                            {% for num in page_range %}
                                 {% if page_obj.number == num %}
                                     <li class="page-item active" aria-current="page">
                                         <a class="page-link" href="#">{{ num }}</a>
@@ -189,7 +197,14 @@
                                     </li>
                                 {% endif %}
                             {% endfor %}
-            
+              
+                            <!-- Показываем "Последнюю" с "..." если диапазон обрезан справа -->
+                            {% if show_last %}
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                            {% endif %}
+              
                             {% if page_obj.has_next %}
                                 <li class="page-item">
                                     <a class="page-link" href="?slug={{ category.slug }}&page={{ page_obj.next_page_number }}&per_page={{ per_page }}&sort={{ request.GET.sort }}">Вперёд</a>

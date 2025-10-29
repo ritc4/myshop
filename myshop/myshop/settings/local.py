@@ -1,20 +1,20 @@
 from .base import *
 from decouple import config
 
-DEBUG = False
+DEBUG = True
 ADMINS = [('Kuksin Alexandr', 'ritc4@rambler.ru'),]
 ALLOWED_HOSTS = []
 
 DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': config('POSTGRES_DB'),
-            'USER': config('POSTGRES_USER'),
-            'PASSWORD': config('POSTGRES_PASSWORD'),
-            'HOST': config('POSTGRES_HOST', default='db'),  # Изменено на config для гибкости (по умолчанию 'db')
-            'PORT': 5432,
-        }
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': config('POSTGRES_DB'),
+        'USER': config('POSTGRES_USER'),
+        'PASSWORD': config('POSTGRES_PASSWORD'),
+        'HOST': 'localhost',
+        'PORT': 5432,
     }
+}
 
 
 # Конфигурация сервера электронной почты

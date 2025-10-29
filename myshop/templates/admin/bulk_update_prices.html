@@ -1,0 +1,21 @@
+{% extends "admin/base_site.html" %}
+{% load admin_urls %}
+
+{% block content %}
+<div class="module">
+    <form method="post">
+        {% csrf_token %}
+        <table>
+            {{ form.as_table }}
+        </table>
+        <input type="hidden" name="action" value="bulk_update_prices" />
+        {% for obj in queryset %}
+            <input type="hidden" name="{{ action_checkbox_name }}" value="{{ obj.pk }}" />
+        {% endfor %}
+        <div class="submit-row">
+            <input type="submit" name="apply" value="Применить" />
+            <a href="{% url 'admin:home_product_changelist' %}" class="button">Отмена</a>  <!-- 'home' — замените на ваше app_label -->
+        </div>
+    </form>
+</div>
+{% endblock %}

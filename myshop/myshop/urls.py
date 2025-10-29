@@ -35,6 +35,7 @@ urlpatterns = [
     path('', include('home.urls')),
     path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='sitemap'),
     path('api/', include('api.urls', namespace='api')),
+    path('captcha/', include('captcha.urls')),
         ]
 
 

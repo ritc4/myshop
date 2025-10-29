@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import AuthenticationForm,UserCreationForm, PasswordChangeForm
+from captcha.fields import CaptchaField
 
 class LoginUserForm(AuthenticationForm):
     username = forms.CharField(
@@ -22,9 +23,14 @@ class LoginUserForm(AuthenticationForm):
         })
     )
 
+    # Добавляем CAPTCHA поле
+    captcha = CaptchaField(
+        label='Введите текст с картинки'  # Метка для поля
+    )
+
     class Meta:
         model = get_user_model()
-        fields = ['username', 'password']
+        fields = ['username', 'password', 'captcha']
 
 class RegisterUserForm(UserCreationForm):  
     username = forms.CharField(
@@ -82,9 +88,14 @@ class RegisterUserForm(UserCreationForm):
         })
     )
 
+    # Добавляем CAPTCHA поле
+    captcha = CaptchaField(
+        label='Введите текст с картинки'  # Метка для поля
+    )
+
     class Meta:
         model = get_user_model()
-        fields = ['username', 'first_name','email', 'phone', 'password1', 'password2']
+        fields = ['username', 'first_name','email', 'phone', 'password1', 'password2', 'captcha']
 
         
     def clean_email (self):

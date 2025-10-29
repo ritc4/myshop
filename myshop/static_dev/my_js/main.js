@@ -70,11 +70,6 @@ $(document).ready(function () {
       $passportNumberCol.hide(); // Скрываем блок passport_number
       $postalCodeInput.attr('required', 'required'); // Устанавливаем поле postal_code обязательным
       $passportNumberInput.removeAttr('required'); // Убираем обязательность для passport_number
-    } else if (selectedText === "ТК энергия") { // Проверяем, выбран ли способ доставки "ТК"
-      $passportNumberCol.show(); // Показываем блок passport_number
-      $postalCodeCol.hide(); // Скрываем блок postal_code
-      $passportNumberInput.attr('required', 'required'); // Устанавливаем поле passport_number обязательным
-      $postalCodeInput.removeAttr('required'); // Убираем обязательность для postal_code
     } else {
       $postalCodeCol.hide(); // Скрываем блок postal_code
       $passportNumberCol.hide(); // Скрываем блок passport_number

@@ -53,9 +53,18 @@ INSTALLED_APPS = [
     'django_ckeditor_5',
     'django.contrib.postgres',
     'rest_framework',
+    'captcha',
     
 ]
 
+
+# # Опциональные настройки для captcha (можно добавить в settings)
+# CAPTCHA_FONT_SIZE = 22  # Размер шрифта
+# CAPTCHA_IMAGE_SIZE = (200, 50)  # Размер изображения
+# CAPTCHA_LENGTH = 5  # Длина текста капчи
+# CAPTCHA_BACKGROUND_COLOR = '#ffffff'  # Фон
+# CAPTCHA_FOREGROUND_COLOR = '#001100'  # Цвет текста
+# CAPTCHA_NOISE_FUNCTIONS = ('captcha.helpers.noise_arcs', 'captcha.helpers.noise_dots')  # Шум
 
 
 REST_FRAMEWORK = {

@@ -20,3 +20,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Копировать весь исходный код проекта (после зависимостей, чтобы изменения кода не пересчитывали pip)
 COPY . .
 
+# Теперь директория /app/myshop/ существует — меняем права
+RUN chown -R www-data:www-data /app/myshop/

@@ -10,3 +10,4 @@ media/
 *.log
 data/db/
 ssl/
+./data/

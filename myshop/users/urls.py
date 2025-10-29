@@ -19,4 +19,4 @@ urlpatterns = [
     path('register/', RegisterUser.as_view(), name='register'),
     path('profile/', ProfileUser.as_view(), name='profile'),
     path('order/<int:pk>/', OrderDetailView.as_view(), name='order_detail'),
-    ]
+    ] 

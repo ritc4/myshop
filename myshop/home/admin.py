@@ -1,59 +1,18 @@
 from django.contrib import admin
-from mptt.admin import MPTTModelAdmin
 from mptt.admin import DraggableMPTTAdmin
 from .models import Category,Size,Product,ProductImage,ProductPrice,News,SizeTable,Uslovie_firm,Politica_firm,ImageSliderHome,DeliveryInfo,Review,ReviewImage
 from django.utils.safestring import mark_safe
 from slugify import slugify
 from django.utils.html import format_html
 from django import forms
-
-
-
-
-
-class ProductPriceAdminForm(forms.ModelForm):
-    new_sale_price = forms.DecimalField(label='Новая цена продажи', max_digits=20, decimal_places=0, required=False)
-    new_purchase_price = forms.DecimalField(label='Новая цена закупки', max_digits=20, decimal_places=0, required=False)
-    new_old_price = forms.DecimalField(label='Новая старая цена', max_digits=20, decimal_places=0, required=False)
-
-    class Meta:
-        model = ProductPrice
-        fields = '__all__'
-        
-
-    def save(self, commit=True):
-        # Получаем текущий объект продукта
-        product = self.instance.product
-
-        # Обновляем текущую запись
-        if self.cleaned_data['new_sale_price'] is not None:
-            self.instance.price = self.cleaned_data['new_sale_price']
-        if self.cleaned_data['new_purchase_price'] is not None:
-            self.instance.zacup_price = self.cleaned_data['new_purchase_price']
-        if self.cleaned_data['new_old_price'] is not None:
-            self.instance.old_price = self.cleaned_data['new_old_price']
-
-        # Сохраняем текущую запись
-        if commit:
-            self.instance.save()
-
-        # Обновляем остальные записи
-        prices_to_update = []
-        for price_entry in product.product_prices.exclude(id=self.instance.id):  # Исключаем текущую запись
-            if self.cleaned_data['new_sale_price'] is not None:
-                price_entry.price = self.cleaned_data['new_sale_price']
-            if self.cleaned_data['new_purchase_price'] is not None:
-                price_entry.zacup_price = self.cleaned_data['new_purchase_price']
-            if self.cleaned_data['new_old_price'] is not None:
-                price_entry.old_price = self.cleaned_data['new_old_price']
-
-            prices_to_update.append(price_entry)
-
-        # Обновляем все записи в одном запросе
-        if prices_to_update:
-            ProductPrice.objects.bulk_update(prices_to_update, ['price', 'zacup_price', 'old_price'])
-
-        return super().save(commit)
+from django.contrib.admin.views.decorators import staff_member_required
+from django.utils.translation import ngettext
+from django.contrib import messages
+from django.http import HttpResponseRedirect
+from django.shortcuts import render
+from django.urls import path, reverse
+from django.utils.decorators import method_decorator
+from django.utils.safestring import mark_safe
 
 
 
@@ -91,27 +50,43 @@ class ProductPriceAdmin(admin.ModelAdmin):
 
 
 class ProductPriceInline(admin.TabularInline):
-    form = ProductPriceAdminForm
+    # form = ProductPriceAdminForm
     model = ProductPrice
     extra = 1  # Количество пустых форм для добавления новых записей
-    fields = ('size', 'price','zacup_price','old_price','new_sale_price', 'new_purchase_price','new_old_price')
+    fields = ('size', 'price','zacup_price','old_price')
 
     
     def get_queryset(self, request):
         queryset = super().get_queryset(request).select_related('product').prefetch_related('size')  # Это загружает размер вместе с ценами
         return queryset
-    
+
+
+
+# Форма для массового обновления цен (исправлено: zacup_price вместо zakup_price)
+class BulkUpdatePricesForm(forms.Form):
+    price = forms.DecimalField(label='Новая цена продажи', required=False, max_digits=10, decimal_places=0, help_text='Оставьте пустым, чтобы не менять')
+    old_price = forms.DecimalField(label='Новая старая цена', required=False, max_digits=10, decimal_places=0, help_text='Оставьте пустым, чтобы не менять')
+    zacup_price = forms.DecimalField(label='Новая цена закупки', required=False, max_digits=10, decimal_places=0, help_text='Оставьте пустым, чтобы не менять')
+
+
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     inlines = [ProductImageInline, ProductPriceInline]  # Подключаем инлайн для изображений
-    list_display = ('get_image','title', 'article_number','stock','description','display_price','display_zacup_price','display_old_price', 'unit','is_hidden','category','mesto')  # Отображение полей продукта в админке
+    list_display = ('get_image','title', 'article_number','stock','display_description','display_price','display_zacup_price','display_old_price', 'unit','is_hidden','category','mesto')  # Отображение полей продукта в админке
     list_filter = ('is_hidden','category','created','updated','mesto')
     prepopulated_fields = {'slug':('title','article_number',)}
-    search_fields = ['title','article_number','description']  # Позволяет искать продукты по названию
+    search_fields = ['title','article_number','display_description',]  # Позволяет искать продукты по названию
     list_editable = ['is_hidden','mesto']
-    actions = ['hide_products', 'show_products','duplicate_product']
+    actions = ['hide_products', 'show_products','duplicate_product','change_category','bulk_update_prices'] 
     list_display_links=['get_image','title',]
+
+
+    def display_description(self, obj):
+        # Рендерим HTML из description, чтобы <br /> превращались в реальные переносы строк
+        return mark_safe(obj.description) if obj.description else ''
+    
+    display_description.short_description = 'Описание'
 
 
 
@@ -155,6 +130,38 @@ class ProductAdmin(admin.ModelAdmin):
     display_price.short_description = 'Обычная цена'
     display_zacup_price.short_description = 'Закупочная цена'
     display_old_price.short_description = 'Старая цена'
+
+
+    # Новый action для массового обновления цен
+    # Исправленный action для массового обновления цен
+    def bulk_update_prices(self, request, queryset):
+        if 'apply' in request.POST:
+            form = BulkUpdatePricesForm(request.POST)
+            if form.is_valid():
+                updates = {k: v for k, v in form.cleaned_data.items() if v is not None}
+                if updates:
+                    updated_count = 0
+                    for product in queryset:
+                        # Обновляем все связанные ProductPrice для продукта
+                        count = ProductPrice.objects.filter(product=product).update(**updates)
+                        updated_count += count
+                    if updated_count > 0:
+                        self.message_user(request, f'Обновлено {updated_count} записей цен для {queryset.count()} продуктов.', messages.SUCCESS)
+                    else:
+                        self.message_user(request, 'Не найдено записей для обновления (возможно, продукты без размеров).', messages.WARNING)
+                else:
+                    self.message_user(request, 'Не указаны поля для обновления.', messages.WARNING)
+                return HttpResponseRedirect(request.get_full_path())
+        else:
+            form = BulkUpdatePricesForm()
+        return render(request, 'admin/bulk_update_prices.html', {
+            'title': 'Массовое обновление цен',
+            'form': form,
+            'queryset': queryset,
+            'opts': self.model._meta,
+            'action_checkbox_name': admin.helpers.ACTION_CHECKBOX_NAME,
+        })
+    bulk_update_prices.short_description = 'Массово обновить цены'
 
     
 
@@ -224,13 +231,6 @@ class ProductAdmin(admin.ModelAdmin):
     
 
 
-    # def get_image(self, obj):
-    #     first_image = obj.images.first()
-    #     if first_image:
-    #         return mark_safe(f"<img src='{first_image.image.url}' width='50'>")
-    #     return 'Нет фото'
-    # get_image.short_description = "Фото"
-
     def get_image(self, obj):
         images = obj.images.all()  # Уже предзагружены благодаря prefetch_related
         if images:
@@ -239,6 +239,57 @@ class ProductAdmin(admin.ModelAdmin):
                 return mark_safe(f"<img src='{first_image.image.url}' width='50'>")
         return 'Нет фото'
     get_image.short_description = 'Фото товара'
+
+
+
+    # Новое действие для изменения категории
+    def change_category(self, request, queryset):
+        if 'apply' in request.POST:
+            category_id = request.POST.get('category')
+            if category_id:
+                try:
+                    category = Category.objects.get(id=category_id)
+                    updated = queryset.update(category=category)
+                    self.message_user(
+                        request,
+                        ngettext(
+                            '%d продукт был успешно перемещен в категорию "%s".',
+                            '%d продуктов были успешно перемещены в категорию "%s".',
+                            updated,
+                        ) % (updated, category.name),
+                        messages.SUCCESS,
+                    )
+                except Category.DoesNotExist:
+                    self.message_user(request, "Выбранная категория не существует.", messages.ERROR)
+            else:
+                self.message_user(request, "Категория не выбрана.", messages.ERROR)
+            return HttpResponseRedirect(request.get_full_path())
+
+        # Отображаем форму выбора категории
+        categories = Category.objects.all()  # Получаем все категории (MPTT дерево)
+        return render(request, 'admin/change_category.html', {
+            'title': 'Изменить категорию для выбранных продуктов',
+            'products': queryset,
+            'categories': categories,
+            'opts': self.model._meta,
+            'action_checkbox_name': admin.helpers.ACTION_CHECKBOX_NAME,
+        })
+
+    change_category.short_description = "Изменить категорию выбранных товаров"
+
+    # Добавляем URL для промежуточной страницы (опционально, для расширения)
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path('change-category/', self.admin_site.admin_view(self.change_category_view), name='change_category'),
+        ]
+        return custom_urls + urls
+
+    @method_decorator(staff_member_required)
+    def change_category_view(self, request):
+        # Если нужно, можно реализовать отдельную view для выбора категории
+        # Но для простоты, действие change_category уже обрабатывает форму
+        pass
 
 
 

@@ -135,8 +135,32 @@ class ProductListView(ListView):
         ]
 
         # Устанавливаем количество продуктов на странице
-        per_page = self.request.GET.get('per_page', self.paginate_by)  # Получаем значение per_page из GET-запроса
+        per_page = self.request.GET.get('per_page', self.paginate_by)
         context['per_page'] = per_page
+
+        # Новая логика для ограниченной пагинации
+        paginator = context['paginator']  # Получаем пагинатор из ListView
+        page = context['page_obj']  # Текущая страница
+        pages_to_show = 5  # Количество страниц для показа (текущая + вокруг неё; измените на нужное, например, 7)
+
+        # Вычисляем диапазон: текущая страница в центре, если возможно
+        half = pages_to_show // 2
+        start_page = max(1, page.number - half)
+        end_page = min(paginator.num_pages, page.number + half)
+
+        # Корректируем, если диапазон меньше желаемого (например, в начале/конце)
+        if end_page - start_page < pages_to_show - 1:
+            if start_page == 1:
+                end_page = min(paginator.num_pages, start_page + pages_to_show - 1)
+            elif end_page == paginator.num_pages:
+                start_page = max(1, end_page - pages_to_show + 1)
+
+        # Передаём ограниченный диапазон в контекст
+        context['page_range'] = range(start_page, end_page + 1)
+
+        # Флаги для показа "Первой" и "Последней" с "..." (если диапазон обрезан)
+        context['show_first'] = start_page > 1
+        context['show_last'] = end_page < paginator.num_pages
 
         return context
 
@@ -314,6 +338,13 @@ class ReviewsView(LoginRequiredMixin, FormView, ListView):
     def get_queryset(self):
         # Ограничиваем выборку до 5 последних отзывов
         return Review.objects.all().select_related('user').prefetch_related('images').order_by('-created_at')
+    
+    def get_paginate_by(self, queryset):
+        # Опционально: динамическое per_page из GET (например, ?per_page=10)
+        per_page = self.request.GET.get('per_page', self.paginate_by)
+        if isinstance(per_page, str) and per_page.isdigit():
+            return int(per_page)
+        return self.paginate_by
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -322,6 +353,30 @@ class ReviewsView(LoginRequiredMixin, FormView, ListView):
             'user': self.request.user,
             'form': self.get_form(),  # Сохраняем форму в контексте
         })
+        # Логика ограниченной пагинации (до 5 страниц, центрируя текущую)
+        page_obj = context.get('page_obj')
+        if page_obj:
+            current_page = page_obj.number
+            total_pages = page_obj.paginator.num_pages
+            half_range = 2  # Половина диапазона (для 5 страниц: 2 слева + текущая + 2 справа)
+
+            start_page = max(1, current_page - half_range)
+            end_page = min(total_pages, current_page + half_range)
+
+            # Если диапазон меньше 5, корректируем
+            if end_page - start_page < 4:
+                if start_page == 1:
+                    end_page = min(total_pages, start_page + 4)
+                elif end_page == total_pages:
+                    start_page = max(1, end_page - 4)
+
+            page_range = list(range(start_page, end_page + 1))
+
+            context['page_range'] = page_range
+            context['show_first'] = start_page > 1
+            context['show_last'] = end_page < total_pages
+            context['per_page'] = self.get_paginate_by(None)  # Для сохранения в ссылках
+
         return context
 
     def form_valid(self, form):

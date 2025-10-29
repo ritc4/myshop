@@ -3,7 +3,7 @@ from decouple import config
 
 DEBUG = False
 ADMINS = [('Kuksin Alexandr', 'ritc4@rambler.ru'),]
-ALLOWED_HOSTS = ['cozy.su', 'www.cozy.su']
+ALLOWED_HOSTS = ['cozy.su', 'www.cozy.su', '77.232.132.90']
 
 
 # Безопасность

@@ -1,0 +1,31 @@
+{% extends "admin/base_site.html" %}
+{% load admin_urls %}
+
+{% block content %}
+<div class="module">
+    <form method="post">
+        {% csrf_token %}
+        <div>
+            <label for="id_category">Выберите новую категорию:</label>
+            <select name="category" id="id_category">
+                {% for category in categories %}
+                <option value="{{ category.id }}">{{ category.get_ancestors|join:" > " }} {{ category.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <input type="hidden" name="action" value="change_category" />
+        {% for product in products %}
+        <input type="hidden" name="{{ action_checkbox_name }}" value="{{ product.pk }}" />
+        {% endfor %}
+        <input type="submit" name="apply" value="Применить" />
+        <a href="{% url 'admin:home_product_changelist' %}">Отмена</a>
+
+        <p>Выбранные продукты: {{ products|length }}</p>
+        <ul>
+            {% for product in products %}
+                <li>{{ product.title }} (Артикул: {{ product.article_number }})</li>
+            {% endfor %}
+        </ul>
+    </form>
+</div>
+{% endblock %}
