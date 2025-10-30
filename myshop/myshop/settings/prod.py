@@ -1,6 +1,9 @@
 from .base import *
 from decouple import config
 
+# Секретный ключ из .env
+SECRET_KEY = config('SECRET_KEY')
+
 DEBUG = False
 ADMINS = [('Kuksin Alexandr', 'ritc4@rambler.ru'),]
 ALLOWED_HOSTS = ['cozy.su', 'www.cozy.su', '77.232.132.90']

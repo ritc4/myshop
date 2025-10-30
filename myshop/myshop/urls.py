@@ -28,7 +28,7 @@ from sitemaps import sitemaps  # Импорт из корневого sitemaps.p
 
 urlpatterns = [
     path("ckeditor5/", include('django_ckeditor_5.urls')),
-    path('admin/', admin.site.urls),
+    path('rws!-cozy-admin/', admin.site.urls),
     path('cart/', include('cart.urls')),
     path('orders/', include('orders.urls')),
     path('users/', include('users.urls')),

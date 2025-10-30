@@ -4,6 +4,8 @@ from django.urls import reverse
 from django.core.validators import MinValueValidator
 from django_ckeditor_5.fields import CKEditor5Field
 from django.conf import settings
+from django.utils.html import format_html
+from datetime import datetime
 
 
 
@@ -100,24 +102,52 @@ class Product(models.Model):
         verbose_name = 'Товар'
         verbose_name_plural = 'Товары'
 
-    
+
+
+def product_image_upload_path(instance, filename):
+    # Путь: products/%Y/%m/%d/{category_slug}/filename
+    now = datetime.now()
+    year, month, day = now.year, f"{now.month:02d}", f"{now.day:02d}"
+    category_slug = instance.product.category.slug if instance.product.category else "no-category"  # Защита от пустого slug
+    return f"products/{year}/{month}/{day}/{category_slug}/{filename}"
+
+
 
 class ProductImage(models.Model):
     product = models.ForeignKey(Product, related_name='images', on_delete=models.CASCADE)
-    image = models.ImageField(upload_to='products/%Y/%m/%d', blank=True, null=True, verbose_name='Изображение',db_index=True)
+    image = models.ImageField(upload_to=product_image_upload_path,blank=True,null=True, verbose_name='Изображение',db_index=True)
     
     def __str__(self):
-        return f"Изображение {self.id}"
+        return f"Изображение {self.id} для {self.product.title}"
     
-
     def image_tag(self):
-        # Возвращаем все изображения, связанные с продуктом
-        return self.product.image.all()
+        if self.image:
+            return format_html('<img src="{}" width="100" height="100" />', self.image.url)
+        return "Нет изображения"
     image_tag.short_description = "Фото"
     
     class Meta:
         verbose_name = 'Фото товара'
         verbose_name_plural = 'Фото товаров'
+
+
+
+# class ProductImage(models.Model):
+#     product = models.ForeignKey(Product, related_name='images', on_delete=models.CASCADE)
+#     image = models.ImageField(upload_to='products/%Y/%m/%d', blank=True, null=True, verbose_name='Изображение',db_index=True)
+    
+#     def __str__(self):
+#         return f"Изображение {self.id}"
+    
+
+#     def image_tag(self):
+#         # Возвращаем все изображения, связанные с продуктом
+#         return self.product.image.all()
+#     image_tag.short_description = "Фото"
+    
+#     class Meta:
+#         verbose_name = 'Фото товара'
+#         verbose_name_plural = 'Фото товаров'
 
 
 class News(models.Model):
