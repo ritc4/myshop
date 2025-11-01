@@ -145,7 +145,7 @@
 
 <script src="{% static 'jquery/jquery-3.7.1.min.js' %}"></script>  <!-- Если не подключен глобально -->
 <script>
-  $(document).ready(function() {
+$(document).ready(function() {
       // Функция для получения куки по имени (копия из header.html)
       function getCookie(name) {
           let cookieValue = null;
@@ -186,7 +186,17 @@
       // Обработка формы добавления в корзину через AJAX
       $('#add-to-cart-form').on('submit', function(e) {
           e.preventDefault();  // Предотвращаем обычную отправку формы
-          var form = $(this);
+          
+          var form = $(this);  // Объявляем form в начале
+          
+          // Валидация quantity на клиенте
+          var quantityInput = form.find('input[name="quantity"]');
+          var quantity = parseInt(quantityInput.val());
+          if (quantity < 1 || isNaN(quantity)) {
+              quantityInput.val(1);  // Устанавливаем минимум 1
+              return;  // Прерываем отправку, чтобы пользователь мог скорректировать
+          }
+          
           $.ajax({
               url: form.attr('action'),
               type: 'POST',
@@ -211,6 +221,17 @@
                   console.error('AJAX error:', arguments);
               }
           });
+      });
+
+      // Обработчик для поля quantity: валидация в реальном времени - изменено: фильтруем нецифры и позволяем пустую строку
+      $('input[name="quantity"]').on('input', function() {
+          var quantityInput = $(this);
+          var val = quantityInput.val().replace(/[^0-9]/g, '');  // Удаляем все нецифровые символы
+          quantityInput.val(val);  // Устанавливаем очищенное значение
+          var quantity = parseInt(val);
+          if (val !== '' && (quantity < 1 || isNaN(quantity))) {
+              quantityInput.val(1);  // Исправляем только если введено что-то неправильное, но не пустое
+          }
       });
 
       // Функция обновления UI (копия из header.html, адаптированная)
@@ -243,11 +264,28 @@
           updateCartUI(event.data);
       };
 
-      // Функция attachCartHandlers (если нужно для офканваса, копия из header.html)
+      // Функция attachCartHandlers (обновлена: добавлена валидация quantity для офканваса)
       function attachCartHandlers() {
+          // Обработчик для quantity в офканвасе: валидация в реальном времени - изменено: фильтруем нецифры и позволяем пустую строку
+          $('#offcanvasCart input[name="quantity"]').off('input').on('input', function() {
+              var quantityInput = $(this);
+              var val = quantityInput.val().replace(/[^0-9]/g, '');  // Удаляем все нецифровые символы
+              quantityInput.val(val);  // Устанавливаем очищенное значение
+              var quantity = parseInt(val);
+              if (val !== '' && (quantity < 1 || isNaN(quantity))) {
+                  quantityInput.val(1);  // Исправляем только если введено что-то неправильное, но не пустое
+              }
+          });
+
           $('.offcanvas-update-form, .offcanvas-remove-form').off('submit').on('submit', function(e) {
               e.preventDefault();
               var form = $(this);
+              // Финальная валидация quantity перед отправкой (добавлено)
+              var quantityInput = form.find('input[name="quantity"]');
+              var quantity = parseInt(quantityInput.val());
+              if (quantity < 1 || isNaN(quantity)) {
+                  quantityInput.val(1);  // Устанавливаем минимум 1
+              }
               $.ajax({
                   url: form.attr('action'),
                   type: 'POST',
@@ -264,9 +302,9 @@
                       if (xhr.status === 403) {
                           alert('Ошибка CSRF: обновите страницу и попробуйте снова.');
                       } else {
-                          alert('Ошибка отправки формы');
+                          alert('Ошибка обновления корзины');
                       }
-                      console.error('AJAX error:', arguments);
+                      console.error('AJAX error in cart update:', arguments);
                   }
               });
           });

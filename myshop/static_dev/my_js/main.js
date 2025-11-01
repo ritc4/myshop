@@ -344,30 +344,94 @@ $(document).ready(function() {
 
 
 
+
+
 // Обработчик показать фото профиля в profile.html///////////////////////////////////////
 $(document).ready(function() {
-  // Обработчик для выбора файла
+  // Константы для конфигурации (замените на ваши реальные пути, если отличаются)
+  const maxFileSize = 5 * 1024 * 1024; // 5 MB
+  const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+  // Используем один путь для дефолта (как в шаблоне)
+  const defaultImageSrc = '/static/img/users/no_image_users.png';  // Полный статический URL
+  // Удаляем noImageSrc, если он не используется, или синхронизируйте с defaultImageSrc
+
+  // Функция для проверки, есть ли фото (улучшена: учитывает дефолт)
+  function hasPhoto() {
+    const src = $('#profileImage').attr('src');
+    return src && src !== defaultImageSrc;  // Проверяем только на дефолт (игнорируем noImageSrc, если не нужен)
+  }
+
+  // Функция для сброса превью (с плавной анимацией для предотвращения моргания)
+  function resetPreview() {
+    // Плавный fade-out перед сменой src
+    $('#profileImage').animate({ opacity: 0 }, 200, function() {
+      // После fade-out меняем src и alt
+      $('#profileImage').attr('src', defaultImageSrc).attr('alt', 'Default User Photo');
+      // Fade-in для плавного появления
+      $('#profileImage').animate({ opacity: 1 }, 300);
+    });
+    $('#photo-clear_id').val('true');  // Флаг для Django
+    $('#id_photo').val('');  // Очищаем инпут
+    $('#photoButton').text('Добавить фото');  // Обновляем текст кнопки
+  }
+
+  // Обработчик для кнопки (добавление или удаление)
+  $('#photoButton').on('click', function() {
+    if (hasPhoto()) {
+      // Удаление: сбрасываем на дефолт
+      resetPreview();
+    } else {
+      // Добавление: открываем диалог выбора файла
+      $('#id_photo').click();
+    }
+  });
+
+  // Обработчик выбора файла (с валидацией и превью) - без изменений, но добавлена проверка на дефолт
   $('#id_photo').on('change', function(event) {
-      const file = event.target.files[0];
-      if (file) {
-          const reader = new FileReader();
-          reader.onload = function(e) {
-              $('#profileImage').attr('src', e.target.result); // Устанавливаем изображение
-          };
-          reader.readAsDataURL(file);
-          
-          // Снимаем галочку с чекбокса, если файл выбран
-          $('#photo-clear_id').prop('checked', false);
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Валидация файла
+    if (!allowedTypes.includes(file.type)) {
+      alert('Пожалуйста, выберите изображение в формате JPEG, PNG, GIF или WebP.');
+      $('#id_photo').val('');
+      return;
+    }
+    if (file.size > maxFileSize) {
+      alert('Размер файла не должен превышать 5 MB.');
+      $('#id_photo').val('');
+      return;
+    }
+
+    // Показываем индикатор загрузки
+    $('#photoButton').text('Загрузка...').prop('disabled', true);
+
+    // Чтение файла для превью
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        $('#profileImage').attr('src', e.target.result).attr('alt', 'User Photo').css('opacity', '0').animate({ opacity: 1 }, 300);
+        $('#photo-clear_id').val('false');  // Снимаем флаг удаления
+        $('#photoButton').text('Удалить фото').prop('disabled', false);  // Восстанавливаем кнопку
+      } catch (error) {
+        console.error('Ошибка при обновлении превью:', error);
+        alert('Произошла ошибка при загрузке изображения.');
+        // При ошибке возвращаемся к дефолту (ИЗМЕНЕНО)
+        resetPreview();
       }
+    };
+    reader.onerror = function() {
+      alert('Ошибка чтения файла.');
+      // При ошибке возвращаемся к дефолту (ИЗМЕНЕНО)
+      resetPreview();
+    };
+    reader.readAsDataURL(file);
   });
-  // Обработчик для кнопки "Очистить изображение"
-  $('#photo-clear_id').on('click', function() {
-      $('#profileImage').attr('src', '/media/users/default.png'); // Устанавливаем изображение по умолчанию
-      $('#id_photo').val(''); // Очищаем поле загрузки
-  });
+
+  // ИНИЦИАЛИЗАЦИЯ: При загрузке страницы проверяем текущее состояние (добавлено для robustness)
+  if (!hasPhoto()) {
+    $('#photoButton').text('Добавить фото');
+  } else {
+    $('#photoButton').text('Удалить фото');
+  }
 });
-
-
-
-
-

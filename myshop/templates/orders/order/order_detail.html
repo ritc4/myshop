@@ -6,30 +6,26 @@
 {% block content %}
 <div class="container-fluid">
     <div class="row">
-        <div class="col-lg-12 mb-3">
+        <div class="col-12">
             <div class="order-content p-3 bg-white">
                 <h1 class="mt-4">Детали заказа № {{ order.id }}</h1>
 
                 <div class="order-details mt-4">
                     <h5>Информация о заказе</h5>
                     <ul class="list-group">
-                        <li class="list-group-item"><strong>Дата создания:</strong> {{ order.created }}</li>
+                        <li class="list-group-item"><strong>Дата:</strong> {{ order.created }}</li>
                         <li class="list-group-item"><strong>Статус:</strong> {{ order.get_status_display }}</li>
-                        <li class="list-group-item"><strong>Товар Оплачен:</strong>{% if order.paid %} Да {% else %} Нет {% endif %}</li>
+                        <li class="list-group-item"><strong>Оплачен:</strong> {% if order.paid %} Да {% else %} Нет {% endif %}</li>
                         <li class="list-group-item"><strong>Сумма:</strong> {{ order.get_total_cost }}</li>
-                        <li class="list-group-item"><strong>Способ доставки:</strong> {{ order.delivery_method }}</li>
-                        <li class="list-group-item"><strong>Цена доставки:</strong> 
+                        <li class="list-group-item"><strong>Доставка:</strong> {{ order.delivery_method }}</li>
+                        <li class="list-group-item"><strong>Цена доставки:</strong>
                             {% if order.price_delivery %}
                                 {{ order.price_delivery }}
-                            {% else %}
-                                
                             {% endif %}
                         </li>
-                        <li class="list-group-item"><strong>Скидка:</strong> 
+                        <li class="list-group-item"><strong>Скидка:</strong>
                             {% if order.discount %}
                                 {{ order.discount.discount_value }} ({{ order.discount.get_discount_type_display }})
-                            {% else %}
-                                
                             {% endif %}
                         </li>
                     </ul>
@@ -37,33 +33,79 @@
 
                 <div class="order-items mt-4">
                     <h5>Товары в заказе</h5>
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Название товара</th>
-                                <th>Артикул</th>
-                                <th>Размер</th>
-                                <th>Количество</th>
-                                <th>Цена</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for item in order.items.all %}
-                            <tr>
-                                <td>{{ item.product.title }}</td>
-                                <td>{{ item.product.article_number }}</td>
-                                <td>{{ item.size }}</td>
-                                <td>{{ item.quantity }}</td>
-                                <td>{{ item.price }}</td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="3">Нет товаров в этом заказе.</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+
+                    <div class="table-responsive d-none d-md-block">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Название товара</th>
+                                    <th class="d-none d-lg-table-cell">Артикул</th>
+                                    <th>Размер</th>
+                                    <th>Количество</th>
+                                    <th>Цена</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in page_obj %}
+                                <tr>
+                                    <td>{{ item.product.title }}</td>
+                                    <td class="d-none d-lg-table-cell">{{ item.product.article_number }}</td>
+                                    <td>{{ item.size }}</td>
+                                    <td>{{ item.quantity }}</td>
+                                    <td>{{ item.price }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5">Нет товаров в этом заказе.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {% if page_obj.has_other_pages %}
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination">
+                                {% if page_obj.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
+                                            <span aria-hidden="true">«</span>
+                                        </a>
+                                    </li>
+                                {% endif %}
+                                {% for i in page_obj.paginator.page_range %}
+                                    <li class="page-item {% if page_obj.number == i %}active{% endif %}">
+                                        <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+                                    </li>
+                                {% endfor %}
+                                {% if page_obj.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
+                                            <span aria-hidden="true">»</span>
+                                        </a>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    {% endif %}
+
+                    <ul class="list-group d-md-none">
+                        {% for item in order.items.all %}
+                        <li class="list-group-item">
+                            <strong>Название:</strong> {{ item.product.title }}<br>
+                            {% if item.product.article_number %}
+                                <strong>Артикул:</strong> {{ item.product.article_number }}<br>
+                            {% endif %}
+                            <strong>Размер:</strong> {{ item.size }}<br>
+                            <strong>Количество:</strong> {{ item.quantity }}<br>
+                            <strong>Цена:</strong> {{ item.price }}
+                        </li>
+                        {% empty %}
+                        <li class="list-group-item">Нет товаров в этом заказе.</li>
+                        {% endfor %}
+                    </ul>
                 </div>
+
                 <div class="order-messages mt-4">
                     <h5>Комментарий к заказу</h5>
                     <ul class="list-group">
@@ -78,7 +120,7 @@
                 </div>
 
                 <div class="mt-4">
-                    <a href="{% url 'users:profile' %}" class="btn btn-dark">Вернуться в профиль</a>
+                    <a href="{% url 'users:profile' %}" class="btn btn-dark btn-block">Вернуться в профиль</a>
                 </div>
             </div>
         </div>

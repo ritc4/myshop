@@ -4,110 +4,166 @@
 {% block title %}{{ title }}{% endblock %}
 
 {% block content %}
+<!-- <style>
+  .no-wrap-tbody > tr > td {
+  white-space: nowrap;
+}
+</style> -->
 
 <div class="container-fluid">
-  
-    <div class="row">
-      <div class="col-lg-6 mb-3">
-        <form method="POST" enctype="multipart/form-data">
-          {% csrf_token %}
-          <div class="checkout p-3 h-100 bg-white">
-            <h5 class="section-title text-center"><span>{{ title }}</span></h5>
-            {% if user.photo %}
-                <p><img class="profile-img" id="profileImage" src="{{ user.photo.url }}" alt="User  Photo"></p>
-            {% else %}
-                <p><img class="profile-img" id="profileImage" src="/media/users/default.png" alt="Default User Photo"></p>
-            {% endif %}
-            <input type="hidden" name="next" value="{{ next }}" />
-            <div class="form-error">{{ form.non_field_errors }}</div>
-            {% for i in form %}
-            {% if i.name == 'photo' %}
-              <div class="mb-3 d-flex align-items-center">
-                  <label class="custom-file-upload me-3"> <!-- Добавлен класс для отступа справа -->
-                      <input type="file" id="id_photo" name="photo" accept="image/*" />
-                      <i class="fas fa-upload"></i> Выбрать файл
-                  </label>
-                
-                  <div class="form-check">
-                      <input type="checkbox" name="photo-clear" id="photo-clear_id" class="form-check-input">
-                      <label class="form-check-label" for="photo-clear_id">Удалить фото</label>
+
+  <div class="row">
+    <div class="col-lg-4 mb-3">
+      <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="checkout p-3 h-100 bg-white">
+          <h5 class="section-title text-center"><span>{{ title }}</span></h5>
+          {% if user.photo %}
+          <p><img class="profile-img" id="profileImage" src="{{ user.photo.url }}" alt="User  Photo"
+              data-default-src="{% static 'img/users/no_image_users.png' %}"></p>
+          {% else %}
+          <p><img class="profile-img" id="profileImage" src="{% static 'img/users/no_image_users.png' %}"
+              alt="Default User Photo" data-default-src="{% static 'img/users/no_image_users.png' %}"></p>
+          {% endif %}
+          <input type="hidden" name="next" value="{{ next }}" />
+          <div class="form-error">{{ form.non_field_errors }}</div>
+          {% for i in form %}
+          {% if i.name == 'photo' %}
+          <div class="mb-3">
+            <!-- Скрытые поля для формы (Django их использует) -->
+            <input type="hidden" name="photo-clear" id="photo-clear_id" value="false" />
+            <input type="file" id="id_photo" name="photo" accept="image/*" style="display: none;" />
+
+            <!-- Одна кнопка для добавления/удаления -->
+            <button type="button" id="photoButton" class="btn btn-dark">
+              {% if user.photo %}Удалить фото{% else %}Добавить фото{% endif %}
+            </button>
+            <!-- НОВОЕ: Информационное сообщение о файлах -->
+            <small class="text-muted d-block mt-1">
+              Поддерживаемые форматы: JPEG, PNG, GIF, WebP. Максимальный размер: 5 MB.
+            </small>
+          </div>
+          {% else %}
+          <div class="mb-3">
+            <label class="form-label" for="{{ i.id_for_label }}">{{ i.label }}</label>
+            {{ i }}
+            <div class="form-error text-danger">{{ i.errors }}</div>
+          </div>
+          {% endif %}
+          {% endfor %}
+          <div class="registration-bottom">
+            <button type="submit" class="btn btn-dark">Сохранить</button>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="col-12 col-md-6 col-lg-8 mb-3">
+      <div class="page-detail-order bg-white p-3 mb-3">
+          <h5 class="section-title text-center"><span>Мои заказы</span></h5>
+
+          <div class="d-md-none">  <!-- Карточки для маленьких экранов (скрыты на md и больше) -->
+              {% for order in orders %}
+              <div class="card mb-3">
+                  <div class="card-body">
+                      <h5 class="card-title">
+                          <a href="{% url 'users:order_detail' order.id %}">Заказ № {{ order.id }}</a>
+                      </h5>
+                      <p class="card-text">
+                          <b>Дата создания:</b> {{ order.created }}<br>
+                          <b>Статус:</b> {{ order.get_status_display }}<br>
+                          <b>Сумма:</b> {{ order.get_total_cost }}<br>
+                          <b>Способ доставки:</b> {{ order.delivery_method }}
+                      </p>
                   </div>
               </div>
-            {% else %}
-            <div class="mb-3">
-              <label class="form-label" for="{{ i.id_for_label }}">{{ i.label }}</label>
-              {{ i }}
-              <div class="form-error text-danger">{{ i.errors }}</div>
-            </div>
-            {% endif %}
-            {% endfor %}
-            <div class="registration-bottom">
-              <button type="submit" class="btn btn-dark">Сохранить</button>
-            </div>
-          </div>
-        </form>
-      </div>
-      <div class="col-lg-6 mb-3">
-        <div class="page-detail-order bg-white p-3 mb-3">
-          <h5 class="section-title text-center"><span>Мои заказы</span></h5>
-          <table class="table align-middle table-hover">
-            <thead class="table-dark">
-              <tr>
-                <th>Заказ №</th>
-                <th>Дата создания</th>
-                <th>Статус</th>
-                <th>Сумма</th>
-                <th>Способ доставки</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for order in orders %}
-              <tr>
-                <td><a href="{% url 'users:order_detail' order.id %}">Заказ № {{ order.id }}</a></td> <!-- Добавлена ссылка на детали заказа -->
-                <td>{{ order.created }}</td>
-                <td>{{ order.get_status_display }}</td>
-                <td>{{ order.get_total_cost }}</td>
-                <td>{{ order.delivery_method }}</td>
-              </tr>
               {% empty %}
-              <tr>
-                <td colspan="5">У вас нет заказов.</td>
-              </tr>
+              <p>У вас нет заказов.</p>
               {% endfor %}
-            </tbody>
-          </table>
-        </div>
-        <!-- Пагинация -->
-        <div class="col-12">
+          </div>
+
+          <div class="d-none d-md-block">  <!-- Таблица для больших экранов (c md) -->
+            <div class="table-responsive">
+              <table class="table align-middle table-hover">
+                  <thead class="table-dark">
+                      <tr>
+                          <th>Заказ №</th>
+                          <th>Дата создания</th>
+                          <th>Статус</th>
+                          <th>Сумма</th>
+                          <th>Способ доставки</th>
+                      </tr>
+                  </thead>
+                  <tbody class="no-wrap-tbody">
+                      {% for order in orders %}
+                      <tr>
+                          <td><a href="{% url 'users:order_detail' order.id %}">Заказ № {{ order.id }}</a></td>
+                          <td>{{ order.created }}</td>
+                          <td>{{ order.get_status_display }}</td>
+                          <td>{{ order.get_total_cost }}</td>
+                          <td>{{ order.delivery_method }}</td>
+                      </tr>
+                      {% empty %}
+                      <tr>
+                          <td colspan="5">У вас нет заказов.</td>
+                      </tr>
+                      {% endfor %}
+                  </tbody>
+              </table>
+          </div>
+          </div>
+      </div>
+
+      <!-- Пагинация (нужно настроить для обоих вариантов) -->
+      <div class="col-12">
           {% if orders.has_other_pages %}
           <nav aria-label="Page navigation example">
-            <ul class="pagination d-flex justify-content-center">
-              {% if orders.has_previous %}
-              <li class="page-item">
-                <a class="page-link" href="?page=1" aria-label="Previous" tabindex="-1">
-                  <span aria-hidden="true">&laquo;</span>
-                </a>
-              </li>
-              {% endif %}
-              {% for p in orders.paginator.page_range %}
-              {% if orders.number == p %}
-              <li class="page-item active" aria-current="page"><a class="page-link" href="?page={{ p }}">{{ p }}</a>
-              </li>
-              {% elif p > orders.number|add:-3 and p < orders.number|add:3 %} <li class="page-item"><a
-                  class="page-link" href="?page={{ p }}">{{ p }}</a></li>
+              <ul class="pagination d-flex justify-content-center">
+                  {% if orders.has_previous %}
+                  <li class="page-item">
+                      <a class="page-link" href="?page=1" aria-label="Previous" tabindex="-1">
+                          <span aria-hidden="true">«</span>
+                      </a>
+                  </li>
+                  {% endif %}
+
+                  {% if orders.paginator.num_pages > 1 %}
+                    {% if orders.number > 3 %}
+                        <li class="page-item"><a class="page-link" href="?page=1">1</a></li>
+                        {% if orders.number > 4 %}
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        {% endif %}
+                    {% endif %}
+
+                    {% for p in orders.paginator.page_range %}
+                    {% if p >= orders.number|add:-2 and p <= orders.number|add:2 and forloop.counter <= max_pages %}
+                        {% if orders.number == p %}
+                            <li class="page-item active" aria-current="page"><a class="page-link" href="?page={{ p }}">{{ p }}</a></li>
+                        {% else %}
+                            <li class="page-item"><a class="page-link" href="?page={{ p }}">{{ p }}</a></li>
+                        {% endif %}
+                    {% endif %}
+                    {% endfor %}
+
+                    {% if orders.number < orders.paginator.num_pages|add:-2 %}
+                        {% if orders.number < orders.paginator.num_pages|add:-3 %}
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        {% endif %}
+                        <li class="page-item"><a class="page-link" href="?page={{ orders.paginator.num_pages }}">{{ orders.paginator.num_pages }}</a></li>
+                    {% endif %}
                 {% endif %}
-                {% endfor %}
-                {% if orders.has_next %}
-                <li class="page-item">
-                  <a class="page-link" href="?page={{ orders.paginator.num_pages }}" aria-label="Next">
-                    <span aria-hidden="true">&raquo;</span>
-                  </a>
-                </li>
-                {% endif %}
-            </ul>
+
+                  {% if orders.has_next %}
+                  <li class="page-item">
+                      <a class="page-link" href="?page={{ orders.paginator.num_pages }}" aria-label="Next">
+                          <span aria-hidden="true">»</span>
+                      </a>
+                  </li>
+                  {% endif %}
+              </ul>
           </nav>
           {% endif %}
-        </div>
       </div>
-</div>
-{% endblock %}
+
+  </div>
+  </div>
+  {% endblock %}

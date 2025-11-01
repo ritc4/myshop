@@ -21,10 +21,18 @@ def cart_add(request, product_id):
 
         form = CartAddProductForm(request.POST, product=product, sizes=size_price_map)
 
+        # if form.is_valid():
+        #     cd = form.cleaned_data
+        #     size = cd.get('size')
+        #     cart.add(product=product, quantity=cd['quantity'], override_quantity=cd['override'], size=size)
+
         if form.is_valid():
             cd = form.cleaned_data
+            quantity = cd['quantity']
+            if quantity < 1:
+                quantity = 1  # Устанавливаем минимум, чтобы избежать ошибок
             size = cd.get('size')
-            cart.add(product=product, quantity=cd['quantity'], override_quantity=cd['override'], size=size)
+            cart.add(product=product, quantity=quantity, override_quantity=cd['override'], size=size)
 
             if request.headers.get('x-requested-with') == 'XMLHttpRequest':
                 item = cart.get_item(str(product.id), size)

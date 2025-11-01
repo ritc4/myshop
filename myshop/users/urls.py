@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import LoginUser,RegisterUser,ProfileUser,UserPasswordChange,OrderDetailView 
+from .views import LoginUser,RegisterUser,ProfileUser,UserPasswordChange,OrderDetailView
 from django.contrib.auth.views import LogoutView, PasswordChangeDoneView,PasswordResetView,PasswordResetDoneView,PasswordResetConfirmView,PasswordResetCompleteView
 from django.urls import reverse_lazy
 
