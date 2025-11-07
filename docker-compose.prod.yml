@@ -23,6 +23,7 @@ services:
       retries: 5
   web:
     image: r162809ws/myshop-web:${TAG:-latest}
+    user: "33:33"
     command: ["./wait-for-it.sh", "db:5432", "--", "sh", "-c", "python myshop/manage.py migrate --settings=myshop.settings.prod && python myshop/manage.py collectstatic --noinput --settings=myshop.settings.prod && if [ \"$(python myshop/manage.py shell --settings=myshop.settings.prod -c 'from django.contrib.auth import get_user_model; User = get_user_model(); print(User.objects.filter(is_superuser=True).exists())')\" != 'True' ]; then python myshop/manage.py createsuperuser --noinput --settings=myshop.settings.prod; fi && uwsgi --ini /app/config/uwsgi/uwsgi.ini"]
     restart: always
     volumes:
@@ -39,7 +40,11 @@ services:
         condition: service_healthy
   celery:
     image: r162809ws/myshop-web:${TAG:-latest}
+    user: "33:33"
     command: celery -A myshop worker -l info --hostname=celery@%h
+    volumes:
+      - static_volume:/app/myshop/static
+      - media_volume:/app/myshop/media
     environment:
       - DJANGO_SETTINGS_MODULE=myshop.settings.prod
       - PYTHONPATH=/app/myshop
@@ -72,11 +77,15 @@ services:
         condition: service_started
   flower:
     image: r162809ws/myshop-web:${TAG:-latest}
+    user: "33:33"
     env_file: .env
     command: celery -A myshop flower --url-prefix=/flower --hostname=flower@%h
+    volumes:
+      - media_volume:/app/myshop/media
     environment:
       - DJANGO_SETTINGS_MODULE=myshop.settings.prod
       - PYTHONPATH=/app/myshop
+      - FLOWER_UNAUTHENTICATED_API=true
     depends_on:
       celery:
         condition: service_started

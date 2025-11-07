@@ -1,307 +1,327 @@
-{% extends "base.html" %} 
-{% load static %} 
-{% block title %}{{ title }}{% endblock %} 
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{{ title }}{% endblock %}
 
-{% block content %} 
+{% block content %}
+
 <style>
   /* Стили для checkout_page (адаптация под мобильные) */
-  
   /* Общий контейнер: больший padding на мобильных */
   .checkout-container {
-      padding: 15px;
+    padding: 15px;
   }
+
   @media (max-width: 767.98px) {
-      .checkout-container {
-          padding: 10px;
-      }
+    .checkout-container {
+      padding: 10px;
+    }
   }
-  
+
   /* Форма: больший шрифт на мобильных */
   .checkout .form-label {
-      font-size: 1rem;
+    font-size: 1rem;
   }
+
   @media (max-width: 767.98px) {
-      .checkout .form-label {
-          font-size: 1.1rem;
-      }
-      .checkout .mb-3 {
-          margin-bottom: 1.5rem !important;
-      }
+    .checkout .form-label {
+      font-size: 1.1rem;
+    }
+
+    .checkout .mb-3 {
+      margin-bottom: 1.5rem !important;
+    }
   }
-  
+
   /* Скрываем таблицу на мобильных, показываем карточки */
   @media (max-width: 767.98px) {
-      .checkout-table {
-          display: none !important;
-      }
-      .checkout-cards {
-          display: block !important;
-      }
+    .checkout-table {
+      display: none !important;
+    }
+
+    .checkout-cards {
+      display: block !important;
+    }
   }
-  
+
   /* На десктопе показываем таблицу, скрываем карточки */
   @media (min-width: 768px) {
-      .checkout-table {
-          display: block !important;
-      }
-      .checkout-cards {
-          display: none !important;
-      }
+    .checkout-table {
+      display: block !important;
+    }
+
+    .checkout-cards {
+      display: none !important;
+    }
   }
-  
+
   /* Стили для карточек */
   .checkout-cards .card {
-      margin-bottom: 15px;
+    margin-bottom: 15px;
   }
+
   .checkout-cards .card-title {
-      font-size: 1.1rem;
+    font-size: 1.1rem;
   }
+
   .checkout-cards .card-text {
-      font-size: 0.9rem;
+    font-size: 0.9rem;
   }
-  
+
   /* Вертикальный скролл для карточек при >=10 товарах */
   .checkout-cards.scrollable {
-      max-height: 500px;
-      overflow-y: auto;
+    max-height: 500px;
+    overflow-y: auto;
   }
-  
+
   /* Вертикальный скролл для таблицы при >=10 товарах (если нужно) */
   .checkout-table.scrollable {
-      max-height: 500px;
-      overflow-y: auto;
+    max-height: 500px;
+    overflow-y: auto;
   }
-  
+
   /* Кнопка: больший размер на мобильных */
   .btn-lg {
-      padding: 0.75rem 1.5rem;
-      font-size: 1.1rem;
+    padding: 0.75rem 1.5rem;
+    font-size: 1.1rem;
   }
+
   @media (max-width: 767.98px) {
-      .btn-lg {
-          padding: 1rem 2rem;
-          font-size: 1.2rem;
-      }
+    .btn-lg {
+      padding: 1rem 2rem;
+      font-size: 1.2rem;
+    }
   }
 </style>
 
-
-<div class="container-fluid checkout-container">  <!-- Добавлен класс для стилей -->
+<div class="container-fluid checkout-container">
+  <!-- Добавлен класс для стилей -->
   <form method="post" class="order-form">
-      {% csrf_token %}
-      <div class="row">
-          <div class="col-lg-6 mb-3">
-              <div class="checkout p-3 h-100 bg-white">
-                  <h1 class="section-title h5"><span>Оформление заказа</span></h1>
-                  <div class="row g-3">
-                      <input type="hidden" name="next" value="{{ next }}"/>
-                      <div class="form-error">{{ form.non_field_errors }}</div>
-                      {% for i in form %}
-                      {% if i == form.comment %}
-                      <div class="col-12">  <!-- Изменено на col-12 для мобильных -->
-                          <div class="mb-3">
-                              <label class="form-label" for="{{ i.id_for_label }}">{{ i.label }}</label>
-                              {{ i }}
-                          </div>
-                          <div class="form-error text-danger">{{ i.errors }}</div>
-                      </div>
-                      {% elif i == form.passport_number %}
-                      <div class="col-md-6 col-12" id="passportNumberCol" style="display: none;">  <!-- Добавлено col-12 -->
-                          <div class="mb-3">
-                              <label class="form-label" for="{{ i.id_for_label }}">{{ i.label }}</label>
-                              {{ i }}
-                          </div>
-                          <div class="form-error text-danger">{{ i.errors }}</div>
-                      </div>
-                      {% elif i == form.postal_code %}
-                      <div class="col-md-6 col-12" id="postalCodeCol" style="display: none;">  <!-- Добавлено col-12 -->
-                          <div class="mb-3">
-                              <label class="form-label" for="{{ i.id_for_label }}">{{ i.label }}</label>
-                              {{ i }}
-                          </div>
-                          <div class="form-error text-danger">{{ i.errors }}</div>
-                      </div>
-                      {% elif i == form.soglasie_na_obrabotku_danyh %}
-                      <div class="link_soglasie_na_obrabotku_danyh">
-                          {{ i }} <a href="#" id="policyLink" data-bs-toggle="modal" data-bs-target="#privacyPolicyModal">{{ i.label }}</a>
-                          <div class="form-error text-danger">{{ i.errors }}</div>
-                      </div>
-                      {% elif i == form.soglasie_na_uslovie_sotrudnichestva %}
-                      <div class="link_soglasie_na_uslovie_sotrudnichestva">
-                          {{ i }} <a href="#" id="uslovialink" data-bs-toggle="modal" data-bs-target="#uslovia_Modal">{{ i.label }}</a>
-                          <div class="form-error text-danger">{{ i.errors }}</div>
-                      </div>
-                      {% else %}
-                      <div class="col-md-6 col-12">  <!-- Добавлено col-12 для мобильных -->
-                          <div class="mb-3">
-                              <label class="form-label" for="{{ i.id_for_label }}">{{ i.label }}</label>
-                              {{ i }}
-                          </div>
-                          <div class="form-error text-danger">{{ i.errors }}</div>
-                      </div>
-                      {% endif %}
-                      {% endfor %}
+    {% csrf_token %}
+    <div class="row">
+      <div class="col-lg-6 mb-3">
+        <div class="checkout p-3 h-100 bg-white">
+          <h1 class="section-title h5">
+            <span>Оформление заказа</span>
+          </h1>
+          <div class="row g-3">
+            <input type="hidden" name="next" value="{{ next }}" />
+            <div class="form-error">{{ form.non_field_errors }}</div>
+            {% for i in form %}
+              {% if i == form.comment %}
+                <div class="col-12">
+                  <!-- Изменено на col-12 для мобильных -->
+                  <div class="mb-3">
+                    <label class="form-label" for="{{ i.id_for_label }}">{{ i.label }}</label>
+                    {{ i }}
                   </div>
-              </div>
+                  <div class="form-error text-danger">{{ i.errors }}</div>
+                </div>
+              {% elif i == form.passport_number %}
+                <div class="col-md-6 col-12" id="passportNumberCol" style="display: none;">
+                  <!-- Добавлено col-12 -->
+                  <div class="mb-3">
+                    <label class="form-label" for="{{ i.id_for_label }}">{{ i.label }}</label>
+                    {{ i }}
+                  </div>
+                  <div class="form-error text-danger">{{ i.errors }}</div>
+                </div>
+              {% elif i == form.postal_code %}
+                <div class="col-md-6 col-12" id="postalCodeCol" style="display: none;">
+                  <!-- Добавлено col-12 -->
+                  <div class="mb-3">
+                    <label class="form-label" for="{{ i.id_for_label }}">{{ i.label }}</label>
+                    {{ i }}
+                  </div>
+                  <div class="form-error text-danger">{{ i.errors }}</div>
+                </div>
+              {% elif i == form.soglasie_na_obrabotku_danyh %}
+                <div class="link_soglasie_na_obrabotku_danyh">
+                  {{ i }}
+                  <a href="#" id="policyLink" data-bs-toggle="modal" data-bs-target="#privacyPolicyModal">{{ i.label }}</a>
+                  <div class="form-error text-danger">{{ i.errors }}</div>
+                </div>
+              {% elif i == form.soglasie_na_uslovie_sotrudnichestva %}
+                <div class="link_soglasie_na_uslovie_sotrudnichestva">
+                  {{ i }}
+                  <a href="#" id="uslovialink" data-bs-toggle="modal" data-bs-target="#uslovia_Modal">{{ i.label }}</a>
+                  <div class="form-error text-danger">{{ i.errors }}</div>
+                </div>
+              {% else %}
+                <div class="col-md-6 col-12">
+                  <!-- Добавлено col-12 для мобильных -->
+                  <div class="mb-3">
+                    <label class="form-label" for="{{ i.id_for_label }}">{{ i.label }}</label>
+                    {{ i }}
+                  </div>
+                  <div class="form-error text-danger">{{ i.errors }}</div>
+                </div>
+              {% endif %}
+            {% endfor %}
           </div>
-          <div class="col-lg-6 mb-3">
-              <div class="cart-summary p-3 bg-white sidebar h-100">
-                  <h5 class="section-title"><span>Общая сумма заказа</span></h5>
-                  
-                  <!-- Таблица для десктопа -->
-                  <div class="checkout-table table-responsive{% if cart|length >= 10 %} scrollable{% endif %}">  <!-- Добавлен класс для скролла -->
-                      <table id="cart-items-table" class="table">
-                          <thead>
-                              <tr>
-                                  <th>Продукт</th>
-                                  <th class="text-end">Цена</th>
-                              </tr>
-                          </thead>
-                          <tbody id="checkout-cart-tbody">
-                              {% for item in cart %}
-                              <tr>
-                                  <td>
-                                      {{ item.title }} Арт:{{ item.article_number }} Размер:{{ item.size }}<small> {{ item.price }} ₽ x {{ item.quantity }}</small>
-                                  </td>
-                                  <td class="text-end">{{ item.total_price }} ₽</td>
-                                  <input type="hidden" name="size" value="{{ item.size }}">
-                              </tr>
-                              {% endfor %}
-                          </tbody>
-                          <tfoot>
-                              <tr>
-                                  <td colspan="2" class="text-end" id="checkout-cart-total-price">
-                                      <h3><strong>{{ cart.get_total_price }} ₽</strong></h3>
-                                  </td>
-                              </tr>
-                          </tfoot>
-                      </table>
-                  </div>
-                  
-                  <!-- Карточки для мобильных (скрыты на десктопе) -->
-                  <div class="checkout-cards{% if cart|length >= 10 %} scrollable{% endif %}">  <!-- Добавлено для скролла -->
-                      {% for item in cart %}
-                      <div class="card mb-3">
-                          <div class="card-body">
-                              <h6 class="card-title">{{ item.title }}</h6>
-                              <p class="card-text">Арт: {{ item.article_number }} | Размер: {{ item.size }}</p>
-                              <p class="card-text">{{ item.price }} ₽ x {{ item.quantity }} = <strong>{{ item.total_price }} ₽</strong></p>
-                              <input type="hidden" name="size" value="{{ item.size }}">
-                          </div>
-                      </div>
-                      {% endfor %}
-                      <div class="text-end mt-3">
-                          <h3><strong id="checkout-cart-total-price-mobile">{{ cart.get_total_price }} ₽</strong></h3>  <!-- ID для обновления -->
-                      </div>
-                  </div>
-                  
-                  <div class="d-grid mt-3">
-                      <button type="submit" class="btn btn-outline-dark btn-lg">Оформить</button>  <!-- Добавлен btn-lg для мобильных -->
-                  </div>
-              </div>
-          </div>
+        </div>
       </div>
+      <div class="col-lg-6 mb-3">
+        <div class="cart-summary p-3 bg-white sidebar h-100">
+          <h5 class="section-title">
+            <span>Общая сумма заказа</span>
+          </h5>
+          <!-- Таблица для десктопа -->
+          <div class="checkout-table table-responsive{% if cart|length >= 10 %} scrollable{% endif %}">
+            <!-- Добавлен класс для скролла -->
+            <table id="cart-items-table" class="table">
+              <thead>
+                <tr>
+                  <th>Продукт</th>
+                  <th class="text-end">Цена</th>
+                </tr>
+              </thead>
+              <tbody id="checkout-cart-tbody">
+                {% for item in cart %}
+                  <tr>
+                    <td>
+                      {{ item.title }} Арт:{{ item.article_number }} Размер:{{ item.size }}
+                      <small>{{ item.price }} ₽ x {{ item.quantity }}</small>
+                    </td>
+                    <td class="text-end">{{ item.total_price }} ₽</td>
+                    <input type="hidden" name="size" value="{{ item.size }}">
+                  </tr>
+                {% endfor %}
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="2" class="text-end" id="checkout-cart-total-price">
+                    <h3>
+                      <strong>{{ cart.get_total_price }} ₽</strong>
+                    </h3>
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+
+          <!-- Карточки для мобильных (скрыты на десктопе) -->
+          <div class="checkout-cards{% if cart|length >= 10 %} scrollable{% endif %}" id="checkout-cart-cards">
+            <!-- Добавлено id для обновления -->
+            {% for item in cart %}
+              <div class="card mb-3">
+                <div class="card-body">
+                  <h6 class="card-title">{{ item.title }}</h6>
+                  <p class="card-text">Арт: {{ item.article_number }} | Размер: {{ item.size }}</p>
+                  <p class="card-text">{{ item.price }} ₽ x {{ item.quantity }} = <strong>{{ item.total_price }} ₽</strong></p>
+                  <input type="hidden" name="size" value="{{ item.size }}">
+                </div>
+              </div>
+            {% endfor %}
+            <div class="text-end mt-3">
+              <h3>
+                <strong id="checkout-cart-total-price-mobile">{{ cart.get_total_price }} ₽</strong>
+                <!-- ID для обновления -->
+              </h3>
+            </div>
+          </div>
+
+          <div class="d-grid mt-3">
+            <button type="submit" class="btn btn-outline-dark btn-lg">Оформить</button>
+            <!-- Добавлен btn-lg для мобильных -->
+          </div>
+        </div>
+      </div>
+    </div>
   </form>
 </div>
 
 <!-- Модальные окна (обновлённые) -->
 <div class="modal fade" id="uslovia_Modal" data-bs-keyboard="false" tabindex="-1" aria-labelledby="uslovia_ModalLabel" aria-hidden="true" data-bs-focus="false">
   <div class="modal-dialog modal-dialog-scrollable modal-lg">
-      <div class="modal-content">
-          <div class="modal-header">
-              <h1 class="modal-title fs-5" id="uslovia_ModalLabel">{{ uslovia.title }}</h1>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-              <div class="modal__content">
-                  <div>
-                      <div class="htmlDataBlock">
-                          {{ uslovia.description|safe }}
-                      </div>
-                  </div>
-              </div>
-          </div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="uslovia_ModalLabel">{{ uslovia.title }}</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
+      <div class="modal-body">
+        <div class="modal__content">
+          <div>
+            <div class="htmlDataBlock">{{ uslovia.description|safe }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
 <div class="modal fade" id="privacyPolicyModal" data-bs-keyboard="false" tabindex="-1" aria-labelledby="privacyPolicyModalLabel" aria-hidden="true" data-bs-focus="false">
   <div class="modal-dialog modal-dialog-scrollable modal-lg">
-      <div class="modal-content">
-          <div class="modal-header">
-              <h1 class="modal-title fs-5" id="privacyPolicyModalLabel">{{ politica.title }}</h1>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-              <div class="modal__content">
-                  <div>
-                      <p>{{ politica.description|safe }}</p>
-                  </div>
-              </div>
-          </div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="privacyPolicyModalLabel">{{ politica.title }}</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
+      <div class="modal-body">
+        <div class="modal__content">
+          <div>
+            <p>{{ politica.description|safe }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
+
 <script src="{% static 'jquery/jquery-3.7.1.min.js' %}"></script>
 <script>
-$(document).ready(function() {
+  $(document).ready(function () {
     const cartChannel = new BroadcastChannel('cart-updates');
-
     function updateCart(data) {
-        // Обновляем таблицу для checkout_page
-        if (data.html_checkout_page && $('#checkout-cart-tbody').length) {
-            $('#checkout-cart-tbody').html(data.html_checkout_page);
+      // Обновляем таблицу для checkout_page
+      if (data.html_checkout_page && $('#checkout-cart-tbody').length) {
+        $('#checkout-cart-tbody').html(data.html_checkout_page);
+      }
+      // Обновляем итоговую сумму для десктопа
+      if (data.cart_total_price) {
+        $('#checkout-cart-total-price h3 strong').text(data.cart_total_price + ' ₽');
+      }
+      // НОВОЕ: Обновляем итоговую сумму для мобильных
+      if (data.cart_total_price) {
+        $('#checkout-cart-total-price-mobile').text(data.cart_total_price + ' ₽');
+      }
+      // НОВОЕ: Обновляем карточки для мобильных (предполагая, что data.html_checkout_cards содержит HTML карточек)
+      if (data.html_checkout_cards && $('#checkout-cart-cards').length) {
+        $('#checkout-cart-cards').html(data.html_checkout_cards);
+      }
+      // Обновляем badge в хедере
+      if (data.cart_item_count !== undefined) {
+        var text = data.pluralized_text || '';
+        $('#cart-item-count').html(text);
+        if (data.cart_item_count === 0) {
+          $('.cart-badge').addClass('d-none');
+        } else {
+          $('.cart-badge').removeClass('d-none');
         }
-        // Обновляем итоговую сумму
-        if (data.cart_total_price) {
-            $('#checkout-cart-total-price h3 strong').text(data.cart_total_price + ' ₽');
-        }
-        // Обновляем badge в хедере
-        if (data.cart_item_count !== undefined) {
-            var text = data.pluralized_text || '';
-            $('#cart-item-count').html(text);
-            if (data.cart_item_count === 0) {
-                $('.cart-badge').addClass('d-none');
-            } else {
-                $('.cart-badge').removeClass('d-none');
-            }
-        }
-        
-        // НОВОЕ: Если корзина пуста, перенаправляем на главную
-        if (data.is_empty) {
-            window.location.href = '{% url "home:search" %}';
-        }
+      }
+      // НОВОЕ: Если корзина пуста, перенаправляем на главную
+      if (data.is_empty) {
+        window.location.href = '{% url "home:search" %}';
+      }
     }
 
-    cartChannel.onmessage = function(event) {
-        updateCart(event.data);
-    };  // Исправлено: убрана лишняя скобка
-    
-    // НОВОЕ: Обработчики для управления фокусом в модальных окнах (адаптация из шаблона категории)
-    // Фокус на заголовок при открытии (для доступности)
-    $('#uslovia_Modal').on('show.bs.modal', function () {
-        $('#uslovia_ModalLabel').focus();
+    cartChannel.onmessage = function (event) {
+      updateCart(event.data);
+    };
+
+    // Логика для показа/скрытия полей в зависимости от способа доставки
+    $('#id_delivery_method').on('change', function() {
+      if ($(this).val() === 'pickup') {
+        $('#passportNumberCol').hide();
+        $('#postalCodeCol').hide();
+      } else {
+        $('#passportNumberCol').show();
+        $('#postalCodeCol').show();
+      }
     });
-    $('#privacyPolicyModal').on('show.bs.modal', function () {
-        $('#privacyPolicyModalLabel').focus();
-    });
-    
-    // Фокус на триггерную ссылку при начале закрытия (исправляет aria-hidden ошибку)
-    $('.modal').on('hide.bs.modal', function() {
-        var triggerLink = $(this).data('triggerLink');
-        if (triggerLink) {
-            triggerLink.focus();  // Перемещаем фокус на ссылку, открывшую модал, ДО применения aria-hidden
-        }
-    });
-    
-    // Сохраняем ссылку-триггер при клике
-    $('#policyLink').on('click', function() {
-        $('#privacyPolicyModal').data('triggerLink', $(this));
-    });
-    $('#uslovialink').on('click', function() {
-        $('#uslovia_Modal').data('triggerLink', $(this));
-    });
-});
+
+    // Инициализация: триггерим изменение для начального состояния
+    $('#id_delivery_method').trigger('change');
+  });
 </script>
-  
+
 {% endblock %}

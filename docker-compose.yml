@@ -80,6 +80,7 @@ services:
     environment:
       - DJANGO_SETTINGS_MODULE=myshop.settings.prod
       - PYTHONPATH=/app/myshop
+      - FLOWER_UNAUTHENTICATED_API=true
     depends_on:
       celery:
         condition: service_started

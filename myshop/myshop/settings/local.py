@@ -2,6 +2,7 @@ from .base import *
 from decouple import config
 
 
+
 # Секретный ключ из .env
 SECRET_KEY = config('SECRET_KEY')
 
@@ -20,6 +21,12 @@ DATABASES = {
     }
 }
 
+# Для CELERY
+CELERY_BROKER_URL = 'amqp://guest:guest@localhost:5672//'
+
+# Для RABBITMQ
+RABBITMQ_DEFAULT_USER = 'guest'
+RABBITMQ_DEFAULT_PASS = 'guest'
 
 # Конфигурация сервера электронной почты
 EMAIL_HOST = 'smtp.rambler.ru'

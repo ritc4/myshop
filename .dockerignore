@@ -11,3 +11,5 @@ media/
 data/db/
 ssl/
 ./data/
+# media/
+# *.sql
