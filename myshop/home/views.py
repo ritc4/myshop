@@ -24,6 +24,16 @@ from django.contrib import messages
 from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib.postgres.search import SearchVector, SearchQuery
+import redis
+
+
+
+# # соединить с redis
+# r = redis.Redis(
+#     host=settings.REDIS_HOST,
+#     port=settings.REDIS_PORT,
+#     db=settings.REDIS_DB
+#     )
 
 
 class HomeView(ListView):

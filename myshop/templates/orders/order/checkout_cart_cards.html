@@ -1,0 +1,14 @@
+{% load static %}
+{% for item in cart %}
+  <div class="card mb-3">
+    <div class="card-body">
+      <h6 class="card-title">{{ item.title }}</h6>
+      <p class="card-text">Арт: {{ item.article_number }} | Размер: {{ item.size }}</p>
+      <p class="card-text">{{ item.price }} ₽ x {{ item.quantity }} = <strong>{{ item.total_price }} ₽</strong></p>
+      <input type="hidden" name="size" value="{{ item.size }}">
+    </div>
+  </div>
+{% endfor %}
+<div class="text-end mt-3">
+  <h3><strong id="checkout-cart-total-price-mobile">Итого: {{ cart.get_total_price }} ₽</strong></h3>
+</div>

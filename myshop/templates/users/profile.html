@@ -40,7 +40,7 @@
             </button>
             <!-- НОВОЕ: Информационное сообщение о файлах -->
             <small class="text-muted d-block mt-1">
-              Поддерживаемые форматы: JPEG, PNG, GIF, WebP. Максимальный размер: 5 MB.
+              Поддерживаемые форматы: JPEG, PNG, GIF, WebP. Максимальный размер: 20 MB.
             </small>
           </div>
           {% else %}
@@ -64,9 +64,10 @@
           <div class="d-md-none">  <!-- Карточки для маленьких экранов (скрыты на md и больше) -->
               {% for order in orders %}
               <div class="card mb-3">
+                <a href="{% url 'users:order_detail' order.id %}">
                   <div class="card-body">
                       <h5 class="card-title">
-                          <a href="{% url 'users:order_detail' order.id %}">Заказ № {{ order.id }}</a>
+                          <b>Заказ № {{ order.id }}</b>
                       </h5>
                       <p class="card-text">
                           <b>Дата создания:</b> {{ order.created }}<br>
@@ -75,6 +76,7 @@
                           <b>Способ доставки:</b> {{ order.delivery_method }}
                       </p>
                   </div>
+                </a>
               </div>
               {% empty %}
               <p>У вас нет заказов.</p>

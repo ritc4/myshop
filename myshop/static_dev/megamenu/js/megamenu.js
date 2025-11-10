@@ -1,61 +1,130 @@
-/*global $ */
+// /*global $ */
+// $(document).ready(function () {
+
+//     "use strict";
+
+//     $('.menu > ul > li:has( > ul)').addClass('menu-dropdown-icon');
+//     //Checks if li has sub (ul) and adds class for toggle icon - just an UI
+
+
+//     $('.menu > ul > li > ul:not(:has(ul))').addClass('normal-sub');
+//     //Checks if drodown menu's li elements have anothere level (ul), if not the dropdown is shown as regular dropdown, not a mega menu (thanks Luka Kladaric)
+
+//     $(".menu > ul").before("<a href=\"#\" class=\"menu-mobile\">Каталог</a>");
+
+//     //Adds menu-mobile class (for mobile toggle menu) before the normal menu
+//     //Mobile menu is hidden if width is more then 959px, but normal menu is displayed
+//     //Normal menu is hidden if width is below 959px, and jquery adds mobile menu
+//     //Done this way so it can be used with wordpress without any trouble
+
+//     $(".menu > ul > li").hover(
+//         function (e) {
+//             if ($(window).width() > 943) {
+//                 $(this).children("ul").fadeIn(150);
+//                 e.preventDefault();
+//             }
+//         }, function (e) {
+//             if ($(window).width() > 943) {
+//                 $(this).children("ul").fadeOut(150);
+//                 e.preventDefault();
+//             }
+//         }
+//     );
+//     //If width is more than 943px dropdowns are displayed on hover
+
+
+//     //the following hides the menu when a click is registered outside
+//     $(document).on('click', function(e){
+//         if($(e.target).parents('.menu').length === 0)
+//             $(".menu > ul").removeClass('show-on-mobile');
+//     });
+
+//     $(".menu > ul > li").click(function() {
+//         //no more overlapping menus
+//         //hides other children menus when a list item with children menus is clicked
+//         var thisMenu = $(this).children("ul");
+//         var prevState = thisMenu.css('display');
+//         $(".menu > ul > li > ul").fadeOut();
+//         if ($(window).width() < 943) {
+//             if(prevState !== 'block')
+//                 thisMenu.fadeIn(150);
+//         }
+//     });
+//     //If width is less or equal to 943px dropdowns are displayed on click (thanks Aman Jain from stackoverflow)
+
+//     $(".menu-mobile").click(function (e) {
+//         $(".menu > ul").toggleClass('show-on-mobile');
+//         e.preventDefault();
+//     });
+//     //when clicked on mobile-menu, normal menu is shown as a list, classic rwd menu story (thanks mwl from stackoverflow)
+
+// });
+
+
+
+
+
+// новое меню
 $(document).ready(function () {
-
-    "use strict";
-
     $('.menu > ul > li:has( > ul)').addClass('menu-dropdown-icon');
-    //Checks if li has sub (ul) and adds class for toggle icon - just an UI
-
+    // Checks if li has sub (ul) and adds class for toggle icon - just an UI
 
     $('.menu > ul > li > ul:not(:has(ul))').addClass('normal-sub');
-    //Checks if drodown menu's li elements have anothere level (ul), if not the dropdown is shown as regular dropdown, not a mega menu (thanks Luka Kladaric)
+    // Checks if dropdown menu's li elements have another level (ul), if not the dropdown is shown as regular dropdown, not a mega menu (thanks Luka Kladaric)
 
-    $(".menu > ul").before("<a href=\"#\" class=\"menu-mobile\">Navigation</a>");
-
-    //Adds menu-mobile class (for mobile toggle menu) before the normal menu
-    //Mobile menu is hidden if width is more then 959px, but normal menu is displayed
-    //Normal menu is hidden if width is below 959px, and jquery adds mobile menu
-    //Done this way so it can be used with wordpress without any trouble
+    $(".menu > ul").before("<a href=\"#\" class=\"menu-mobile\"><i class=\"bi bi-list\"></i> Каталог</a>");
+    // Adds menu-mobile class (for mobile toggle menu) before the normal menu
+    // Mobile menu is hidden if width is more than 959px, but normal menu is displayed
+    // Normal menu is hidden if width is below 959px, and jquery adds mobile menu
+    // Done this way so it can be used with wordpress without any trouble
 
     $(".menu > ul > li").hover(
         function (e) {
             if ($(window).width() > 943) {
-                $(this).children("ul").fadeIn(150);
+                $(this).children("ul").stop(true, true).fadeIn(200);
                 e.preventDefault();
             }
         }, function (e) {
             if ($(window).width() > 943) {
-                $(this).children("ul").fadeOut(150);
+                $(this).children("ul").stop(true, true).fadeOut(200);
                 e.preventDefault();
             }
         }
     );
-    //If width is more than 943px dropdowns are displayed on hover
+    // If width is more than 943px dropdowns are displayed on hover
 
-
-    //the following hides the menu when a click is registered outside
+    // The following hides the menu when a click is registered outside
     $(document).on('click', function(e){
-        if($(e.target).parents('.menu').length === 0)
+        if($(e.target).parents('.menu').length === 0) {
             $(".menu > ul").removeClass('show-on-mobile');
-    });
-
-    $(".menu > ul > li").click(function() {
-        //no more overlapping menus
-        //hides other children menus when a list item with children menus is clicked
-        var thisMenu = $(this).children("ul");
-        var prevState = thisMenu.css('display');
-        $(".menu > ul > li > ul").fadeOut();
-        if ($(window).width() < 943) {
-            if(prevState !== 'block')
-                thisMenu.fadeIn(150);
         }
     });
-    //If width is less or equal to 943px dropdowns are displayed on click (thanks Aman Jain from stackoverflow)
+
+    $(".menu > ul > li").click(function(e) {
+        e.stopPropagation(); // Prevent event bubbling
+        // No more overlapping menus
+        // Hides other children menus when a list item with children menus is clicked
+        var thisMenu = $(this).children("ul");
+        var prevState = thisMenu.css('display');
+        $(".menu > ul > li > ul").fadeOut(200);
+        if ($(window).width() < 943) {
+            if(prevState !== 'block') {
+                thisMenu.fadeIn(200);
+            }
+        }
+    });
+    // If width is less or equal to 943px dropdowns are displayed on click (thanks Aman Jain from stackoverflow)
 
     $(".menu-mobile").click(function (e) {
         $(".menu > ul").toggleClass('show-on-mobile');
         e.preventDefault();
     });
-    //when clicked on mobile-menu, normal menu is shown as a list, classic rwd menu story (thanks mwl from stackoverflow)
-
+    // When clicked on mobile-menu, normal menu is shown as a list, classic rwd menu story (thanks mwl from stackoverflow)
 });
+/*
+- Name: megamenu.js - style.css
+- Version: 1.1 (updated for modern clothing catalog)
+- Latest update: 2023.
+- Author: Mario Loncarek (adapted)
+- Author web site: http://marioloncarek.com
+*/

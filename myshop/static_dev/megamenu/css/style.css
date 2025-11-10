@@ -1,18 +1,12 @@
-/* 
-- Name: megamenu.js - style.css
-- Version: 1.0
-- Latest update: 29.01.2016.
-- Author: Mario Loncarek
-- Author web site: http://marioloncarek.com
-*/
-
-
 /* ––––––––––––––––––––––––––––––––––––––––––––––––––
-Body - not related to megamenu
-–––––––––––––––––––––––––––––––––––––––––––––––––– */
+  Body - not related to megamenu
+  ––––––––––––––––––––––––––––––––––––––––––––––––––– */
 
-body {
+  body {
     font-family: 'Source Sans Pro', sans-serif;
+    background: #ffffff; /* Белый фон сайта */
+    margin: 0;
+    padding: 0;
 }
 
 * {
@@ -21,52 +15,50 @@ body {
 
 a {
     color: #333;
+    transition: color 0.3s ease;
 }
 
 .description {
     position: absolute;
     top: 50%;
     left: 50%;
-    -webkit-transform: translateY(-50%);
-    -ms-transform: translateY(-50%);
-    transform: translateY(-50%);
-    -webkit-transform: translateX(-50%);
-    -ms-transform: translateX(-50%);
-    transform: translateX(-50%);
+    transform: translate(-50%, -50%);
 }
 
-
 /* ––––––––––––––––––––––––––––––––––––––––––––––––––
-megamenu.js STYLE STARTS HERE
-–––––––––––––––––––––––––––––––––––––––––––––––––– */
-
+megamenu.js STYLE STARTS HERE (updated for clothing catalog)
+––––––––––––––––––––––––––––––––––––––––––––––––––– */
 
 /* ––––––––––––––––––––––––––––––––––––––––––––––––––
 Screen style's
-–––––––––––––––––––––––––––––––––––––––––––––––––– */
+––––––––––––––––––––––––––––––––––––––––––––––––––– */
 
 .menu-container {
-    /* width: 80%; */
+    width: 100%;
     margin: 0;
-    background: #e9e9e9;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%); /* Лёгкий градиент для современности */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Тень для глубины */
+    border-top: 2px solid #000000; /* ДОБАВЛЕНО: Чёрная полоска сверху */
+    border-bottom: 2px solid #000000; /* Чёрная полоска снизу (уже была) */
 }
 
 .menu-mobile {
     display: none;
-    padding: 12px;
+    padding: 15px 20px;
+    background: #000000; /* Чёрный фон для мобильной кнопки */
+    color: #ffffff;
+    text-decoration: none;
+    font-weight: bold;
+    /* border-radius: 5px; */ /* УБРАНО: Для прямоугольной формы */
+    transition: background 0.3s ease;
 }
 
-.menu-mobile:after {
-    content: "\f394";
-    font-family: "Ionicons";
-    font-size: 1.5rem;
-    padding: 0;
-    float: right;
-    position: relative;
-    top: 50%;
-    -webkit-transform: translateY(-25%);
-    -ms-transform: translateY(-25%);
-    transform: translateY(-25%);
+.menu-mobile:hover {
+    background: #007bff; /* Голубой ховер */
+}
+
+.menu-mobile .bi {
+    margin-right: 10px;
 }
 
 .menu-dropdown-icon:before {
@@ -76,7 +68,7 @@ Screen style's
     cursor: pointer;
     float: right;
     padding: 1.5em 2em;
-    background: #fff;
+    background: #ffffff;
     color: #333;
 }
 
@@ -86,10 +78,10 @@ Screen style's
     list-style: none;
     padding: 0;
     position: relative;
-    /* IF .menu position=relative -> ul = container width, ELSE ul = 100% width */
     box-sizing: border-box;
-    display: flex; /* Используем Flexbox для выравнивания */
-    justify-content: center; /* Центрируем элементы */
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap; /* Для адаптивности */
 }
 
 .menu > ul:before,
@@ -103,33 +95,48 @@ Screen style's
 }
 
 .menu > ul > li {
-    float: left;
-    background: #e9e9e9;
+    background: #ffffff;
     padding: 0;
     margin: 0;
+    position: relative;
 }
 
 .menu > ul > li a {
     text-decoration: none;
-    padding: 1em 1em;
-    display: block;
+    padding: 1.2em 1.5em;
+    display: flex;
+    align-items: center;
+    font-weight: 500;
+    color: #000000; /* Чёрный текст */
+}
+
+.menu > ul > li a .bi {
+    margin-right: 8px;
+    font-size: 1.2em;
 }
 
 .menu > ul > li:hover {
-    background: #f0f0f0;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.menu > ul > li:hover a {
+    color: #007bff; /* Голубой ховер */
 }
 
 .menu > ul > li > ul {
     display: none;
     width: 100%;
-    background: #f0f0f0;
-    padding: 20px;
+    background: #ffffff;
+    padding: 25px;
     position: absolute;
     z-index: 99;
     left: 0;
     margin: 0;
     list-style: none;
     box-sizing: border-box;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    /* border-radius: 8px; */ /* УБРАНО: Для прямоугольной формы */
+    border-top: 3px solid #007bff; /* Голубая полоска */
 }
 
 .menu > ul > li > ul:before,
@@ -152,17 +159,22 @@ Screen style's
 }
 
 .menu > ul > li > ul > li a {
-    color: #777;
-    padding: .2em 0;
+    color: #333;
+    padding: 0.5em 0;
     width: 95%;
     display: block;
-    border-bottom: 1px solid #ccc;
+    border-bottom: 1px solid #dee2e6;
+    transition: color 0.3s ease;
+}
+
+.menu > ul > li > ul > li a:hover {
+    color: #007bff;
 }
 
 .menu > ul > li > ul > li > ul {
     display: block;
     padding: 0;
-    margin: 10px 0 0;
+    margin: 15px 0 0;
     list-style: none;
     box-sizing: border-box;
 }
@@ -182,57 +194,74 @@ Screen style's
     width: 100%;
     padding: 10px 0;
     margin: 0;
-    font-size: .8em;
+    font-size: 0.9em;
 }
 
 .menu > ul > li > ul > li > ul > li a {
     border: 0;
+    color: #666;
+}
+
+.menu > ul > li > ul > li > ul > li a:hover {
+    color: #007bff;
 }
 
 .menu > ul > li > ul.normal-sub {
-    width: 200px;
+    width: 250px;
     left: auto;
-    padding: 10px 20px;
+    padding: 15px 20px;
+    background: #ffffff;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    /* border-radius: 8px; */ /* УБРАНО: Для прямоугольной формы */
 }
 
 .menu > ul > li > ul.normal-sub > li {
     width: 100%;
-
 }
 
 .menu > ul > li > ul.normal-sub > li a {
     border: 0;
-    /* padding: 1em 0; */
-    transition: all .3s;
-    color: black;
+    padding: 0.8em 0;
+    transition: all 0.3s ease;
+    color: #000000;
 }
 
 .menu > ul > li > ul.normal-sub > li a:hover {
-    color: dodgerblue;
+    color: #007bff;
+    background: rgba(0, 123, 255, 0.1);
+    /* border-radius: 5px; */ /* УБРАНО: Для прямоугольной формы */
 }
-
 
 /* ––––––––––––––––––––––––––––––––––––––––––––––––––
 Mobile style's
-–––––––––––––––––––––––––––––––––––––––––––––––––– */
+––––––––––––––––––––––––––––––––––––––––––––––––––– */
 
 @media only screen and (max-width: 959px) {
     .menu-container {
         width: 100%;
+        background: #ffffff;
+        box-shadow: none;
     }
     .menu-mobile {
         display: block;
+        background: #000000;
+        color: #ffffff;
+    }
+    .menu-mobile:hover {
+        background: #007bff;
     }
     .menu-dropdown-icon:before {
         display: block;
     }
     .menu > ul {
         display: none;
+        flex-direction: column;
     }
     .menu > ul > li {
         width: 100%;
         float: none;
         display: block;
+        border-bottom: 1px solid #dee2e6;
     }
     .menu > ul > li a {
         padding: 1.5em;
@@ -241,6 +270,8 @@ Mobile style's
     }
     .menu > ul > li > ul {
         position: relative;
+        background: #f8f9fa;
+        padding: 10px;
     }
     .menu > ul > li > ul.normal-sub {
         width: 100%;
@@ -248,7 +279,7 @@ Mobile style's
     .menu > ul > li > ul > li {
         float: none;
         width: 100%;
-        margin-top: 20px;
+        margin-top: 10px;
     }
     .menu > ul > li > ul > li:first-child {
         margin: 0;
@@ -260,6 +291,7 @@ Mobile style's
         float: none;
     }
     .menu .show-on-mobile {
-        display: block;
+        display: flex;
+        flex-direction: column;
     }
 }

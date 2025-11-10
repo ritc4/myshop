@@ -35,3 +35,10 @@ EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 EMAIL_PORT = 465
 EMAIL_USE_SSL = True
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
+
+
+
+# Redis настройки (для dev: localhost; для prod переопределяем в prod.py через config)
+REDIS_HOST = config('REDIS_HOST', default='localhost')
+REDIS_PORT = config('REDIS_PORT', default=6379)
+REDIS_DB = config('REDIS_DB', default=0)

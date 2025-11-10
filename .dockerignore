@@ -11,5 +11,6 @@ media/
 data/db/
 ssl/
 ./data/
+.github
 # media/
 # *.sql

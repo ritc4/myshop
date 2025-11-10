@@ -559,6 +559,13 @@ section{
   padding: 1rem;
   list-style: none;
   display: flex;
+  flex-wrap: wrap; /* Разрешаем перенос на новую строку */
+}
+
+.breadcrumbs li {
+  margin-right: 5px; /* Добавляем небольшой отступ между элементами */
+  overflow-wrap: break-word; /* Разрешаем перенос длинных слов */
+  word-break: break-word;
 }
 
 .breadcrumbs a{
@@ -950,3 +957,25 @@ textarea{
 }
 
 
+
+
+
+
+
+/*=====================Product_remont_category_page====================*/
+/* Стили для карточек товаров (product-cards) */
+
+
+
+
+
+.notification-alert {
+  background-color: #f8d7da; /* Красный для error */
+  border: 1px solid #f5c6cb;
+  color: #721c24;
+}
+.notification-alert.alert-success {
+  background-color: #d4edda;
+  border: 1px solid #c3e6cb;
+  color: #155724;
+}

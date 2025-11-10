@@ -1,3 +1,122 @@
+# services:
+#   db:
+#     image: postgres:16.2
+#     restart: always
+#     volumes:
+#       - db_data:/var/lib/postgresql/data
+#     env_file: .env
+#     healthcheck:
+#       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+#       interval: 30s
+#       timeout: 10s
+#       retries: 5
+#   rabbitmq:
+#     image: rabbitmq:management
+#     restart: always
+#     volumes:
+#       - rabbitmq_data:/var/lib/rabbitmq
+#     env_file: .env
+#     healthcheck:
+#       test: ["CMD", "rabbitmq-diagnostics", "ping"]
+#       interval: 30s
+#       timeout: 10s
+#       retries: 5
+#   web:
+#     image: r162809ws/myshop-web:${TAG:-latest}
+#     user: "33:33"
+#     command: ["./wait-for-it.sh", "db:5432", "--", "sh", "-c", "python myshop/manage.py migrate --settings=myshop.settings.prod && python myshop/manage.py collectstatic --noinput --settings=myshop.settings.prod && if [ \"$(python myshop/manage.py shell --settings=myshop.settings.prod -c 'from django.contrib.auth import get_user_model; User = get_user_model(); print(User.objects.filter(is_superuser=True).exists())')\" != 'True' ]; then python myshop/manage.py createsuperuser --noinput --settings=myshop.settings.prod; fi && uwsgi --ini /app/config/uwsgi/uwsgi.ini"]
+#     restart: always
+#     volumes:
+#       - static_volume:/app/myshop/static
+#       - media_volume:/app/myshop/media
+#       - uwsgi_socket:/app/myshop/
+#     env_file: .env
+#     environment:
+#       - DJANGO_SETTINGS_MODULE=myshop.settings.prod
+#     depends_on:
+#       db:
+#         condition: service_healthy
+#       rabbitmq:
+#         condition: service_healthy
+#   celery:
+#     image: r162809ws/myshop-web:${TAG:-latest}
+#     user: "33:33"
+#     command: celery -A myshop worker -l info --hostname=celery@%h
+#     volumes:
+#       - static_volume:/app/myshop/static
+#       - media_volume:/app/myshop/media
+#     environment:
+#       - DJANGO_SETTINGS_MODULE=myshop.settings.prod
+#       - PYTHONPATH=/app/myshop
+#     env_file: .env
+#     depends_on:
+#       db:
+#         condition: service_healthy
+#       web:
+#         condition: service_started
+#       rabbitmq:
+#         condition: service_healthy
+#   nginx:
+#     image: nginx:1.25.5
+#     restart: always
+#     volumes:
+#       - ./config/nginx:/etc/nginx/templates
+#       - static_volume:/app/myshop/static
+#       - media_volume:/app/myshop/media
+#       - uwsgi_socket:/app/myshop/
+#     ports:
+#       - "80:80"
+#       - "443:443"
+#     secrets:
+#       - myshop.crt
+#       - myshop.key
+#     depends_on:
+#       web:
+#         condition: service_started
+#       flower:
+#         condition: service_started
+#   flower:
+#     image: r162809ws/myshop-web:${TAG:-latest}
+#     user: "33:33"
+#     env_file: .env
+#     command: celery -A myshop flower --url-prefix=/flower --hostname=flower@%h
+#     volumes:
+#       - media_volume:/app/myshop/media
+#     environment:
+#       - DJANGO_SETTINGS_MODULE=myshop.settings.prod
+#       - PYTHONPATH=/app/myshop
+#       - FLOWER_UNAUTHENTICATED_API=true
+#     depends_on:
+#       celery:
+#         condition: service_started
+#       rabbitmq:
+#         condition: service_healthy
+#     restart: always
+#     healthcheck:
+#       test: ["CMD", "curl", "-f", "http://localhost:5555/flower/"]
+#       interval: 30s
+#       timeout: 10s
+#       retries: 5
+
+# volumes:
+#   static_volume:
+#   media_volume:
+#   db_data:
+#   rabbitmq_data:
+#   uwsgi_socket:
+
+
+# secrets:
+#   myshop.crt:
+#     file: ./ssl/myshop.crt  # Путь к cert на хосте (в папке cozy)
+#   myshop.key:
+#     file: ./ssl/myshop.key  # Путь к key на хосте
+
+
+
+
+
+
 services:
   db:
     image: postgres:16.2
@@ -10,6 +129,18 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+  redis:
+    image: redis:7.2.4
+    restart: always
+    volumes:
+      - redis_data:/data
+    env_file: .env
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "--no-auth-warning", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5 
   rabbitmq:
     image: rabbitmq:management
     restart: always
@@ -36,6 +167,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_healthy
       rabbitmq:
         condition: service_healthy
   celery:
@@ -51,6 +184,8 @@ services:
     env_file: .env
     depends_on:
       db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
       web:
         condition: service_started
@@ -102,12 +237,12 @@ volumes:
   static_volume:
   media_volume:
   db_data:
+  redis_data:
   rabbitmq_data:
   uwsgi_socket:
-
 
 secrets:
   myshop.crt:
     file: ./ssl/myshop.crt  # Путь к cert на хосте (в папке cozy)
   myshop.key:
-    file: ./ssl/myshop.key  # Путь к key на хосте
+    file: ./ssl/myshop.key  # Путь к key на хосте и сюда

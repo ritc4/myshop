@@ -56,6 +56,12 @@ def cart_add(request, product_id):
                 html_checkout_page = render_to_string('orders/order/checkout_cart_tbody.html', {
                     'cart': cart,
                 })
+
+                # Для мобильных карточек (новый шаблон)
+                html_checkout_cards = render_to_string('orders/order/checkout_cart_cards.html', {
+                    'cart': cart,
+                })
+
                 html_offcanvas = render_to_string('cart/cart_offcanvas.html', {
                     'cart': cart,
                     'is_cart_empty': is_empty,
@@ -74,6 +80,7 @@ def cart_add(request, product_id):
                     'html_cart_page': html_cart_page,
                     'html_checkout_page': html_checkout_page,
                     'html_offcanvas': html_offcanvas,
+                    'html_checkout_cards': html_checkout_cards,
                 })
             else:
                 referer = request.META.get('HTTP_REFERER', 'cart:cart_detail')
@@ -117,6 +124,10 @@ def cart_remove(request, product_id):
             html_checkout_page = render_to_string('orders/order/checkout_cart_tbody.html', {
                 'cart': cart,
             })
+            # Для мобильных карточек (новый шаблон)
+            html_checkout_cards = render_to_string('orders/order/checkout_cart_cards.html', {
+                'cart': cart,
+            })
             html_offcanvas = render_to_string('cart/cart_offcanvas.html', {
                 'cart': cart,
                 'is_cart_empty': is_empty,
@@ -133,6 +144,7 @@ def cart_remove(request, product_id):
                 'html_cart_page': html_cart_page,
                 'html_checkout_page': html_checkout_page,
                 'html_offcanvas': html_offcanvas,
+                'html_checkout_cards': html_checkout_cards,
             })
         else:
             referer = request.META.get('HTTP_REFERER', 'cart:cart_detail')

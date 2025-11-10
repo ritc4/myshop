@@ -37,3 +37,20 @@ DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
 
 # Админский email для уведомлений (используется в задачах, например, для BCC)
 ADMIN_EMAIL = config('ADMIN_EMAIL', default='ccozy@yandex.ru')
+
+
+# В prod.py (после импорта из base)
+REDIS_PASSWORD = config('REDIS_PASSWORD', default='')  # Переопределите, если нужно
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+        'LOCATION': f'redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}',  # Используйте переменные из base
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        }
+    }
+}
+
+# REDIS_URL = 'redis://cache:6379'
+# CACHES['default']['LOCATION'] = REDIS_URL
+# CHANNEL_LAYERS['default']['CONFIG']['hosts'] = [REDIS_URL]

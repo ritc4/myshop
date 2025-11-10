@@ -6,6 +6,63 @@ from django_ckeditor_5.fields import CKEditor5Field
 from django.conf import settings
 from django.utils.html import format_html
 from datetime import datetime
+from django.utils import timezone
+from imagekit.models import ProcessedImageField
+from imagekit.processors import ResizeToFit
+from django.core.validators import FileExtensionValidator
+from django.core.files.validators import FileSizeValidator
+from django.core.exceptions import ValidationError
+from PIL import Image
+import io
+
+
+
+
+
+def validate_image_mime_type(value):
+    """
+    Валидатор для проверки MIME-типа изображения через Pillow.
+    Разрешает только реальные изображения (JPEG, PNG, GIF, WebP).
+    """
+    allowed_mime_types = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+    
+    try:
+        # Открываем файл как байты и проверяем через Pillow
+        image = Image.open(io.BytesIO(value.read()))
+        mime_type = Image.MIME.get(image.format)  # Получаем MIME-тип по формату (e.g., 'JPEG' -> 'image/jpeg')
+        
+        if mime_type not in allowed_mime_types:
+            raise ValidationError(f'Недопустимый тип файла: {mime_type}. Разрешены только изображения.')
+        
+        # Сбрасываем указатель файла для дальнейшей обработки
+        value.seek(0)
+
+
+
+
+# class Category(MPTTModel):
+#     name = models.CharField(max_length=255, unique=True,verbose_name='Категория')
+#     parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children',verbose_name='Подкатегория')
+#     slug = models.SlugField(max_length=255,verbose_name='Url',unique=True)
+#     image = models.ImageField(upload_to='categories/%Y/%m/%d', blank=True, null=True,verbose_name='Фото')  # Поле для изображения категории
+
+#     def get_absolute_url(self):
+#         return reverse("home:category", kwargs={"slug": self.slug})
+    
+#     def __str__(self):
+#         return self.name
+    
+#     class Meta:
+#         verbose_name = 'Категорию'
+#         verbose_name_plural = 'Категории'
+#         indexes = [
+#             models.Index(fields=['name']),]
+
+#     class MPTTMeta:
+#         order_insertion_by = ['name']
+
+#     def get_breadcrumbs(self):
+#         return self.get_ancestors(include_self=True)
 
 
 
@@ -13,7 +70,22 @@ class Category(MPTTModel):
     name = models.CharField(max_length=255, unique=True,verbose_name='Категория')
     parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children',verbose_name='Подкатегория')
     slug = models.SlugField(max_length=255,verbose_name='Url',unique=True)
-    image = models.ImageField(upload_to='categories/%Y/%m/%d', blank=True, null=True,verbose_name='Фото')  # Поле для изображения категории
+    image = ProcessedImageField(
+        upload_to='categories/%Y/%m/%d',
+        processors=[ResizeToFit(300, 300)],  # Пример размера для миниатюр категорий
+        format='WEBP',
+        options={'quality': 85, 'optimize': True},
+        validators=[
+            FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'gif', 'webp']),
+            FileSizeValidator(max_size=10 * 1024 * 1024),  # Меньше, если не нужно
+            validate_image_mime_type,  # Новый валидатор
+        ],
+        keep_original=False,  # Не сохранять оригинал
+        blank=True,
+        null=True,
+        verbose_name='Фото',
+    )
+
 
     def get_absolute_url(self):
         return reverse("home:category", kwargs={"slug": self.slug})
@@ -113,10 +185,42 @@ def product_image_upload_path(instance, filename):
 
 
 
+# class ProductImage(models.Model):
+#     product = models.ForeignKey(Product, related_name='images', on_delete=models.CASCADE)
+#     image = models.ImageField(upload_to=product_image_upload_path,blank=True,null=True, verbose_name='Изображение',db_index=True)
+    
+#     def __str__(self):
+#         return f"Изображение {self.id} для {self.product.title}"
+    
+#     def image_tag(self):
+#         if self.image:
+#             return format_html('<img src="{}" width="100" height="100" />', self.image.url)
+#         return "Нет изображения"
+#     image_tag.short_description = "Фото"
+    
+#     class Meta:
+#         verbose_name = 'Фото товара'
+#         verbose_name_plural = 'Фото товаров'
+
+
+
 class ProductImage(models.Model):
     product = models.ForeignKey(Product, related_name='images', on_delete=models.CASCADE)
-    image = models.ImageField(upload_to=product_image_upload_path,blank=True,null=True, verbose_name='Изображение',db_index=True)
-    
+    image = ProcessedImageField(
+        upload_to=product_image_upload_path,  # Без расширения, для перезаписи
+        processors=[ResizeToFit(800, 600)],  # Подгонка под 800x600
+        format='WEBP',
+        options={'quality': 85, 'optimize': True},
+        validators=[
+            FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'gif', 'webp']),
+            FileSizeValidator(max_size=20 * 1024 * 1024),  # 20 MB
+            validate_image_mime_type,  # Новый валидатор
+        ],
+        keep_original=False,  # Не сохранять оригинал
+        blank=True,
+        null=True, verbose_name='Изображение', db_index=True,
+    )
+
     def __str__(self):
         return f"Изображение {self.id} для {self.product.title}"
     
@@ -129,25 +233,6 @@ class ProductImage(models.Model):
     class Meta:
         verbose_name = 'Фото товара'
         verbose_name_plural = 'Фото товаров'
-
-
-
-# class ProductImage(models.Model):
-#     product = models.ForeignKey(Product, related_name='images', on_delete=models.CASCADE)
-#     image = models.ImageField(upload_to='products/%Y/%m/%d', blank=True, null=True, verbose_name='Изображение',db_index=True)
-    
-#     def __str__(self):
-#         return f"Изображение {self.id}"
-    
-
-#     def image_tag(self):
-#         # Возвращаем все изображения, связанные с продуктом
-#         return self.product.image.all()
-#     image_tag.short_description = "Фото"
-    
-#     class Meta:
-#         verbose_name = 'Фото товара'
-#         verbose_name_plural = 'Фото товаров'
 
 
 class News(models.Model):
@@ -165,10 +250,37 @@ class News(models.Model):
         verbose_name_plural = 'Новости'
 
 
-class SizeTable(models.Model):
-    title = models.CharField(max_length=255,verbose_name='Размерная таблица',blank=False)
-    image = models.ImageField(upload_to='size_table/%Y/%m/%d', blank=True,null=True, verbose_name='Изображение')
+# class SizeTable(models.Model):
+#     title = models.CharField(max_length=255,verbose_name='Размерная таблица',blank=False)
+#     image = models.ImageField(upload_to='size_table/%Y/%m/%d', blank=True,null=True, verbose_name='Изображение')
 
+
+#     def __str__(self):
+#         return f"{self.title}"
+    
+#     class Meta:
+#         verbose_name = 'Размерная таблица'
+#         verbose_name_plural = 'Размерные таблицы'
+
+
+
+
+class SizeTable(models.Model):
+    title = models.CharField(max_length=255,verbose_name='Размерная таблица', blank=False)
+    image = ProcessedImageField(
+        upload_to='size_table/%Y/%m/%d',
+        processors=[ResizeToFit(600, 400)],
+        format='WEBP',
+        options={'quality': 85, 'optimize': True},
+        validators=[
+            FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'gif', 'webp']),
+            FileSizeValidator(max_size=20 * 1024 * 1024),
+            validate_image_mime_type,  # Новый валидатор
+        ],
+        keep_original=False,  # Не сохранять оригинал
+        blank=True,
+        null=True, verbose_name='Изображение',
+    )
 
     def __str__(self):
         return f"{self.title}"
@@ -176,6 +288,9 @@ class SizeTable(models.Model):
     class Meta:
         verbose_name = 'Размерная таблица'
         verbose_name_plural = 'Размерные таблицы'
+
+
+
 
 
 class Uslovie_firm(models.Model):
@@ -202,10 +317,37 @@ class Politica_firm(models.Model):
         verbose_name = 'Политика конфиденциальности'
         verbose_name_plural = 'Политика конфиденциальности'
 
+# class ImageSliderHome(models.Model):
+#     image = models.ImageField(upload_to='slider_home/%Y/%m/%d', blank=True,null=True, verbose_name='Изображение')
+
+
+#     def __str__(self):
+#         return f"{self.image}"
+
+
+#     class Meta:
+#         verbose_name = 'Изображение главной страницы'
+#         verbose_name_plural = 'Изображения главной страницы'
+
+
+
+
 class ImageSliderHome(models.Model):
-    image = models.ImageField(upload_to='slider_home/%Y/%m/%d', blank=True,null=True, verbose_name='Изображение')
-
-
+    image = ProcessedImageField(
+        upload_to='slider_home/%Y/%m/%d',
+        processors=[ResizeToFit(1200, 600)],
+        format='WEBP',
+        options={'quality': 85, 'optimize': True},
+        validators=[
+            FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'gif', 'webp']),
+            FileSizeValidator(max_size=20 * 1024 * 1024),
+            validate_image_mime_type,  # Новый валидатор
+        ],
+        keep_original=False,  # Не сохранять оригинал
+        blank=True,
+        null=True, verbose_name='Изображение',
+    )
+    
     def __str__(self):
         return f"{self.image}"
 
@@ -213,6 +355,9 @@ class ImageSliderHome(models.Model):
     class Meta:
         verbose_name = 'Изображение главной страницы'
         verbose_name_plural = 'Изображения главной страницы'
+
+
+
 
 
 class DeliveryInfo(models.Model):
@@ -246,11 +391,63 @@ class Review(models.Model):
         verbose_name_plural = 'Отзывы'
 
 
-class ReviewImage(models.Model):
-    review = models.ForeignKey(Review, related_name='images', on_delete=models.CASCADE)
-    image = models.ImageField(upload_to='review_home/%Y/%m/%d', blank=True, null=True, verbose_name='Изображение',db_index=True)
+# Функция для динамического пути загрузки изображений
+def review_image_upload_path(instance, filename):
+    # Получаем логин пользователя из связанного отзыва
+    user_login = instance.review.user.username if instance.review.user else 'anonymous'
+    # Получаем дату из отзыва (год/месяц/день)
+    if instance.review.created_at:
+        date_str = instance.review.created_at.strftime('%Y/%m/%d')
+    else:
+        date_str = 'unknown'
+    # Возвращаем путь: review_home/username/год/месяц/день/filename
+    return f'review_home/{user_login}/{date_str}/{filename}'
+
+
+# class ReviewImage(models.Model):
+#     review = models.ForeignKey(Review, related_name='images', on_delete=models.CASCADE)
+#     image = models.ImageField(upload_to=review_image_upload_path, blank=True, null=True, verbose_name='Изображение',db_index=True)
 
     
+#     def __str__(self):
+#         return f"{self.review}"
+    
+#     def image_tag_review(self):
+#         # Возвращаем все изображения, связанные с продуктом
+#         return self.review.image.all()
+#     image_tag_review.short_description = "Изображение"
+    
+#     class Meta:
+#         verbose_name = 'Изображение отзыва'
+#         verbose_name_plural = 'Изображения отзывов'
+
+
+
+
+class ReviewImage(models.Model):
+    review = models.ForeignKey(Review, related_name='images', on_delete=models.CASCADE)
+    image = ProcessedImageField(
+        upload_to=review_image_upload_path,
+        processors=[ResizeToFit(400, 400)],  # Квадратные миниатюры, как в шаблоне
+        format='WEBP',
+        options={'quality': 85, 'optimize': True}, 
+        validators=[
+            FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'gif', 'webp']),
+            FileSizeValidator(max_size=20 * 1024 * 1024),
+            validate_image_mime_type,  # Новый валидатор
+        ],
+        keep_original=False,  # Не сохранять оригинал
+        blank=True,
+        null=True, verbose_name='Изображение', db_index=True,
+    )
+
+    def clean(self):
+        existing_images = self.review.images.exclude(pk=self.pk).count()  # Исключаем текущий объект
+        if existing_images >= 5:
+            raise ValidationError('Максимум 5 изображений на отзыв.')
+
+
+
     def __str__(self):
         return f"{self.review}"
     

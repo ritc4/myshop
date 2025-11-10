@@ -14,6 +14,7 @@ server {
     ssl_certificate /run/secrets/myshop.crt;
     ssl_certificate_key /run/secrets/myshop.key;
     server_name www.cozy.su cozy.su;
+    client_max_body_size 200M; 
 
     location / {
         include /etc/nginx/uwsgi_params;
@@ -26,6 +27,19 @@ server {
 
     location /media/ {
         alias /app/myshop/media/;
+        # Запрещаем исполнение скриптов и потенциально вредоносных файлов (даже если валидаторы в Django пройдены)
+        location ~ \.(php|pl|cgi|py|exe|bat|sh)$ {
+            deny all;
+            return 403; 
+        }
+        # Для всех файлов в /media/: не исполнять, только отдавать как статические
+        try_files $uri =404;
+        # Кеширование для производительности (безопасно для изображений)
+        expires 1M;
+        add_header Cache-Control "public, immutable";
+        # Дополнительно: ограничение доступа по IP, если нужно (например, только для внутреннего использования)
+        # allow 192.168.0.0/16;  # Разрешить только локальную сеть
+        # deny all;
     }
 
 

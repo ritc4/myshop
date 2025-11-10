@@ -19,7 +19,7 @@
                     {% if i.user.photo %}
                       <img class="profile-img rounded-circle" src="{{ i.user.photo.url }}" alt="User  Photo">
                     {% else %}
-                      <img class="profile-img rounded-circle" src="/media/users/default.png" alt="Default User Photo">
+                      <img class="profile-img rounded-circle" src="{% static 'img/users/no_image_users.png' %}" alt="Default User Photo">
                     {% endif %}
                   </div>
                   <div>
@@ -77,23 +77,31 @@
         <h1 class="modal-title fs-5" id="exampleModalLabel">{{ user }} {{ user.city }}</h1>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <form method="POST" enctype="multipart/form-data" id="reviewForm">
+      <form method="POST" enctype="multipart/form-data" id="reviewForm" novalidate>
         {% csrf_token %}
         <div class="modal-body">
           <input type="hidden" name="next" value="{{ next }}" />
           <div class="form-error">{{ form.non_field_errors }}</div>
           {% for i in form %}
               {% if i.name == 'kachestvo_rating' or i.name == 'obsluga_rating' or i.name == 'sroki_rating' %}
-                <div class="star-rating" data-field="{{ i.name }}">
-                  <span class="form-label">{{ i.label }}</span>
-                  {% for value, display in i.field.choices %}
-                    <span class="star" data-value="{{ value }}" style="cursor: pointer;">&#9733;</span>
-                  {% endfor %}
+                <div class="star-rating mb-2" data-field="{{ i.name }}">
+                  <div class="d-flex align-items-center flex-wrap">
+                    <span class="form-label me-2">{{ i.label }}</span>
+                    {% for value, display in i.field.choices %}
+                      <span class="star" data-value="{{ value }}" style="cursor: pointer;">&#9733;</span>
+                    {% endfor %}
+                  </div>
                 </div>
                 <input type="hidden" name="{{ i.name }}" id="{{ i.name }}" value="">
               {% elif i.name == 'images' %}
-                  <div class="review-form-images p-2">{{i.label}} {{ i }}</div>
-                  <div id="image-preview-container" class="d-flex flex-wrap"></div>
+              <div class="review-form-images p-2">
+                {{ i }}
+                <div class="mt-2 d-flex flex-column flex-sm-row gap-2">
+                  <button type="button" id="add-images-button" class="btn btn-outline-dark">Добавить изображения</button>
+                  <button type="button" id="remove-all-images-button" class="btn btn-outline-danger" style="display: none;">Удалить все изображения</button>
+                </div>
+              </div>
+              <div id="image-preview-container" class="d-flex flex-wrap"></div>
               {% else %}
                 <div class="mb-3">
                   {{ i }}
@@ -101,6 +109,9 @@
               {% endif %}
             {% endfor %}
             <div class="modal-footer">
+              <small class="text-muted d-block mt-1">
+                Поддерживаемые форматы: JPEG, PNG, GIF, WebP. Максимум 5 изображений по 20 MB каждое (общий размер до 100 MB).
+              </small>
               <button type="submit" class="btn btn-dark">Отправить отзыв</button>
             </div>
         </div>
