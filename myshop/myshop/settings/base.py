@@ -66,9 +66,8 @@ INSTALLED_APPS = [
 
 REST_FRAMEWORK = {
  'DEFAULT_PERMISSION_CLASSES': [
- 'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
- ]
-}
+    'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly']
+}   
 
 
 
@@ -182,21 +181,7 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = 200 * 1024 * 1024  # 100 МБ (для отдель
 DATA_UPLOAD_MAX_MEMORY_SIZE = 200 * 1024 * 1024  # 100 МБ (общий размер POST-данных)
 FILE_UPLOAD_MAX_NUMBER_FILES = 10  # Максимум файлов в одном запросе (для отзывов с изображениями)
 
-# Redis настройки (для dev: localhost; для prod переопределяем в prod.py через config)
-REDIS_HOST = config('REDIS_HOST', default='localhost')
-REDIS_PORT = config('REDIS_PORT', default=6379)
-REDIS_DB = config('REDIS_DB', default=0)
-REDIS_PASSWORD = config('REDIS_PASSWORD', default='')  # Добавлено: пароль, пустой по умолчанию для dev
 
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
-        'LOCATION': f'redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}',
-        'OPTIONS': {
-            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-        }
-    }
-}
 
 
 LOGIN_REDIRECT_URL = 'home:home'
@@ -334,3 +319,6 @@ CKEDITOR_5_FILE_UPLOAD_PERMISSION = "staff"  # Possible values: "staff", "authen
 #         },
 #     },
 # }
+
+
+

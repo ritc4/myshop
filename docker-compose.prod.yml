@@ -135,9 +135,9 @@ services:
     volumes:
       - redis_data:/data
     env_file: .env
-    command: redis-server --appendonly yes
+    command: redis-server --appendonly yes --requirepass $REDIS_PASSWORD
     healthcheck:
-      test: ["CMD", "redis-cli", "--no-auth-warning", "ping"]
+      test: ["CMD", "redis-cli", "-a", "$REDIS_PASSWORD", "ping"]
       interval: 30s
       timeout: 10s
       retries: 5 

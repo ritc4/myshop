@@ -141,7 +141,7 @@ class OrderItem(models.Model):
     
     def __str__(self):
         return str(self.product.title) 
-    
+     
 
     def get_cost(self):
         if self.price is not None and self.quantity is not None:

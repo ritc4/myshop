@@ -57,7 +57,7 @@
             <form id="add-to-cart-form" action="{% url "cart:cart_add" product.id %}" method="post">
               {% csrf_token %}
               <label for="size-select_product">Выберите количество:</label>
-              <input name="quantity" type="number" class="form-control" value="{{ cart_product_form.quantity.value|default:1 }}" min="1" />
+              <input name="quantity" type="number" class="form-control" value="{{ cart_product_form.quantity.value|default:1 }}" min="1" max="100" data-max="100" />
               <label for="size-select_product">Выберите размер:</label>
               <select name="size" class="form-control custom-select" id="size-select_product" aria-label="Выберите размер" {% if cart_product_form.fields.size.required %}required{% endif %}>
                 <option value="" disabled selected>Выберите размер</option>
@@ -183,18 +183,21 @@ $(document).ready(function() {
           delay: 2000  // Задержка перед началом затухания (3 секунды; изменяй по вкусу, в мс)
       });
 
-      // Обработка формы добавления в корзину через AJAX
+      // В submit формы: финальная проверка max перед отправкой
       $('#add-to-cart-form').on('submit', function(e) {
-          e.preventDefault();  // Предотвращаем обычную отправку формы
+          e.preventDefault();
           
-          var form = $(this);  // Объявляем form в начале
-          
-          // Валидация quantity на клиенте
+          var form = $(this);
           var quantityInput = form.find('input[name="quantity"]');
           var quantity = parseInt(quantityInput.val());
+          var max = parseInt(quantityInput.data('max')) || 100;
+          
           if (quantity < 1 || isNaN(quantity)) {
-              quantityInput.val(1);  // Устанавливаем минимум 1
-              return;  // Прерываем отправку, чтобы пользователь мог скорректировать
+              quantityInput.val(1);
+              quantity = 1;
+          } else if (quantity > max) {
+              quantityInput.val(max);
+              quantity = max;
           }
           
           $.ajax({
@@ -223,14 +226,17 @@ $(document).ready(function() {
           });
       });
 
-      // Обработчик для поля quantity: валидация в реальном времени - изменено: фильтруем нецифры и позволяем пустую строку
+      // Обработчик для поля quantity: валидация в реальном времени (расширен: +max)
       $('input[name="quantity"]').on('input', function() {
           var quantityInput = $(this);
           var val = quantityInput.val().replace(/[^0-9]/g, '');  // Удаляем все нецифровые символы
           quantityInput.val(val);  // Устанавливаем очищенное значение
           var quantity = parseInt(val);
+          var max = parseInt(quantityInput.data('max')) || 100;  // Добавлено: max из data-max
           if (val !== '' && (quantity < 1 || isNaN(quantity))) {
               quantityInput.val(1);  // Исправляем только если введено что-то неправильное, но не пустое
+          } else if (val !== '' && quantity > max) {
+              quantityInput.val(max);  // Добавлено: ограничение max
           }
       });
 

@@ -1,17 +1,28 @@
-{% extends "base.html" %} {% load static %} 
+{% extends "base.html" %} 
+{% load static %} 
 {% block title %}{{ title }}{% endblock %} 
 
 {% block content %} 
 
 <div class="container-fluid">
-  <form method="POST" class="needs-validation" novalidate>
+  <form method="POST" class="needs-validation">
     <div class="row">
       <div class="col-md-8 mb-3">
         <div class="contacts-form p-3 h-100 bg-white">
           <h1 class="section-title h5"><span>Форма для связи</span></h1>
+
+          <!-- Блок для отображения сообщений (раскомментировано и улучшено) -->
+          {% if messages %}
+            {% for message in messages %}
+              <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+            {% endfor %}
+          {% endif %}
           
-            {% csrf_token %}
-            <input type="hidden" name="next" value="{{ next }}"/>
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ next }}"/>
 
               <!-- Блок для отображения сообщений
           {% if messages %}
@@ -31,8 +42,15 @@
                 <div class="form-error text-danger">{{ i.errors }}</div>  <!-- Ошибки отображаются здесь -->
               </div>         
                 {% endfor %}
+                <!-- Вставьте это перед кнопкой отправки формы -->
+              <!-- <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" id="agree" name="agree" required>
+                <label class="form-check-label" for="agree">
+                    Я согласен с <a href="#" data-bs-toggle="modal" data-bs-target="#privacyPolicyModal">политикой конфиденциальности</a> и обработкой данных.
+                </label>
+              </div> -->
                 <div class="mt-3">
-                  <button type="submit" href="" class="btn btn-outline-dark">Отправить</button>
+                  <button type="submit" class="btn btn-outline-dark">Отправить</button>
                 </div>
               </div>
           

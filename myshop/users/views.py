@@ -53,12 +53,34 @@ class ProfileUser(LoginRequiredMixin, UpdateView):
             .prefetch_related('items', 'items__product')
 
         # Пагинация
-        paginator = Paginator(orders, 10)  # Разбиваем на страницы по 10 заказов
+        paginator = Paginator(orders, 20)  # Разбиваем на страницы по 10 заказов
         page_number = self.request.GET.get('page')
         page_obj = paginator.get_page(page_number)
 
         context['orders'] = page_obj  # Передаем только текущую страницу заказов
-        context['max_pages'] = 5 # Устанавливаем максимальное количество отображаемых страниц
+        context['paginator'] = paginator  # Для удобства в шаблоне
+        context['show_pagination'] = page_obj.has_other_pages  # Флаг для показа пагинации
+
+        if page_obj.has_other_pages:
+            # Логика для ограниченной пагинации (как в ProductListView: диапазон вокруг текущей, без троеточий)
+            pages_to_show = 5  # Количество страниц для показа (текущая + вокруг неё; подходит для ProductListView)
+
+            # Диапазон: текущая страница в центре, если возможно
+            half = pages_to_show // 2
+            start_page = max(1, page_obj.number - half)
+            end_page = min(paginator.num_pages, page_obj.number + half)
+
+            # Корректируем, если диапазон меньше желаемого (например, в начале/конце)
+            if end_page - start_page < pages_to_show - 1:
+                if start_page == 1:
+                    end_page = min(paginator.num_pages, start_page + pages_to_show - 1)
+                elif end_page == paginator.num_pages:
+                    start_page = max(1, end_page - pages_to_show + 1)
+
+            # Передаём диапазон в контекст (без флагов для троеточий)
+            context["page_range"] = range(start_page, end_page + 1)
+        else:
+            context['page_range'] = []
 
         return context
 
@@ -67,7 +89,6 @@ class ProfileUser(LoginRequiredMixin, UpdateView):
 
     def get_object(self, queryset=None):
         return self.request.user
-
 
     def form_valid(self, form):
         # Логика перезаписи: удаляем старый файл, если фото меняется
@@ -78,44 +99,59 @@ class ProfileUser(LoginRequiredMixin, UpdateView):
                 if os.path.isfile(old_instance.photo.path):
                     os.remove(old_instance.photo.path)
         return super().form_valid(form)
-    
 
 
 
 
 class OrderDetailView(LoginRequiredMixin, DetailView):
     model = Order
-    template_name = 'orders/order/order_detail.html'  # Укажите ваш шаблон для деталей заказа
+    template_name = 'orders/order/order_detail.html'
     context_object_name = 'order'
 
     def get_queryset(self):
-        # Используем select_related для оптимизации запросов
         return Order.objects.select_related('delivery_method').prefetch_related('items__product')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
-        # Получаем конкретный заказ
         order = self.object
         items = order.items.all()
 
-        # Пагинация для Order Items, только если больше 15 элементов
-        if items.count() > 30:
-            paginator = Paginator(items, 5)  #  разбиваем на страницы по 5 items
+        # Пагинация (если >20 элементов)
+        if items.count() > 20:
+            paginator = Paginator(items, 10)  # 10 items на страницу
             page_number = self.request.GET.get('page')
             page_obj = paginator.get_page(page_number)
-
             context['page_obj'] = page_obj
-            context['show_pagination'] = True  # Флаг для отображения пагинации в шаблоне
+            context['paginator'] = paginator
+            context['show_pagination'] = True
+
+            # Логика для ограниченной пагинации (как в ProductListView: диапазон вокруг текущей, без троеточий)
+            pages_to_show = 5  # Количество страниц для показа (текущая + вокруг неё; подходит для ProductListView)
+
+            # Диапазон: текущая страница в центре, если возможно
+            half = pages_to_show // 2
+            start_page = max(1, page_obj.number - half)
+            end_page = min(paginator.num_pages, page_obj.number + half)
+
+            # Корректируем, если диапазон меньше желаемого (например, в начале/конце)
+            if end_page - start_page < pages_to_show - 1:
+                if start_page == 1:
+                    end_page = min(paginator.num_pages, start_page + pages_to_show - 1)
+                elif end_page == paginator.num_pages:
+                    start_page = max(1, end_page - pages_to_show + 1)
+
+            # Передаём диапазон в контекст (без флагов для троеточий)
+            context["page_range"] = range(start_page, end_page + 1)
         else:
-            context['page_obj'] = items  # Передаем все элементы, если их <= 15
-            context['show_pagination'] = False  # Не показывать пагинацию
+            context['page_obj'] = items
+            context['show_pagination'] = False
+            context['page_range'] = []
 
         context['breadcrumbs'] = [
             {'name': 'Детали заказа', 'slug': f'/order_detail/{order.id}/'},
         ]
-
         return context
+
 
 
 

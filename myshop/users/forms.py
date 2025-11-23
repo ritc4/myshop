@@ -4,7 +4,7 @@ from django.contrib.auth.forms import AuthenticationForm,UserCreationForm, Passw
 from captcha.fields import CaptchaField
 
 class LoginUserForm(AuthenticationForm):
-    username = forms.CharField(
+    username = forms.CharField( 
         label='Логин',
         widget=forms.TextInput(attrs={
             'class': 'form-control',
@@ -30,7 +30,7 @@ class LoginUserForm(AuthenticationForm):
 
     class Meta:
         model = get_user_model()
-        fields = ['username', 'password', 'captcha']
+        fields = ['username', 'password']
 
 class RegisterUserForm(UserCreationForm):  
     username = forms.CharField(
@@ -95,7 +95,7 @@ class RegisterUserForm(UserCreationForm):
 
     class Meta:
         model = get_user_model()
-        fields = ['username', 'first_name','email', 'phone', 'password1', 'password2', 'captcha']
+        fields = ['username', 'first_name','email', 'phone', 'password1', 'password2']
 
         
     def clean_email (self):

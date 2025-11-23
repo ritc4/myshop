@@ -91,12 +91,23 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator, FileExtensionValidator
-from django.core.files.validators import FileSizeValidator  # Для размера файла
 from orders.models import DeliveryMethod
 import os
 from django.core.exceptions import ValidationError
 from PIL import Image
 import io
+# Импорты для imagekit
+from imagekit.models import ProcessedImageField
+from imagekit.processors import ResizeToFit
+
+
+
+def validate_file_size(value):  
+    max_size = 20 * 1024 * 1024  # 20 MB  
+    if value.size > max_size:  
+        raise ValidationError(f'Размер файла не должен превышать {max_size / (1024 * 1024)} MB.') 
+    
+
 
 def validate_image_mime_type(value):
     """
@@ -115,13 +126,9 @@ def validate_image_mime_type(value):
         
         # Сбрасываем указатель файла для дальнейшей обработки
         value.seek(0)
+    except Exception as e:
+        raise ValidationError(f'Ошибка при проверке изображения: {str(e)}')
 
-
-
-
-# Импорты для imagekit
-from imagekit.models import ProcessedImageField
-from imagekit.processors import ResizeToFit  # Или ResizeToFill, если хотите обрезку
 
 class User(AbstractUser):
     phone = models.CharField(
@@ -129,7 +136,7 @@ class User(AbstractUser):
         verbose_name="Телефон",
         validators=[
             RegexValidator(
-                regex=r'^(?:\+7|8)\s*\(?\d{3}\)?\s*\d{3}-\d{2}-\d{2}$|^(?:\+7|8)\d{10}$',  # Исправлено: добавлен $ в конце
+                regex=r'^(?:\+7|8)\s*\(?\d{3}\)?\s*\d{3}-\d{2}-\d{2}$|^(?:\+7|8)\d{10}$',  # Исправлено: убран комментарий и запятая, добавлен $
                 message='Телефон должен быть в формате: +7 (XXX) XXX-XX-XX, 8 (XXX) XXX-XX-XX, +7XXXXXXXXXX или 8XXXXXXXXXX, где X - цифры.'
             )
         ]
@@ -162,12 +169,11 @@ class User(AbstractUser):
         # Валидаторы для безопасности
         validators=[
             FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'gif', 'webp']),  # Поддерживаемые форматы
-            FileSizeValidator(max_size=20 * 1024 * 1024),  # 20 MB max (как в шаблоне)
+            validate_file_size,  # 20 MB max (как в шаблоне)
             validate_image_mime_type,
         ],
         # Автоматическая обработка
-        keep_original=False,  # Не сохранять оригинал
-        processors=[ResizeToFit(300, 300)],  # Масштабирование + обрезка до 300x300
+        processors=[ResizeToFit(300, 300, upscale=False)],  # Масштабирование до 300x300
         format='WEBP',  # Конвертация в WebP
         options={
             'quality': 85,  # Качество

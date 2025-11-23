@@ -11,7 +11,6 @@
 </style> -->
 
 <div class="container-fluid">
-
   <div class="row">
     <div class="col-lg-4 mb-3">
       <form method="POST" enctype="multipart/form-data">
@@ -60,24 +59,23 @@
     <div class="col-12 col-md-6 col-lg-8 mb-3">
       <div class="page-detail-order bg-white p-3 mb-3">
           <h5 class="section-title text-center"><span>Мои заказы</span></h5>
-
           <div class="d-md-none">  <!-- Карточки для маленьких экранов (скрыты на md и больше) -->
               {% for order in orders %}
-              <div class="card mb-3">
-                <a href="{% url 'users:order_detail' order.id %}">
-                  <div class="card-body">
-                      <h5 class="card-title">
-                          <b>Заказ № {{ order.id }}</b>
-                      </h5>
-                      <p class="card-text">
-                          <b>Дата создания:</b> {{ order.created }}<br>
-                          <b>Статус:</b> {{ order.get_status_display }}<br>
-                          <b>Сумма:</b> {{ order.get_total_cost }}<br>
-                          <b>Способ доставки:</b> {{ order.delivery_method }}
-                      </p>
-                  </div>
-                </a>
-              </div>
+              <a href="{% url 'users:order_detail' order.id %}" class="card-link">
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <b>Заказ № {{ order.id }}</b>
+                        </h5>
+                        <p class="card-text">
+                            <b>Дата создания:</b> {{ order.created }}<br>
+                            <b>Статус:</b> {{ order.get_status_display }}<br>
+                            <b>Сумма:</b> {{ order.get_total_cost }}<br>
+                            <b>Способ доставки:</b> {{ order.delivery_method }}
+                        </p>
+                    </div>
+                </div>
+              </a>
               {% empty %}
               <p>У вас нет заказов.</p>
               {% endfor %}
@@ -115,57 +113,46 @@
           </div>
       </div>
 
-      <!-- Пагинация (нужно настроить для обоих вариантов) -->
+      <!-- Пагинация: без троеточий, диапазон вокруг текущей (узнаваемо как в OrderDetailView) -->
+      {% if show_pagination %}
       <div class="col-12">
-          {% if orders.has_other_pages %}
           <nav aria-label="Page navigation example">
-              <ul class="pagination d-flex justify-content-center">
+              <ul class="pagination d-flex justify-content-center flex-wrap">
                   {% if orders.has_previous %}
-                  <li class="page-item">
-                      <a class="page-link" href="?page=1" aria-label="Previous" tabindex="-1">
-                          <span aria-hidden="true">«</span>
-                      </a>
-                  </li>
+                      <li class="page-item">
+                          <a class="page-link" href="?page=1" title="Первая">&laquo;</a>
+                      </li>
+                      <li class="page-item">
+                          <a class="page-link" href="?page={{ orders.previous_page_number }}" title="Назад">&lsaquo;</a>
+                      </li>
                   {% endif %}
 
-                  {% if orders.paginator.num_pages > 1 %}
-                    {% if orders.number > 3 %}
-                        <li class="page-item"><a class="page-link" href="?page=1">1</a></li>
-                        {% if orders.number > 4 %}
-                            <li class="page-item disabled"><span class="page-link">...</span></li>
-                        {% endif %}
-                    {% endif %}
-
-                    {% for p in orders.paginator.page_range %}
-                    {% if p >= orders.number|add:-2 and p <= orders.number|add:2 and forloop.counter <= max_pages %}
-                        {% if orders.number == p %}
-                            <li class="page-item active" aria-current="page"><a class="page-link" href="?page={{ p }}">{{ p }}</a></li>
-                        {% else %}
-                            <li class="page-item"><a class="page-link" href="?page={{ p }}">{{ p }}</a></li>
-                        {% endif %}
-                    {% endif %}
-                    {% endfor %}
-
-                    {% if orders.number < orders.paginator.num_pages|add:-2 %}
-                        {% if orders.number < orders.paginator.num_pages|add:-3 %}
-                            <li class="page-item disabled"><span class="page-link">...</span></li>
-                        {% endif %}
-                        <li class="page-item"><a class="page-link" href="?page={{ orders.paginator.num_pages }}">{{ orders.paginator.num_pages }}</a></li>
-                    {% endif %}
-                {% endif %}
+                  <!-- Цикл по ограниченному диапазону (без троеточий, как в ProductListView) -->
+                  {% for num in page_range %}
+                      {% if orders.number == num %}
+                          <li class="page-item active" aria-current="page">
+                              <a class="page-link" href="#">{{ num }}</a>
+                          </li>
+                      {% else %}
+                          <li class="page-item">
+                              <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                          </li>
+                      {% endif %}
+                  {% endfor %}
 
                   {% if orders.has_next %}
-                  <li class="page-item">
-                      <a class="page-link" href="?page={{ orders.paginator.num_pages }}" aria-label="Next">
-                          <span aria-hidden="true">»</span>
-                      </a>
-                  </li>
+                      <li class="page-item">
+                          <a class="page-link" href="?page={{ orders.next_page_number }}" title="Вперёд">&rsaquo;</a>
+                      </li>
+                      <li class="page-item">
+                          <a class="page-link" href="?page={{ paginator.num_pages }}" title="Последняя">&raquo;</a>
+                      </li>
                   {% endif %}
               </ul>
           </nav>
-          {% endif %}
       </div>
+      {% endif %}
 
   </div>
-  </div>
-  {% endblock %}
+</div>
+{% endblock %}

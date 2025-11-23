@@ -63,6 +63,7 @@
 from django import forms
 from django.core.exceptions import ValidationError
 from .models import Review
+from captcha.fields import CaptchaField 
 
 def validate_file_size(value):
     """Валидатор размера файла (макс. 20 МБ)"""
@@ -188,13 +189,18 @@ class ContactForm(forms.Form):
         })
     )
     content = forms.CharField(
-        required=False,
+        required=True,
         label='Сообщение',
         widget=forms.Textarea(attrs={
             'class': 'form-control',
             'rows': 4,
             'placeholder': 'Напишите нам...'
         })
+    )
+    
+    # Добавляем CAPTCHA поле
+    captcha = CaptchaField(
+        label='Введите текст с картинки'  # Метка для поля
     )
 
     def __init__(self, *args, **kwargs):
@@ -211,3 +217,4 @@ class ContactForm(forms.Form):
         if not email:
             raise forms.ValidationError('Это поле обязательно для заполнения.')
         return email
+    

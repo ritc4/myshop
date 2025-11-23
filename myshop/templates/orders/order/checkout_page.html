@@ -368,11 +368,11 @@
       if (data.cart_total_price) {
         $('#checkout-cart-total-price h3 strong').text(data.cart_total_price + ' ₽');
       }
-      // НОВОЕ: Обновляем итоговую сумму для мобильных
+      // Обновляем итоговую сумму для мобильных
       if (data.cart_total_price) {
         $('#checkout-cart-total-price-mobile').text(data.cart_total_price + ' ₽');
       }
-      // НОВОЕ: Обновляем карточки для мобильных (предполагая, что data.html_checkout_cards содержит HTML карточек)
+      // Обновляем карточки для мобильных
       if (data.html_checkout_cards && $('#checkout-cart-cards').length) {
         $('#checkout-cart-cards').html(data.html_checkout_cards);
       }
@@ -386,7 +386,7 @@
           $('.cart-badge').removeClass('d-none');
         }
       }
-      // НОВОЕ: Если корзина пуста, перенаправляем на главную
+      // Если корзина пуста, перенаправляем на главную
       if (data.is_empty) {
         window.location.href = '{% url "home:search" %}';
       }
@@ -396,7 +396,41 @@
       updateCart(event.data);
     };
 
-    // Логика для показа/скрытия полей в зависимости от способа доставки
+    // ОБНОВЛЁННАЯ ЛОГИКА ДЛЯ ИСПРАВЛЕНИЯ ДОСТУПНОСТИ МОДАЛОВ
+    let lastFocusedElement;
+    
+    // Сохраняем элемент, открывший модал
+    $('a[data-bs-toggle="modal"]').on('click', function() {
+      lastFocusedElement = this;
+    });
+
+    // При начале закрытия модала: снимаем фокус с элементов внутри модала
+    $('#privacyPolicyModal, #uslovia_Modal').on('hide.bs.modal', function() {
+      const activeElement = document.activeElement;
+      if (this.contains(activeElement)) {
+        activeElement.blur();  // Принудительно снимаем фокус
+      }
+    });
+
+    // После полного закрытия: переводим фокус обратно и заменяем aria-hidden на inert
+    $('#privacyPolicyModal, #uslovia_Modal').on('hidden.bs.modal', function() {
+      // Убираем aria-hidden и добавляем inert (если браузер поддерживает)
+      $(this).removeAttr('aria-hidden');
+      if ('inert' in document.createElement('div')) {  // Проверка поддержки inert
+        $(this).attr('inert', '');
+      }
+      // Переводим фокус на элемент открытия (если сохранён)
+      if (lastFocusedElement) {
+        lastFocusedElement.focus();
+      }
+    });
+
+    // При открытии модала: убираем inert и aria-hidden (если был добавлен ранее)
+    $('#privacyPolicyModal, #uslovia_Modal').on('show.bs.modal', function() {
+      $(this).removeAttr('inert aria-hidden');
+    });
+
+    // Логика для формы (без изменений)
     $('#id_delivery_method').on('change', function() {
       if ($(this).val() === 'pickup') {
         $('#passportNumberCol').hide();
@@ -407,9 +441,9 @@
       }
     });
 
-    // Инициализация: триггерим изменение для начального состояния
     $('#id_delivery_method').trigger('change');
   });
 </script>
+
 
 {% endblock %}

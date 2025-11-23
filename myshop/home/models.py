@@ -1,7 +1,6 @@
 from django.db import models
 from mptt.models import MPTTModel, TreeForeignKey
 from django.urls import reverse
-from django.core.validators import MinValueValidator
 from django_ckeditor_5.fields import CKEditor5Field
 from django.conf import settings
 from django.utils.html import format_html
@@ -9,14 +8,21 @@ from datetime import datetime
 from django.utils import timezone
 from imagekit.models import ProcessedImageField
 from imagekit.processors import ResizeToFit
-from django.core.validators import FileExtensionValidator
-from django.core.files.validators import FileSizeValidator
+from django.core.validators import FileExtensionValidator, MinValueValidator
 from django.core.exceptions import ValidationError
 from PIL import Image
 import io
+import os
+from django.utils.text import slugify
 
 
 
+
+
+def validate_file_size(value):  
+    max_size = 20 * 1024 * 1024  # 20 MB  
+    if value.size > max_size:  
+        raise ValidationError(f'File size must be under {max_size} bytes.') 
 
 
 def validate_image_mime_type(value):
@@ -36,6 +42,8 @@ def validate_image_mime_type(value):
         
         # Сбрасываем указатель файла для дальнейшей обработки
         value.seek(0)
+    except Exception as e:
+        raise ValidationError(f'Ошибка при проверке изображения: {str(e)}')
 
 
 
@@ -65,24 +73,35 @@ def validate_image_mime_type(value):
 #         return self.get_ancestors(include_self=True)
 
 
+# Функция для пути категорий (уже была, теперь используется)
+def category_image_upload_path(instance, filename):
+    category_slug = slugify(instance.name)
+    now = datetime.now()
+    year = now.strftime('%Y')
+    month = now.strftime('%m')
+    day = now.strftime('%d')
+    path = f'categories/{category_slug}/{year}/{month}/{day}/'
+    return os.path.join(path, filename)
+
+
+
 
 class Category(MPTTModel):
     name = models.CharField(max_length=255, unique=True,verbose_name='Категория')
     parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children',verbose_name='Подкатегория')
     slug = models.SlugField(max_length=255,verbose_name='Url',unique=True)
     image = ProcessedImageField(
-        upload_to='categories/%Y/%m/%d',
-        processors=[ResizeToFit(300, 300)],  # Пример размера для миниатюр категорий
+        upload_to=category_image_upload_path,
+        processors=[ResizeToFit(400, 400, upscale=False)],  # Пример размера для миниатюр категорий
         format='WEBP',
-        options={'quality': 85, 'optimize': True},
+        options={'quality': 95, 'optimize': True},
         validators=[
             FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'gif', 'webp']),
-            FileSizeValidator(max_size=10 * 1024 * 1024),  # Меньше, если не нужно
+            validate_file_size,  # Меньше, если не нужно
             validate_image_mime_type,  # Новый валидатор
         ],
-        keep_original=False,  # Не сохранять оригинал
         blank=True,
-        null=True,
+        null=True, 
         verbose_name='Фото',
     )
 
@@ -112,10 +131,10 @@ class Size(models.Model):
 
     def __str__(self):
         return f"{self.title}"
-    
+     
     class Meta:
         verbose_name = 'Размер'
-        verbose_name_plural = 'Размеры'
+        verbose_name_plural = 'Размеры' 
 
 
 
@@ -174,6 +193,8 @@ class Product(models.Model):
         verbose_name = 'Товар'
         verbose_name_plural = 'Товары'
 
+    
+
 
 
 def product_image_upload_path(instance, filename):
@@ -208,15 +229,14 @@ class ProductImage(models.Model):
     product = models.ForeignKey(Product, related_name='images', on_delete=models.CASCADE)
     image = ProcessedImageField(
         upload_to=product_image_upload_path,  # Без расширения, для перезаписи
-        processors=[ResizeToFit(800, 600)],  # Подгонка под 800x600
+        processors=[ResizeToFit(1000, 800, upscale=False)],  # Подгонка под 800x600
         format='WEBP',
-        options={'quality': 85, 'optimize': True},
+        options={'quality': 95, 'optimize': True},
         validators=[
             FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'gif', 'webp']),
-            FileSizeValidator(max_size=20 * 1024 * 1024),  # 20 MB
+            validate_file_size,  # 20 MB
             validate_image_mime_type,  # Новый валидатор
         ],
-        keep_original=False,  # Не сохранять оригинал
         blank=True,
         null=True, verbose_name='Изображение', db_index=True,
     )
@@ -269,15 +289,14 @@ class SizeTable(models.Model):
     title = models.CharField(max_length=255,verbose_name='Размерная таблица', blank=False)
     image = ProcessedImageField(
         upload_to='size_table/%Y/%m/%d',
-        processors=[ResizeToFit(600, 400)],
+        processors=[ResizeToFit(800, 600, upscale=False)],
         format='WEBP',
-        options={'quality': 85, 'optimize': True},
+        options={'quality': 95, 'optimize': True},
         validators=[
             FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'gif', 'webp']),
-            FileSizeValidator(max_size=20 * 1024 * 1024),
+            validate_file_size,
             validate_image_mime_type,  # Новый валидатор
         ],
-        keep_original=False,  # Не сохранять оригинал
         blank=True,
         null=True, verbose_name='Изображение',
     )
@@ -335,15 +354,14 @@ class Politica_firm(models.Model):
 class ImageSliderHome(models.Model):
     image = ProcessedImageField(
         upload_to='slider_home/%Y/%m/%d',
-        processors=[ResizeToFit(1200, 600)],
+        processors=[ResizeToFit(1600, 800, upscale=False)],
         format='WEBP',
-        options={'quality': 85, 'optimize': True},
+        options={'quality': 100, 'optimize': True},
         validators=[
             FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'gif', 'webp']),
-            FileSizeValidator(max_size=20 * 1024 * 1024),
+            validate_file_size,
             validate_image_mime_type,  # Новый валидатор
         ],
-        keep_original=False,  # Не сохранять оригинал
         blank=True,
         null=True, verbose_name='Изображение',
     )
@@ -428,15 +446,14 @@ class ReviewImage(models.Model):
     review = models.ForeignKey(Review, related_name='images', on_delete=models.CASCADE)
     image = ProcessedImageField(
         upload_to=review_image_upload_path,
-        processors=[ResizeToFit(400, 400)],  # Квадратные миниатюры, как в шаблоне
+        processors=[ResizeToFit(500, 500, upscale=False)],  # Квадратные миниатюры, как в шаблоне
         format='WEBP',
-        options={'quality': 85, 'optimize': True}, 
+        options={'quality': 95, 'optimize': True}, 
         validators=[
             FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'gif', 'webp']),
-            FileSizeValidator(max_size=20 * 1024 * 1024),
+            validate_file_size,
             validate_image_mime_type,  # Новый валидатор
         ],
-        keep_original=False,  # Не сохранять оригинал
         blank=True,
         null=True, verbose_name='Изображение', db_index=True,
     )

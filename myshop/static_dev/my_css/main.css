@@ -883,6 +883,20 @@ textarea{
   overflow-wrap: anywhere;
 } */
 
+
+.card-link {
+  text-decoration: none; /* Убирает подчеркивание */
+  color: inherit;        /* Наследует цвет текста от родителя */
+  display: block;        /* Занимает всю площадь карточки */
+}
+
+.card-link:hover {
+  text-decoration: none; /* Убирает подчеркивание при наведении */
+  /* Добавьте любые другие стили при наведении, например, изменение цвета фона */
+  background-color: #f0f0f0;
+}
+
+
 .page-detail-order a {
   text-decoration: none;
   transition: all .3s;
