@@ -14,8 +14,8 @@ from django.urls import path, reverse
 from django.utils.decorators import method_decorator
 from django.utils.safestring import mark_safe
 
-
-
+from django.contrib.admin.widgets import ForeignKeyRawIdWidget 
+from django.urls.exceptions import NoReverseMatch
 
 @admin.register(Size)
 class SizeAdmin(admin.ModelAdmin):
@@ -38,6 +38,10 @@ class ProductImageInline(admin.TabularInline):
     image_tag.short_description = "Фото"
 
 
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('product')
+
+
 @admin.register(ProductImage)
 class ProductImageAdmin(admin.ModelAdmin):
     list_display = ('product','image',)
@@ -45,20 +49,94 @@ class ProductImageAdmin(admin.ModelAdmin):
 
 @admin.register(ProductPrice)
 class ProductPriceAdmin(admin.ModelAdmin):
-    list_display = ('product','size', 'price','old_price','zacup_price',)
+    search_fields = ['product__title', 'size__title', 'product__article_number']  # Обязательно для autocomplete
+    list_display = ['product', 'product_article_number', 'size', 'price']  # Опционально, для удобства в админке
 
+    def product_article_number(self, obj):
+        return obj.product.article_number if obj.product else 'Артикул не указан'  # Возвращает title, если size выбран, иначе дефис
+    product_article_number.short_description = 'Артикул'  # Описание столбца в админке
+
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        return queryset.select_related('product', 'size')
+
+
+
+
+
+# class ProductPriceInline(admin.TabularInline):
+#     model = ProductPrice
+#     # autocomplete_fields = ['size']
+#     extra = 1  # Количество пустых форм для добавления новых записей
+#     fields = ('size', 'price','zacup_price','old_price')
+
+    
+#     def get_queryset(self, request):
+#         queryset = super().get_queryset(request).select_related('product').prefetch_related('size')  # Это загружает размер вместе с ценами
+#         return queryset
+
+
+
+
+# Кастомный виджет без запросов на label/URL (по оригинальной логике Django)
+class CustomProductPriceRawIdWidget(ForeignKeyRawIdWidget):
+    def label_and_url_for_value(self, value):
+        if value:
+            if self.rel and hasattr(self.rel, 'model'):
+                opts = self.rel.model._meta
+                try:
+                    # Строим URL как в оригинале: admin:app_label:model_change с pk в args
+                    url = reverse(
+                        f'{opts.app_label}:{opts.model_name}_change',
+                        args=[value]
+                    )
+                    label = f'ID: {value}'
+                except NoReverseMatch:
+                    # Если URL не найден (например, модель не зарегистрирована в админе), пустой URL
+                    url = ''
+                    label = f'ID: {value}'
+            else:
+                # Fallback, если rel не установлен
+                url = ''
+                label = f'ID: {value}'
+            return label, url
+        return '', ''
+    
+
+class OrderItemInlineForm(forms.ModelForm):
+    class Meta:
+        model = Size
+        fields = '__all__'
 
 
 class ProductPriceInline(admin.TabularInline):
-    # form = ProductPriceAdminForm
     model = ProductPrice
+    raw_id_fields = ['size']
     extra = 1  # Количество пустых форм для добавления новых записей
-    fields = ('size', 'price','zacup_price','old_price')
+    fields = ('size_title', 'size', 'price', 'zacup_price', 'old_price')
+    readonly_fields = ('size_title',)
 
     
     def get_queryset(self, request):
-        queryset = super().get_queryset(request).select_related('product').prefetch_related('size')  # Это загружает размер вместе с ценами
+        queryset = super().get_queryset(request).select_related('product','size')  # Это загружает размер вместе с ценами
         return queryset
+    
+
+    def size_title(self, obj):
+        return obj.size.title if obj.size else '—'  # Возвращает title, если size выбран, иначе дефис
+    size_title.short_description = 'Выбранный Размер'  # Описание столбца в админке
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == 'size':
+            kwargs['widget'] = CustomProductPriceRawIdWidget(db_field.remote_field, self.admin_site)
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+    def get_formset(self, request, obj=None, **kwargs):
+        formset = super().get_formset(request, obj, **kwargs)
+        formset.form.base_fields['size'].queryset = (
+            Size.objects.all()
+        )
+        return formset
 
 
 
@@ -76,7 +154,7 @@ class ProductAdmin(admin.ModelAdmin):
     list_display = ('get_image','title', 'article_number','stock','display_description','display_price','display_zacup_price','display_old_price', 'unit','is_hidden','category','mesto')  # Отображение полей продукта в админке
     list_filter = ('is_hidden','category','created','updated','mesto')
     prepopulated_fields = {'slug':('title','article_number',)}
-    search_fields = ['title','article_number','display_description',]  # Позволяет искать продукты по названию
+    search_fields = ['title','article_number','description',]  # Позволяет искать продукты по названию
     list_editable = ['is_hidden','mesto']
     actions = ['hide_products', 'show_products','duplicate_product','change_category','bulk_update_prices'] 
     list_display_links=['get_image','title',]
@@ -85,14 +163,13 @@ class ProductAdmin(admin.ModelAdmin):
     def display_description(self, obj):
         # Рендерим HTML из description, чтобы <br /> превращались в реальные переносы строк
         return mark_safe(obj.description) if obj.description else ''
-    
     display_description.short_description = 'Описание'
 
 
 
     def get_queryset(self, request):
         # Используем prefetch_related для оптимизации запросов к ценам и размерам
-        queryset = super().get_queryset(request).prefetch_related('product_prices','images','product_prices__size')
+        queryset = super().get_queryset(request).select_related('category').prefetch_related('product_prices','images','product_prices__size', 'category__children')
         return queryset
 
 

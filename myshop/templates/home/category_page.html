@@ -143,7 +143,7 @@
                                             </div>
                                             <br>
                                             <div class="col-sm-5 select-size">
-                                              <label for="size-select_product_{{ product.id }}" class="form-label">Выбирите размер:</label>
+                                              <label for="size-select_product_{{ product.id }}" class="form-label">Выберите размер:</label>
                                             <select name="size" class="form-control custom-select" id="size-select_product_{{ product.id }}" aria-label="Выберите размер" {% if cart_product_form.fields.size.required %}required{% endif %}>
                                                 {% for value, price in cart_product_form.fields.size.choices %}
                                                     <option value="{{ value }}" {% if cart_product_form.size.value == value %}selected{% endif %} data-price="{{ price }}">{{ value }}</option>

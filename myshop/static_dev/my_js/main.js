@@ -126,87 +126,358 @@ $(document).ready(function() {
 
 
 
-// Обработчик события изменения для выпадающего списка окна product_page.html
-$(document).ready(function() {
-  // Инициализация отображения цены при загрузке страницы
-  var sizeSelect = $('#size-select_product');
-  var priceDisplay = $('#price-display');
+// Обработчик события изменения для выпадающего списка окна product_page.html старый
+// $(document).ready(function() {
+//   // Инициализация отображения цены при загрузке страницы
+//   var sizeSelect = $('#size-select_product');
+//   var priceDisplay = $('#price-display');
 
-  if (sizeSelect.length && priceDisplay.length) {
-      // Получаем выбранный элемент и его цену
-      var selectedOption = sizeSelect.find('option:selected');
-      var price = selectedOption.length ? selectedOption.data('price') : null;
+//   if (sizeSelect.length && priceDisplay.length) {
+//       // Получаем выбранный элемент и его цену
+//       var selectedOption = sizeSelect.find('option:selected');
+//       var price = selectedOption.length ? selectedOption.data('price') : null;
 
-      // Устанавливаем начальное значение цены
-      priceDisplay.text(price ? price + ' ₽' : 'Цена недоступна');
-  }
+//       // Устанавливаем начальное значение цены
+//       priceDisplay.text(price ? price + ' ₽' : 'Цена недоступна');
+//   }
 
-  // Добавляем общий обработчик событий для изменения размера
-  $(document).on('change', '#size-select_product', function() {
-      var selectedOption = $(this).find('option:selected');
-      var price = selectedOption.length ? selectedOption.data('price') : null;
+//   // Добавляем общий обработчик событий для изменения размера
+//   $(document).on('change', '#size-select_product', function() {
+//       var selectedOption = $(this).find('option:selected');
+//       var price = selectedOption.length ? selectedOption.data('price') : null;
 
-      // Проверяем, есть ли выбранная опция и выводим соответствующую цену
-      priceDisplay.text(price ? price + ' ₽' : 'Цена недоступна');
-  });
-});
+//       // Проверяем, есть ли выбранная опция и выводим соответствующую цену
+//       priceDisplay.text(price ? price + ' ₽' : 'Цена недоступна');
+//   });
+// });
 
 
-// Обработчик события вывод полного описания новости news_page.html
-$(document).ready(function() {
-  window.toggleDescription = function(event, id) {
-      event.preventDefault();
-      const descriptionElement = $(`#full-description-${id}`);
+// // Обработчик события вывод полного описания новости news_page.html
+// $(document).ready(function() {
+//   window.toggleDescription = function(event, id) {
+//       event.preventDefault();
+//       const descriptionElement = $(`#full-description-${id}`);
       
-      if (descriptionElement.css("display") === "none") {
-          descriptionElement.css("display", "block");
-          $(event.target).text("Скрыть");
-      } else {
-          descriptionElement.css("display", "none");
-          $(event.target).text("Читать полностью");
-      }
-  };
-});
+//       if (descriptionElement.css("display") === "none") {
+//           descriptionElement.css("display", "block");
+//           $(event.target).text("Скрыть");
+//       } else {
+//           descriptionElement.css("display", "none");
+//           $(event.target).text("Читать полностью");
+//       }
+//   };
+// });
 
 
-// Обработчик события вывод сортировки по цене и названию продуктов в category_page.html
-$(document).ready(function() {
-  // Проверяем, существует ли элемент с ID 'name-price'
-  const select = $('#name-price');
+// // Обработчик события вывод сортировки по цене и названию продуктов в category_page.html
+// $(document).ready(function() {
+//   // Проверяем, существует ли элемент с ID 'name-price'
+//   const select = $('#name-price');
   
-  if (select.length) {
-      // Функция сортировки
-      function sortProducts() {
-          const selectedValue = select.val();
+//   if (select.length) {
+//       // Функция сортировки
+//       function sortProducts() {
+//           const selectedValue = select.val();
 
-          // Получаем текущее значение per_page из URL
-          const urlParams = new URLSearchParams(window.location.search);
-          const perPage = urlParams.get('per_page') || 30; // Установите значение по умолчанию, если per_page не найден
+//           // Получаем текущее значение per_page из URL
+//           const urlParams = new URLSearchParams(window.location.search);
+//           const perPage = urlParams.get('per_page') || 30; // Установите значение по умолчанию, если per_page не найден
 
-          // Обновляем URL с параметрами сортировки и per_page
-          window.location.href = `?sort=${encodeURIComponent(selectedValue)}&per_page=${encodeURIComponent(perPage)}`;
-      }
+//           // Обновляем URL с параметрами сортировки и per_page
+//           window.location.href = `?sort=${encodeURIComponent(selectedValue)}&per_page=${encodeURIComponent(perPage)}`;
+//       }
 
-      // Привязываем обработчик события
-      select.on('change', sortProducts);
-  }
-});
-
-
-
-// Обработчик события вывод сортировки по количеству продуктов в category_page.html
-function updatePerPage(value) {
-  console.log('Updating per_page to:', value); // Проверка значения
-  const newUrl = new URL(window.location.href);
-  newUrl.searchParams.set('per_page', value);
-  newUrl.searchParams.set('page', 1); // Сбрасываем страницу на 1
-  console.log('New URL:', newUrl.toString()); // Проверка нового URL
-  window.location.href = newUrl.toString();
-}
+//       // Привязываем обработчик события
+//       select.on('change', sortProducts);
+//   }
+// });
 
 
 
-// Обработчик показать или скрыть выбор рейтинга в reviews_page.html новый
+// // Обработчик события вывод сортировки по количеству продуктов в category_page.html
+// function updatePerPage(value) {
+//   console.log('Updating per_page to:', value); // Проверка значения
+//   const newUrl = new URL(window.location.href);
+//   newUrl.searchParams.set('per_page', value);
+//   newUrl.searchParams.set('page', 1); // Сбрасываем страницу на 1
+//   console.log('New URL:', newUrl.toString()); // Проверка нового URL
+//   window.location.href = newUrl.toString();
+// }
+
+
+
+// // Обработчик показать или скрыть выбор рейтинга в reviews_page.html новый
+// $(document).ready(function() {
+//   // Функция показа уведомления посередине экрана (без изменений)
+//   function showNotification(message, type = 'error', duration = 3000) {
+//     $('.notification-alert').remove();
+//     const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
+//     const notification = $(`
+//       <div class="notification-alert alert ${alertClass} text-center p-3 mb-0 shadow-lg" role="alert">
+//         ${message}
+//       </div>
+//     `).css({
+//       position: 'fixed',
+//       top: '50%',
+//       left: '50%',
+//       transform: 'translate(-50%, -50%)',
+//       zIndex: '9999',
+//       maxWidth: '400px',
+//       width: '90%',
+//       opacity: '0',
+//       transition: 'opacity 0.3s ease-in-out',
+//       borderRadius: '8px'
+//     });
+//     $('body').append(notification);
+//     notification.animate({ opacity: 1 }, 300);
+//     setTimeout(function() {
+//       notification.animate({ opacity: 0 }, 300, function() {
+//         $(this).remove();
+//       });
+//     }, duration);
+//   }
+
+//   // Звёздный рейтинг (без изменений)
+//   $('.star-rating').each(function() {
+//       const $starRating = $(this);
+//       const $stars = $starRating.find('.star');
+//       const $inputField = $('#' + $starRating.data('field'));
+//       $stars.on('click', function() {
+//           const value = $(this).data('value');
+//           $inputField.val(value);
+//           $stars.removeClass('selected');
+//           for (let i = 0; i < value; i++) {
+//               $stars.eq(i).addClass('selected');
+//           }
+//           console.log('Star clicked:', value);
+//       });
+//   });
+
+//   // Новый обработчик: показать или скрыть выбор рейтинга
+//   // Предполагаем, что в HTML есть чекбокс с id="show-rating-checkbox" и контейнер с классом "star-rating-container" (или используем .star-rating напрямую)
+//   // Если чекбокс отмечен, показываем рейтинг; иначе скрываем
+//   $('#show-rating-checkbox').on('change', function() {
+//     const isChecked = $(this).is(':checked');
+//     $('.star-rating').toggle(isChecked);  // Показываем/скрываем все элементы с классом star-rating
+//     // Опционально: сбрасываем значения рейтинга при скрытии
+//     if (!isChecked) {
+//       $('.star-rating').find('input[type="hidden"]').val('');  // Сбрасываем скрытые поля рейтинга
+//       $('.star-rating').find('.star').removeClass('selected');  // Снимаем выделение звёзд
+//     }
+//   });
+
+//   // Константы для изображений (без изменений)
+//   const maxFileSize = 20 * 1024 * 1024;
+//   const maxFiles = 5;
+//   const maxTotalSize = 100 * 1024 * 1024;
+//   const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+//   const imagePreviewContainer = $('#image-preview-container');
+//   const imageInput = $('input[name="images"]');
+//   const addButton = $('#add-images-button');
+//   const removeAllButton = $('#remove-all-images-button');
+//   const addedImages = [];
+
+//   function hasImages() {
+//     return addedImages.length > 0;
+//   }
+
+//   function updateButtons() {
+//     if (hasImages()) {
+//       removeAllButton.show();
+//     } else {
+//       removeAllButton.hide();
+//     }
+//   }
+
+//   function resetAllPreviews() {
+//     imagePreviewContainer.animate({ opacity: 0 }, 200, function() {
+//       imagePreviewContainer.empty().css('opacity', '1');
+//     });
+//     addedImages.length = 0;
+//     imageInput.val('');
+//     updateButtons();
+//   }
+
+//   addButton.on('click', function() {
+//     imageInput.click();
+//   });
+
+//   removeAllButton.on('click', function() {
+//     if (confirm('Вы уверены, что хотите удалить все изображения?')) {
+//       resetAllPreviews();
+//     }
+//   });
+
+//   imageInput.on('change', function(event) {
+//     const files = this.files;
+//     if (!files.length) return;
+//     let validFiles = [];
+//     let hasErrors = false;
+//     let totalSize = addedImages.reduce((sum, f) => sum + f.size, 0);
+
+//     for (let i = 0; i < files.length; i++) {
+//       const file = files[i];
+//       if (!allowedTypes.includes(file.type)) {
+//         showNotification(`Файл "${file.name}" не является изображением в формате JPEG, PNG, GIF или WebP.`);
+//         hasErrors = true;
+//         continue;
+//       }
+//       if (file.size > maxFileSize) {
+//         showNotification(`Размер файла "${file.name}" превышает ${maxFileSize / (1024 * 1024)} MB.`);
+//         hasErrors = true;
+//         continue;
+//       }
+//       if (addedImages.some(existing => existing.name === file.name && existing.size === file.size)) {
+//         showNotification(`Изображение "${file.name}" уже добавлено!`);
+//         hasErrors = true;
+//         continue;
+//       }
+//       if (addedImages.length + validFiles.length >= maxFiles) {
+//         showNotification(`Максимум ${maxFiles} изображений.`);
+//         hasErrors = true;
+//         break;
+//       }
+//       if (totalSize + file.size > maxTotalSize) {
+//         showNotification(`Общий размер изображений превысит ${maxTotalSize / (1024 * 1024)} MB.`);
+//         hasErrors = true;
+//         continue;
+//       }
+//       totalSize += file.size;
+//       validFiles.push(file);
+//     }
+
+//     if (!validFiles.length && !hasErrors) return;
+
+//     validFiles.forEach(file => {
+//       const reader = new FileReader();
+//       reader.onload = function(e) {
+//         const imageContainer = $('<div>').addClass('image-container').css({
+//           display: 'inline-block',
+//           position: 'relative',
+//           margin: '10px',
+//           opacity: '0'
+//         });
+//         const img = $('<img>').attr('src', e.target.result).css({
+//           height: '200px',
+//           width: 'auto',
+//           objectFit: 'contain'
+//         }).addClass('image-preview');
+//         const removeButton = $('<button>').addClass('remove-single btn btn-sm btn-danger').attr('type', 'button').css({
+//           position: 'absolute',
+//           top: '5px',
+//           right: '5px',
+//           borderRadius: '50%',
+//           width: '20px',
+//           height: '20px',
+//           padding: '0',
+//           fontSize: '12px'
+//         }).html('&times;').data('file', file);
+
+//         imageContainer.append(img).append(removeButton);
+//         imagePreviewContainer.append(imageContainer);
+//         imageContainer.animate({ opacity: 1 }, 300);
+//         addedImages.push(file);
+//         updateButtons();
+//       };
+//       reader.onerror = function() {
+//         showNotification(`Ошибка чтения файла "${file.name}".`);
+//       };
+//       reader.readAsDataURL(file);
+//     });
+//     $(this).val('');
+//   });
+
+//   imagePreviewContainer.on('click', '.remove-single', function() {
+//     const fileToRemove = $(this).data('file');
+//     const index = addedImages.findIndex(f => f.name === fileToRemove.name && f.size === fileToRemove.size);
+//     if (index !== -1) {
+//       addedImages.splice(index, 1);
+//       $(this).parent().animate({ opacity: 0 }, 300, function() {
+//         $(this).remove();
+//         updateButtons();
+//       });
+//     }
+//   });
+
+//   // Валидация и отправка формы с защитой от повторной отправки
+//   let isSubmitting = false;  // Флаг для предотвращения повторной отправки
+//   $('#reviewForm').on('submit', function(event) {
+//     if (isSubmitting) return;  // Если уже отправляется, игнорируем
+//     let isValid = true;
+    
+//     // Проверка текста отзыва
+//     const content = $('textarea[name="content"]').val().trim();
+//     if (!content) {
+//       showNotification('Пожалуйста, напишите текст отзыва.');
+//       isValid = false;
+//     }
+    
+//     // Проверка рейтингов (обязательны: каждый от 1 до 5)
+//     let ratingsSet = true;
+//     $('.star-rating').each(function() {
+//       const $inputField = $('#' + $(this).data('field'));
+//       const value = parseInt($inputField.val());
+//       if (isNaN(value) || value < 1 || value > 5) {
+//         ratingsSet = false;
+//         return false;  // Прерываем цикл, если рейтинг некорректен
+//       }
+//     });
+//     if (!ratingsSet) {
+//       showNotification('Пожалуйста, установите все рейтинги.');
+//       isValid = false;
+//     }
+    
+//     // Убрана проверка изображений — отзыв может быть без них
+    
+//     if (!isValid) {
+//       event.preventDefault();
+//       return;
+//     }
+    
+//     isSubmitting = true;  // Устанавливаем флаг
+//     const formData = new FormData(this);
+//     addedImages.forEach(image => {
+//         formData.append('images', image);
+//     });
+//     $.ajax({
+//         url: this.action,
+//         type: this.method,
+//         data: formData,
+//         processData: false,
+//         contentType: false,
+//         success: function(response) {
+//           console.log('Отзыв успешно отправлен');
+//           showNotification('Отзыв успешно отправлен!', 'success', 2000);
+//           $('#reviewsModal').modal('hide');
+//           resetAllPreviews();
+//           setTimeout(() => window.location.href = response.redirect_url, 500);
+//           isSubmitting = false;
+//       },
+//         error: function(error) {
+//             console.error('Ошибка:', error);
+//             showNotification('Ошибка при отправке. Попробуйте снова.');
+//             isSubmitting = false;  // Сбрасываем флаг после ошибки
+//         }
+//     });
+//     event.preventDefault();
+//   });
+
+//   // ДОБАВЛЕНО: Обработчик для перемещения фокуса при начале закрытия модала (исправляет aria-hidden ошибку)
+//   $('.modal').on('hide.bs.modal', function() {
+//     var triggerButton = $(this).data('triggerButton');
+//     if (triggerButton) {
+//       triggerButton.focus();  // Перемещаем фокус на кнопку, открывшую модал, ДО применения aria-hidden
+//     }
+//   });
+
+//   // ДОБАВЛЕНО: Сохраняем кнопку-триггер при открытии модала (адаптировано для reviewsModal; предположим, кнопка имеет класс или ID, например, '.open-reviews-modal')
+//   $('.open-reviews-modal').on('click', function() {  // Замени на реальный селектор кнопки, открывающей #reviewsModal
+//     $('#reviewsModal').data('triggerButton', $(this));
+//   });
+// });
+
+
+// Обработчик события изменения для выпадающего списка окна product_page.html (новый)
 $(document).ready(function() {
   // Функция показа уведомления посередине экрана (без изменений)
   function showNotification(message, type = 'error', duration = 3000) {
@@ -253,18 +524,7 @@ $(document).ready(function() {
       });
   });
 
-  // Новый обработчик: показать или скрыть выбор рейтинга
-  // Предполагаем, что в HTML есть чекбокс с id="show-rating-checkbox" и контейнер с классом "star-rating-container" (или используем .star-rating напрямую)
-  // Если чекбокс отмечен, показываем рейтинг; иначе скрываем
-  $('#show-rating-checkbox').on('change', function() {
-    const isChecked = $(this).is(':checked');
-    $('.star-rating').toggle(isChecked);  // Показываем/скрываем все элементы с классом star-rating
-    // Опционально: сбрасываем значения рейтинга при скрытии
-    if (!isChecked) {
-      $('.star-rating').find('input[type="hidden"]').val('');  // Сбрасываем скрытые поля рейтинга
-      $('.star-rating').find('.star').removeClass('selected');  // Снимаем выделение звёзд
-    }
-  });
+  // Удалено: логика чекбокса для показа/скрытия рейтинга (теперь рейтинги всегда видимы и обязательны)
 
   // Константы для изображений (без изменений)
   const maxFileSize = 20 * 1024 * 1024;
@@ -412,16 +672,19 @@ $(document).ready(function() {
       isValid = false;
     }
     
-    // Проверка рейтингов (только если рейтинг показан)
-    if ($('#show-rating-checkbox').is(':checked')) {
-      $('.star-rating').each(function() {
-          const $inputField = $('#' + $(this).data('field'));
-          if ($inputField.val() === '') {
-              showNotification('Пожалуйста, установите все рейтинги.');
-              isValid = false;
-              return false;
-          }
-      });
+    // Проверка рейтингов (обязательны: каждый от 1 до 5)
+    let ratingsSet = true;
+    $('.star-rating').each(function() {
+      const $inputField = $('#' + $(this).data('field'));
+      const value = parseInt($inputField.val());
+      if (isNaN(value) || value < 1 || value > 5) {
+        ratingsSet = false;
+        return false;  // Прерываем цикл, если рейтинг некорректен
+      }
+    });
+    if (!ratingsSet) {
+      showNotification('Пожалуйста, установите все рейтинги.');
+      isValid = false;
     }
     
     // Убрана проверка изображений — отзыв может быть без них
@@ -472,6 +735,10 @@ $(document).ready(function() {
     $('#reviewsModal').data('triggerButton', $(this));
   });
 });
+
+
+
+
 
 
 

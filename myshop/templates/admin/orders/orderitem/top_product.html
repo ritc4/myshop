@@ -3,48 +3,75 @@
 {% block content %}
 {{ block.super }}
 
-<h2 style="text-align: center; color: #333; font-family: 'Arial', sans-serif;">Топ 60 товаров за месяц</h2>
-<ul style="list-style-type: none; padding: 0; margin: 20px 0;">
-    {% if top_products_month %}
-        {% for product in top_products_month %}
-            <li style="background-color: #f9f9f9; border: 1px solid #ddd; border-radius: 5px; padding: 10px; margin-bottom: 10px; transition: background-color 0.3s;">
-                {{ product.product__title }} (Артикул: {{ product.product__article_number }}): <strong>{{ product.total_quantity }}</strong> шт. продано
-            </li>
-        {% endfor %}
-    {% else %}
-        <li style="text-align: center; color: #999;">Нет данных за последний месяц.</li>
-    {% endif %}
-</ul>
+<style>
+    .product-list {
+        list-style-type: none; 
+        padding: 0; 
+        margin: 20px 0;
+    }
+    .product-item {
+        background-color: #f9f9f9; 
+        border: 1px solid #ddd; 
+        border-radius: 5px; 
+        padding: 10px; 
+        margin-bottom: 10px; 
+        transition: background-color 0.3s;
+    }
+    .product-item:hover {
+        background-color: #e9e9e9;
+    }
+    .no-data {
+        text-align: center; 
+        color: #999; 
+        font-style: italic;
+    }
+</style>
 
-<h2 style="text-align: center; color: #333; font-family: 'Arial', sans-serif;">Топ 60 товаров за три месяца</h2>
-<ul style="list-style-type: none; padding: 0; margin: 20px 0;">
-    {% if top_products_three_months %}
-        {% for product in top_products_three_months %}
-            <li style="background-color: #f9f9f9; border: 1px solid #ddd; border-radius: 5px; padding: 10px; margin-bottom: 10px; transition: background-color 0.3s;">
-                {{ product.product__title }} (Артикул: {{ product.product__article_number }}): <strong>{{ product.total_quantity }}</strong> шт. продано
-            </li>
-        {% endfor %}
-    {% else %}
-        <li style="text-align: center; color: #999;">Нет данных за последние три месяца.</li>
-    {% endif %}
-</ul>
+{% if top_products_month or top_products_three_months or top_products_year %}
+    <h2 style="text-align: center; color: #333; font-family: 'Arial', sans-serif;">Топ 60 товаров за месяц</h2>
+    <ul class="product-list">
+        {% if top_products_month %}
+            {% for product in top_products_month %}
+                <li class="product-item">
+                    {{ forloop.counter }}. {{ product.product_title }} (Артикул: {{ product.article_number }}): <strong>{{ product.total_quantity }}</strong> шт. продано
+                </li>
+            {% endfor %}
+        {% else %}
+            <li class="no-data">Нет данных за последний месяц.</li>
+        {% endif %}
+    </ul>
 
-<h2 style="text-align: center; color: #333; font-family: 'Arial', sans-serif;">Топ 60 товаров за год</h2>
-<ul style="list-style-type: none; padding: 0; margin: 20px 0;">
-    {% if top_products_year %}
-        {% for product in top_products_year %}
-            <li style="background-color: #f9f9f9; border: 1px solid #ddd; border-radius: 5px; padding: 10px; margin-bottom: 10px; transition: background-color 0.3s;">
-                {{ product.product__title }} (Артикул: {{ product.product__article_number }}): <strong>{{ product.total_quantity }}</strong> шт. продано
-            </li>
-        {% endfor %}
-    {% else %}
-        <li style="text-align: center; color: #999;">Нет данных за последний год.</li>
-    {% endif %}
-</ul>
+    <h2 style="text-align: center; color: #333; font-family: 'Arial', sans-serif;">Топ 60 товаров за три месяца</h2>
+    <ul class="product-list">
+        {% if top_products_three_months %}
+            {% for product in top_products_three_months %}
+                <li class="product-item">
+                    {{ forloop.counter }}. {{ product.product_title }} (Артикул: {{ product.article_number }}): <strong>{{ product.total_quantity }}</strong> шт. продано
+                </li>
+            {% endfor %}
+        {% else %}
+            <li class="no-data">Нет данных за последние три месяца.</li>
+        {% endif %}
+    </ul>
 
-<br>
-<br>
+    <h2 style="text-align: center; color: #333; font-family: 'Arial', sans-serif;">Топ 60 товаров за год</h2>
+    <ul class="product-list">
+        {% if top_products_year %}
+            {% for product in top_products_year %}
+                <li class="product-item">
+                    {{ forloop.counter }}. {{ product.product_title }} (Артикул: {{ product.article_number }}): <strong>{{ product.total_quantity }}</strong> шт. продано
+                </li>
+            {% endfor %}
+        {% else %}
+            <li class="no-data">Нет данных за последний год.</li>
+        {% endif %}
+    </ul>
+{% else %}
+    <p style="text-align: center; color: #999;">Нет данных по продажам товаров.</p>
+{% endif %}
+
+<br><br>
 <div style="text-align: center;">
-    <a href="{{ request.META.HTTP_REFERER }}" style="text-decoration: none; color: white; background-color: #4CAF50; padding: 10px 20px; border-radius: 5px; transition: background-color 0.3s;">Вернуться в админку</a>
+    <a href="{% url 'admin:index' %}" style="text-decoration: none; color: white; background-color: #4CAF50; padding: 10px 20px; border-radius: 5px; transition: background-color 0.3s;">Вернуться в админку</a>
 </div>
 {% endblock %}

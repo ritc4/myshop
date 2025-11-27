@@ -38,6 +38,10 @@ DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
 
 
 
+# Админский email для уведомлений (используется в задачах, например, для BCC)
+ADMIN_EMAIL = config('ADMIN_EMAIL', default='ccozy@yandex.ru')
+
+
 # CACHES = { 
 #     'default': {
 #         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
@@ -49,12 +53,14 @@ DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
 # Redis настройки (для dev: localhost; для prod переопределяем в prod.py через config)
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
-        'LOCATION': 'redis://127.0.0.1:6379/1',  # Используйте переменные из base
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://127.0.0.1:6379/1',
         'OPTIONS': {
             'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-            'COMPRESSOR': 'django_redis.compressors.zlib.ZlibCompressor', # Опционально
+            'COMPRESSOR': 'django_redis.compressors.zlib.ZlibCompressor',
             'IGNORE_EXCEPTIONS': True,
         }
     }
 }
+
+

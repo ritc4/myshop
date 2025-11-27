@@ -46,24 +46,24 @@
         font-weight: bold; /* Установка жирного шрифта */
     }
 
-        /* Изменение ширины ячеек */
+        /* Изменение ширины ячеек (обновлено с удалением колонки Место) */
     .number {
-        width: 5%; /* 15% ширины для артикулов */
+        width: 5%; /* 5% ширины для номеров */
     }
     .article-cell {
         width: 15%; /* 15% ширины для артикулов */
     }
     .name-cell {
-        width: 50%; /* 40% ширины для наименования */
+        width: 45%; /* 45% ширины для наименования */
     }
     .price-cell {
-        width: 10%; /* 15% ширины для цены */
+        width: 10%; /* 10% ширины для цены */
     }
     .quantity-cell {
-        width: 10%; /* 15% ширины для количества */
+        width: 10%; /* 10% ширины для количества */
     }
     .sum-cell {
-        width: 10%; /* 15% ширины для суммы */
+        width: 15%; /* 15% ширины для суммы */
     }
     </style>
 </head>
@@ -88,16 +88,29 @@
             </tr>
         </thead>
         <tbody>
-            {% for item in order.items.all %}
-            <tr>
-                <td class="number">{{ forloop.counter }}</td>
-                <td class="article-cell">{{ item.product.article_number }}</td>
-                <td class="name-cell">{{ item.product }} (Размер: {{ item.size }})</td>
-                <td class="price-cell">{{ item.price }} ₽</td>
-                <td class="quantity-cell">{{ item.quantity }} шт</td>
-                <td class="sum-cell">{{ item.get_cost }} ₽</td>
-            </tr>
-            {% endfor %}
+        {% for item in order.items.all %}
+        <tr>
+            <td class="number">{{ forloop.counter }}</td>
+            <td class="article-cell">
+                {% if item.article_snapshot %}{{ item.article_snapshot }}{% else %}
+                    {% if item.product_price and item.product_price.product %}{{ item.product_price.product.article_number }}{% else %}-{% endif %}
+                {% endif %}
+            </td>
+            <td class="name-cell">
+                {% if item.product_snapshot %}{{ item.product_snapshot }}{% else %}
+                    {% if item.product_price and item.product_price.product %}{{ item.product_price.product }}{% else %}-{% endif %}
+                {% endif %}
+                (Размер: 
+                {% if item.size_snapshot %}{{ item.size_snapshot }}{% else %}
+                    {% if item.product_price and item.product_price.size %}{{ item.product_price.size }}{% else %}-{% endif %}
+                {% endif %}
+                )
+            </td>
+            <td class="price-cell">{{ item.price }} ₽</td>
+            <td class="quantity-cell">{{ item.quantity }} шт</td>
+            <td class="sum-cell">{{ item.get_cost }} ₽</td>
+        </tr>
+        {% endfor %}
             <tr class="delivery">
                 <td colspan="3">Выбранный способ доставки:</td>
                 <td colspan="2">{{ order.delivery_method }}</td>

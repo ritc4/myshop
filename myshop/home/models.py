@@ -134,22 +134,22 @@ class Size(models.Model):
      
     class Meta:
         verbose_name = 'Размер'
-        verbose_name_plural = 'Размеры' 
+        verbose_name_plural = 'Размеры'  
 
 
 
 class ProductPrice(models.Model):
     product = models.ForeignKey('Product', related_name='product_prices', on_delete=models.CASCADE)
-    size = models.ForeignKey(Size, related_name='product_size', on_delete=models.CASCADE,verbose_name='Размер')
+    size = models.ForeignKey(Size, related_name='product_size', on_delete=models.PROTECT,verbose_name='Размер')
     price = models.DecimalField(max_digits=10, decimal_places=0,verbose_name='Цена продажи',db_index=True)
     old_price = models.DecimalField(max_digits=10, decimal_places=0, verbose_name='Цена старая ', null=True, blank=True,db_index=True)
     zacup_price = models.DecimalField(max_digits=10, decimal_places=0,verbose_name='Цена закупки',db_index=True)
     
-    def __str__(self):
-        return f"{self.product.title}"
+    # def __str__(self):
+    #     return f"{self.product.title if self.product else 'Нет товара'}" 
     
     class Meta:
-        verbose_name = 'Размер и Цена товара'
+        verbose_name = 'Товар, Размер и Цена товара'
         verbose_name_plural = 'Размеры и Цены товара'
         indexes = [
             models.Index(fields=['product']),  # Индекс для поля product

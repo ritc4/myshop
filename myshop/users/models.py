@@ -158,7 +158,8 @@ class User(AbstractUser):
     
     # Обновлённый путь: без расширения (imagekit добавит .webp)
     def user_directory_path(instance, filename):
-        return f'users/{instance.username}/{instance.username}_photo'
+        # Возвращаем фиксированное имя с расширением .webp для перезаписи
+        return f'users/{instance.username}/{instance.username}_photo.webp'
     
     # ProcessedImageField с улучшениями
     photo = ProcessedImageField(

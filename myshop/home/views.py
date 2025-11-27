@@ -31,39 +31,42 @@ from django.http import JsonResponse
 
 class HomeView(ListView):
     template_name = "home/home_page.html"
-    context_object_name = "products"  # Имя контекста для списка продуктов
-    extra_context = {"title": "Главная страница"}
-
+    context_object_name = "products"  # Имя для списка продуктов в шаблоне
+    extra_context = {"title": "Главная страница"}  # Дополнительный контекст
 
     def get_queryset(self):
-        # Получаем самые продаваемые товары
+        # Получаем самые продаваемые товары: агрегируем по ID и названию продукта через product_price
         top_selling_products = (
             OrderItem.objects.values(
-                "product__id", "product__title"
-            )  # Получаем ID и название товара
+                "product_price__product__id",  # Путь: OrderItem -> ProductPrice -> Product -> id
+                "product_price__product__title"  # Путь: OrderItem -> ProductPrice -> Product -> title
+            )
             .annotate(total_quantity=Sum("quantity"))  # Суммируем количество
-            .order_by("-total_quantity")[:8]  # Ограничиваем до 8 самых продаваемых
+            .order_by("-total_quantity")[:8]  # Топ-8 по убыванию продаж
         )
 
-        # Получаем ID товаров в порядке их продаж
-        product_ids = [item["product__id"] for item in top_selling_products]
+        # Извлекаем ID товаров в порядке продаж
+        product_ids = [item["product_price__product__id"] for item in top_selling_products]
 
-        # Используем select_related и prefetch_related
+        # Получаем полные объекты продуктов с оптимизацией запросов
         products = (
             Product.objects.filter(id__in=product_ids)
-            .select_related("category")  # Загружаем связанную категорию
-            .prefetch_related("product_prices", "images")
-            .annotate(min_price=Min("product_prices__price"))
+            .select_related("category")  # Оптимизация для категории
+            .prefetch_related("product_prices", "images")  # Оптимизация для цен и изображений
+            .annotate(min_price=Min("product_prices__price"))  # Минимальная цена для каждой вариации
         )
 
-        # Сортируем продукты в том же порядке, что и в top_selling_products
+        # Сортируем продукты в порядке популярности (как в top_selling_products)
         products = sorted(products, key=lambda p: product_ids.index(p.id))
 
         return products
 
     def get_context_data(self, **kwargs):
+        # Здесь можно добавить дополнительный контекст, если нужно
         context = super().get_context_data(**kwargs)
-        context["slider_image"] = ImageSliderHome.objects.all()
+        # Например, добавить слайдер или отзывы
+        context['slider_images'] = ImageSliderHome.objects.all()  # Если у вас есть слайдер
+       
 
         # Получаем все размеры и цены для всех продуктов
         products = context["products"]

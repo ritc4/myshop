@@ -1,32 +1,97 @@
-{% extends "base.html" %} {% load static %} 
-{% block title %}{{ title }}{% endblock %} 
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{{ title }}{% endblock %}
 
-{% block content %} 
+{% block content %}
 
-<div class="container-fluid">
+<style>
+  /* Глобальный запрет горизонтальной прокрутки (критично для мобильных) */
+  body {
+    overflow-x: hidden !important;
+  }
+  .container-fluid {
+    overflow-x: hidden;
+    max-width: 100vw;
+    box-sizing: border-box;
+  }
+
+  /* Стили для страницы благодарности (адаптация под мобильные) */
+  .thank-you-container {
+    padding: 15px;
+    max-width: 100vw;
+    box-sizing: border-box;
+  }
+
+  @media (max-width: 767.98px) {
+    .thank-you-container {
+      padding: 10px;
+    }
+  }
+
+  .thank-you .section-title {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  @media (max-width: 767.98px) {
+    .thank-you .section-title {
+      font-size: 1.2rem;
+      margin-bottom: 1.5rem;
+    }
+  }
+
+  .thank-you p {
+    font-size: 1rem;
+    line-height: 1.5;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+    max-width: 100%;
+    white-space: normal;
+  }
+
+  @media (max-width: 767.98px) {
+    .thank-you p {
+      font-size: 1.1rem;
+      line-height: 1.6;
+    }
+  }
+
+  /* Ограничение ширины контейнеров */
+  .thank-you {
+    max-width: 100vw;
+    box-sizing: border-box;
+    padding: 1rem !important;
+  }
+
+  .row .col-lg-8 {
+    max-width: 100%;
+  }
+</style>
+
+<div class="container-fluid thank-you-container">
   <div class="row">
       <div class="col-lg-8 mb-3">
-          <div class="checkout p-3 h-100 bg-white">
+          <div class="thank-you p-3 h-100 bg-white">
               <h1 class="section-title h5">Спасибо за ваш заказ!</h1>
               <p>Ваш заказ был успешно оформлен. Вы будете перенаправлены на главную страницу через <span id="countdown">5</span> секунд.</p>
               <script>
-                // Проверяем, была ли переменная объявлена ранее
-                if (typeof countdownTime === 'undefined') {
-                    let countdownTime = 5; // Время в секундах
-                    const countdownElement = document.getElementById('countdown');
+                (function() {
+                  let countdownTime = 5; // Время в секундах
+                  const countdownElement = document.getElementById('countdown');
 
-                    // Функция для обновления обратного отсчета
-                    const countdown = setInterval(function() {
-                        countdownTime--;
-                        countdownElement.textContent = countdownTime; // Обновляем текст в элементе
+                  // Функция для обновления обратного отсчёта
+                  const countdown = setInterval(function() {
+                      countdownTime--;
+                      countdownElement.textContent = countdownTime; // Обновляем текст в элементе
 
-                        if (countdownTime <= 0) {
-                            clearInterval(countdown); // Останавливаем таймер
-                            window.location.href = "{% url 'home:home' %}"; // Перенаправление
-                        }
-                    }, 1000); // Обновляем каждую секунду (1000 миллисекунд)
-                }
-            </script>
+                      if (countdownTime <= 0) {
+                          clearInterval(countdown); // Останавливаем таймер
+                          window.location.href = "{% url 'home:home' %}"; // Перенаправление
+                      }
+                  }, 1000); // Обновляем каждую секунду (1000 миллисекунд)
+                })();
+              </script>
           </div>
       </div>
   </div>

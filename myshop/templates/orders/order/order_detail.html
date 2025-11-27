@@ -34,8 +34,8 @@
                 <!-- Секция товаров: десктоп + мобильная версии -->
                 <div class="order-items mt-4">
                     <h5>Товары в заказе</h5>
-
-                    <!-- Десктоп: таблица -->
+                
+                    <!-- Десктоп: таблица (адаптирован под блоки) -->
                     <div class="table-responsive d-none d-md-block">
                         <table class="table">
                             <thead>
@@ -50,11 +50,20 @@
                             <tbody>
                                 {% for item in page_obj %}
                                 <tr>
-                                    <td>{{ item.product.title }}</td>
-                                    <td class="d-none d-lg-table-cell">{{ item.product.article_number }}</td>
-                                    <td>{{ item.size }}</td>
+                                    <!-- Название товара: snapshot → product.title → '-' -->
+                                    <td>
+                                        {% if item.product_snapshot %}{{ item.product_snapshot }}{% else %}{% if item.product_price and item.product_price.product %}{{ item.product_price.product.title }}{% else %}-{% endif %}{% endif %}
+                                    </td>
+                                    <!-- Артикул: snapshot → product.article_number → '-' -->
+                                    <td class="d-none d-lg-table-cell">
+                                        {% if item.article_snapshot %}{{ item.article_snapshot }}{% else %}{% if item.product_price and item.product_price.product %}{{ item.product_price.product.article_number }}{% else %}-{% endif %}{% endif %}
+                                    </td>
+                                    <!-- Размер: snapshot → product_price.size → '-' (приปรับ для str/size.title, если надо) -->
+                                    <td>
+                                        {% if item.size_snapshot %}{{ item.size_snapshot }}{% else %}{% if item.product_price and item.product_price.size %}{{ item.product_price.size }}{% else %}-{% endif %}{% endif %}
+                                    </td>
                                     <td>{{ item.quantity }}</td>
-                                    <td>{{ item.price }}</td>
+                                    <td>{{ item.price }}</td>  <!-- Используйте {{ item.price }} руб., если хотите, как в чека -->
                                 </tr>
                                 {% empty %}
                                 <tr>
@@ -64,17 +73,24 @@
                             </tbody>
                         </table>
                     </div>
-
-                    <!-- Мобильная: список (теперь внутри order-items для последовательности) -->
-                    <div class="d-md-none">  <!-- Добавлен обертка с отступами -->
-                        <ul class="list-group mb-0">  <!-- mb-0 чтобы убрать нижний отступ ul, если нужно -->
+                
+                    <!-- Мобильная: список (адаптирован под блоки) -->
+                    <div class="d-md-none">
+                        <ul class="list-group mb-0">
                             {% for item in page_obj %}
                             <li class="list-group-item">
-                                <strong>Название:</strong> {{ item.product.title }}<br>
-                                {% if item.product.article_number %}
-                                    <strong>Артикул:</strong> {{ item.product.article_number }}<br>
+                                <!-- Название товара -->
+                                <strong>Название:</strong> {% if item.product_snapshot %}{{ item.product_snapshot }}{% else %}{% if item.product_price and item.product_price.product %}{{ item.product_price.product.title }}{% else %}-{% endif %}{% endif %}<br>
+                                <!-- Артикул: только если не '-' (проверка совпадения напрямую в) -->
+                                {% if item.article_snapshot %}
+                                    <strong>Артикул:</strong> {{ item.article_snapshot }}<br>
+                                {% else %}
+                                    {% if item.product_price and item.product_price.product and item.product_price.product.article_number %}
+                                        <strong>Артикул:</strong> {{ item.product_price.product.article_number }}<br>
+                                    {% endif %}
                                 {% endif %}
-                                <strong>Размер:</strong> {{ item.size }}<br>
+                                <!-- Размер -->
+                                <strong>Размер:</strong> {% if item.size_snapshot %}{{ item.size_snapshot }}{% else %}{% if item.product_price and item.product_price.size %}{{ item.product_price.size }}{% else %}-{% endif %}{% endif %}<br>
                                 <strong>Количество:</strong> {{ item.quantity }}<br>
                                 <strong>Цена:</strong> {{ item.price }}
                             </li>
