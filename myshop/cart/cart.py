@@ -2,6 +2,8 @@
 # from django.conf import settings
 # from home.models import Product, ProductPrice, Size
 
+# MAX_QUANTITY = 100  # Глобальный максимум для одного товара/размера (можно вынести в settings)
+
 # class Cart:
 #     def __init__(self, request):
 #         """
@@ -19,14 +21,12 @@
 #         product_id = str(product.id)
 #         unique_key = f"{product_id}_{size}"
 
-#         print(f"{unique_key}: Добавление товара: {product_id}, размер: {size}, количество: {quantity}, переопределить: {override_quantity}")
-
 #         # Получаем объект Size
 #         try:
 #             size_object = Size.objects.get(title=size)  # Получаем объект Size по title
 #             product_price = product.product_prices.get(size=size_object)  # Используем size
 #         except Size.DoesNotExist:
-#             print(f"Размер {size} не найден.")
+#             print(f"Размер {size} не найден.")  # Удалите print для prod
 #             return
 #         except ProductPrice.DoesNotExist:
 #             print(f"Цена для размера {size} не найдена.")
@@ -49,14 +49,23 @@
 #             }
 
 #         # Обновление количества товара в корзине
+#         current_quantity = self.cart[unique_key]['quantity']
 #         if override_quantity:
-#             self.cart[unique_key]['quantity'] = quantity
+#             new_quantity = quantity
 #         else:
-#             self.cart[unique_key]['quantity'] += quantity
+#             new_quantity = current_quantity + quantity
 
-#         print("Текущая корзина:", self.cart)
+#         # Жёсткая проверка максимума: обрезаем до 100
+#         new_quantity = min(new_quantity, MAX_QUANTITY)
+#         self.cart[unique_key]['quantity'] = new_quantity
+
+#         # Удаляем print для production
+#         # print(f"{unique_key}: Добавление товара: {product_id}, размер: {size}, количество: {quantity}, переопределить: {override_quantity}")
+#         # print("Текущая корзина:", self.cart)
+        
 #         self.save()
         
+#     # Остальные методы без изменений (save, remove, __iter__, __len__, get_total_price, clear, get_item, get_all_items_json)
 #     def save(self):
 #         # пометить сеанс как "измененный",
 #         # чтобы обеспечить его сохранение
@@ -81,6 +90,8 @@
 #             item_copy['price'] = Decimal(item_copy['price'])  # Преобразуем из строки в Decimal
 #             item_copy['total_price'] = item_copy['price'] * item_copy['quantity']  # Decimal * int = Decimal
 #             item_copy['size'] = size_key.split('_')[1]  # Получаем размер из ключа
+#             # Добавляем max_quantity для шаблонов (опционально, если нужно динамически)
+#             item_copy['max_quantity'] = MAX_QUANTITY
             
 #             yield item_copy
     
@@ -138,6 +149,9 @@
 
 
 
+
+
+
 from decimal import Decimal
 from django.conf import settings
 from home.models import Product, ProductPrice, Size
@@ -155,6 +169,7 @@ class Cart:
             # сохранить пустую корзину в сеансе
             cart = self.session[settings.CART_SESSION_ID] = {} 
         self.cart = cart
+        self.removed_items = []  # Список удалённых товаров для уведомлений
 
     def add(self, product, quantity=1, override_quantity=False, size=None):
         """Добавить товар в корзину либо обновить его количество."""
@@ -224,16 +239,48 @@ class Cart:
             self.save()
     
     def __iter__(self):
-        for size_key, item in self.cart.items():
-            # Создаём копию, чтобы не изменять оригинальный словарь в сессии
-            item_copy = item.copy()
-            item_copy['price'] = Decimal(item_copy['price'])  # Преобразуем из строки в Decimal
-            item_copy['total_price'] = item_copy['price'] * item_copy['quantity']  # Decimal * int = Decimal
-            item_copy['size'] = size_key.split('_')[1]  # Получаем размер из ключа
-            # Добавляем max_quantity для шаблонов (опционально, если нужно динамически)
-            item_copy['max_quantity'] = MAX_QUANTITY
+        """
+        Перебирает товары в корзине, проверяя их существование в базе.
+        Если товар/размер удалён, удаляет из сессии и добавляет в removed_items для уведомления.
+        """
+        items_to_remove = []  # Список ключей для удаления
+        for unique_key, item in list(self.cart.items()):  # Используем list(), чтобы избежать изменений во время итерации
+            try:
+                product_id = item['product_id']
+                size_title = item['size']
+                
+                # Проверяем существование продукта
+                product = Product.objects.get(id=product_id)
+                
+                # Проверяем существование размера
+                size_obj = Size.objects.get(title=size_title)
+                
+                # Проверяем существование ProductPrice (цена для размера) — только для валидации
+                ProductPrice.objects.get(product=product, size=size_obj)  # Убираем присваивание, просто проверяем существование
+                
+                # Если всё ок, продолжаем как обычно
+                item_copy = item.copy()
+                item_copy['price'] = Decimal(item_copy['price'])
+                item_copy['total_price'] = item_copy['price'] * item_copy['quantity']
+                item_copy['size'] = size_title
+                item_copy['max_quantity'] = MAX_QUANTITY
+                yield item_copy
             
-            yield item_copy
+            except (Product.DoesNotExist, Size.DoesNotExist, ProductPrice.DoesNotExist):
+                # Товар/размер удалён — добавляем в список для удаления и уведомления
+                self.removed_items.append({
+                    'title': item['title'],
+                    'article_number': item['article_number'],
+                    'size': item['size']
+                })
+                items_to_remove.append(unique_key)
+                continue  # Пропускаем этот товар
+        
+        # Удаляем несуществующие товары из сессии
+        for key in items_to_remove:
+            del self.cart[key]
+        self.save()  # Сохраняем сессию после изменений
+
     
     def __len__(self):
         """
@@ -285,3 +332,12 @@ class Cart:
             item_data['size'] = unique_key.split('_')[1]  # Размер из ключа
             items.append(item_data)
         return items
+
+
+    def get_removed_items(self):
+        """
+        Возвращает список удалённых товаров и очищает его (чтобы уведомления показывались только один раз).
+        """
+        removed = self.removed_items[:]
+        self.removed_items = []
+        return removed

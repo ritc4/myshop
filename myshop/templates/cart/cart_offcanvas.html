@@ -1,5 +1,15 @@
 {% load custom_filters %}
 {% load static %}
+
+{% if removed_items %}
+  <div class="alert alert-warning alert-dismissible fade show" role="alert">
+    <strong>Удалённые товары:</strong>
+    {% for item in removed_items %}
+      <div>{{ item.title }} (арт. {{ item.article_number }}, размер: {{ item.size }}) — недоступен.</div>
+    {% endfor %}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+{% endif %}
 {% if is_cart_empty %}
 
 {% else %}

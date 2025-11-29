@@ -50,7 +50,7 @@ class ProfileUser(LoginRequiredMixin, UpdateView):
             .prefetch_related('items__product_price', 'items__product_price__product')
 
         # Пагинация (без изменений)
-        paginator = Paginator(orders, 20)
+        paginator = Paginator(orders, 50)
         page_number = self.request.GET.get('page')
         page_obj = paginator.get_page(page_number)
 
@@ -93,53 +93,6 @@ class ProfileUser(LoginRequiredMixin, UpdateView):
         return super().form_valid(form)
 
 
-# class OrderDetailView(LoginRequiredMixin, DetailView):
-#     model = Order
-#     template_name = 'orders/order/order_detail.html'
-#     context_object_name = 'order'
-
-#     def get_queryset(self):
-#         # Изменено: Обновите prefetch_related, если добавлен product_price
-#         return Order.objects.select_related('delivery_method').prefetch_related('items__product_price', 'items__product_price__product')  # Если product_price вместо product
-
-#     def get_context_data(self, **kwargs):
-#         context = super().get_context_data(**kwargs)
-#         order = self.object
-#         items = order.items.all()
-
-#         # Пагинация (без изменений)
-#         if items.count() > 20:
-#             paginator = Paginator(items, 10)
-#             page_number = self.request.GET.get('page')
-#             page_obj = paginator.get_page(page_number)
-#             context['page_obj'] = page_obj
-#             context['paginator'] = paginator
-#             context['show_pagination'] = True
-
-#             pages_to_show = 5
-#             half = pages_to_show // 2
-#             start_page = max(1, page_obj.number - half)
-#             end_page = min(paginator.num_pages, page_obj.number + half)
-
-#             if end_page - start_page < pages_to_show - 1:
-#                 if start_page == 1:
-#                     end_page = min(paginator.num_pages, start_page + pages_to_show - 1)
-#                 elif end_page == paginator.num_pages:
-#                     start_page = max(1, end_page - pages_to_show + 1)
-
-#             context["page_range"] = range(start_page, end_page + 1)
-#         else:
-#             context['page_obj'] = items
-#             context['show_pagination'] = False
-#             context['page_range'] = []
-
-#         context['breadcrumbs'] = [
-#             {'name': 'Детали заказа', 'slug': f'/order_detail/{order.id}/'},
-#         ]
-#         return context
-
-
-
 
 class OrderDetailView(LoginRequiredMixin, DetailView):
     model = Order
@@ -158,8 +111,8 @@ class OrderDetailView(LoginRequiredMixin, DetailView):
         order = self.object
         items = order.items.all()
 
-        if items.count() > 20:
-            paginator = Paginator(items, 10)
+        if items.count() > 50:
+            paginator = Paginator(items, 50)
             page_number = self.request.GET.get('page')
             page_obj = paginator.get_page(page_number)
             context['page_obj'] = page_obj

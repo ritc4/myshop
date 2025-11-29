@@ -65,10 +65,10 @@ class HomeView(ListView):
         # Здесь можно добавить дополнительный контекст, если нужно
         context = super().get_context_data(**kwargs)
         # Например, добавить слайдер или отзывы
-        context['slider_images'] = ImageSliderHome.objects.all()  # Если у вас есть слайдер
+        context['slider_image'] = ImageSliderHome.objects.all()  # Если у вас есть слайдер
        
 
-        # Получаем все размеры и цены для всех продуктов
+        # Получаем все размеры и цены для всех продуктов 
         products = context["products"]
         product_ids = [product.id for product in products]
         sizes = ProductPrice.objects.filter(product_id__in=product_ids).select_related(
@@ -115,42 +115,46 @@ class ProductListView(ListView):
                 "images",  # Предварительная загрузка изображений
             )
             .select_related("category")
-        )  # Предварительная загрузка категории продукта
+            .annotate(min_price=Min("product_prices__price"))
+            )  # Предварительная загрузка категории продукта
 
         # Обработка сортировки
-        sort_by = self.request.GET.get(
-            "sort", "created"
-        )  # По умолчанию сортируем по времени добавления
+        sort_by = self.request.GET.get("sort", "created")
         if sort_by == "min_price":
-            products = products.annotate(
-                min_price=Min("product_prices__price")
-            ).order_by("min_price")
+            products = products.order_by("min_price")
         elif sort_by == "-min_price":
-            products = products.annotate(
-                min_price=Min("product_prices__price")
-            ).order_by("-min_price")
+            products = products.order_by("-min_price")
         else:
-            products = products.annotate(
-                min_price=Min("product_prices__price")
-            ).order_by("-created")
+            products = products.order_by("-created")
 
         return products
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["category"] = self.category  # Используем ранее полученную категорию
-        context["get_root_cat"] = context[
-            "category"
-        ].get_root()  # Получаем корневую категорию
-        context["get_children_cat"] = context[
-            "category"
-        ].get_children()  # Получаем дочерние категории
-        context["get_descendants_cat"] = context[
-            "get_root_cat"
-        ].get_children()  # Получаем все дочерние категории корня
-
-        # Получаем хлебные крошки
-        context["breadcrumbs"] = context["category"].get_breadcrumbs()
+        context["category"] = self.category
+        
+        # Получаем корневую категорию
+        root_category = self.category.get_root()
+        
+        # Получаем все нужные данные категорий за один запрос
+        categories = Category.objects.filter(
+            tree_id=root_category.tree_id
+        ).order_by('lft')
+        
+        # Получаем детей текущей категории
+        context["get_children_cat"] = [
+            cat for cat in categories 
+            if cat.parent_id == self.category.pk
+        ]
+        
+        # Получаем потомков корневой категории
+        context["get_descendants_cat"] = [
+            cat for cat in categories 
+            if cat.level == root_category.level + 1
+        ]
+        
+        context["get_root_cat"] = root_category
+        context["breadcrumbs"] = self.category.get_ancestors(include_self=True)
 
         # Получаем все размеры и цены для всех продуктов
         products = context["products"]
@@ -214,6 +218,7 @@ class ProductListView(ListView):
         if isinstance(per_page, str) and per_page.isdigit():
             return int(per_page)
         return self.paginate_by  # Вернуть значение по умолчанию
+
 
 
 class ProductDetailView(DetailView):

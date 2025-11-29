@@ -22,6 +22,14 @@
       <div class="cart-content p-3 bg-white">
         <h1 class="section-title"><span>Корзина</span></h1> 
         <div id="cart-table-container">
+          {% if removed_items %}
+          {% for item in removed_items %}
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+              Товар "{{ item.title }}" (артикул: {{ item.article_number }}, размер: {{ item.size }}) был удалён из корзины, так как он больше недоступен.
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Закрыть"></button>
+            </div>
+          {% endfor %}
+        {% endif %}
           {% if is_cart_empty %}
             <div class="alert alert-warning" role="alert">
               Ваша корзина пуста. Пожалуйста, добавьте товары в корзину перед оформлением заказа.
@@ -189,6 +197,12 @@ $(document).ready(function() {
             } else {
                 $('.cart-badge').removeClass('d-none');
             }
+        }
+            // Добавлено: показ toast'ов для removed_items при AJAX
+        if (data.removed_items && data.removed_items.length > 0) {
+            data.removed_items.forEach(function(item) {
+                showToast(`Товар "${item.title}" (артикул: ${item.article_number}, размер: ${item.size}) был удалён из корзины.`);
+            });
         }
         // Оптимизированное обновление: обновляем только изменённые элементы
         if (data.updated_items) {

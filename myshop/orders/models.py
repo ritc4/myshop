@@ -149,36 +149,6 @@ class Order(models.Model):
 
     get_total_cost.short_description = 'Общая стоимость'
 
-    
-
-# class OrderItem(models.Model):
-#     order = models.ForeignKey(Order, related_name='items', on_delete=models.CASCADE, db_index=True) 
-#     product_price = models.ForeignKey(ProductPrice, related_name='order_items', on_delete=models.SET_NULL, verbose_name='Вариация товара', null=True, blank=True, db_index=True)
-#     price = models.DecimalField(max_digits=10, decimal_places=0, verbose_name="Цена продажи", db_index=True, blank=True, null=True)  # Добавлено: blank=True, null=True для валидации
-#     quantity = models.PositiveIntegerField(default=1, verbose_name="Количество", db_index=True, validators=[MinValueValidator(1)])
-#     is_price_custom = models.BooleanField(default=False, verbose_name="Редактировать цену")  # Новое поле: чекбокс для кастомной цены
-    
-
-    # def save(self, *args, **kwargs):
-    #     if not self.is_price_custom and self.product_price:
-    #         self.price = self.product_price.price
-    #     super().save(*args, **kwargs)
-
-    
-        # class Meta:
-    #     verbose_name = 'Заказанный товар'
-    #     verbose_name_plural = 'Заказанные товары'
-    #     unique_together = ['order', 'product_price']
-    #     indexes = [
-    #         models.Index(fields=['order', 'product_price'], name='orderitem_order_prodprice_idx'),
-    #     ]
-
-
-    # def product_zacup_price(self): 
-    #     """Возвращает закупочную цену для текущего размера товара."""
-    #     return self.product_price.zacup_price if self.product_price and self.product_price.zacup_price else 'Нет цены'
-    # product_zacup_price.short_description = 'Закупочная цена'
-
 
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, related_name='items', on_delete=models.CASCADE, db_index=True) 

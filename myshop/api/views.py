@@ -372,11 +372,13 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAdminUser  # Изменено: теперь IsAdminUser для ограничения доступа только админам
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import MultiPartParser, JSONParser, FormParser  # Добавлено для обработки файлов
 import json
 
 class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = CategorySerializer
+    permission_classes = [IsAuthenticated]
     queryset = Category.objects.select_related(
         'parent', 
         'parent__parent', 
@@ -389,9 +391,10 @@ class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
 
 class ProductViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Product.objects.filter(is_hidden=False).select_related('category', 'category__parent').prefetch_related(
-        'product_prices__size', 'images'
+        'product_prices__size', 'images' 
     )
     serializer_class = ProductSerializer
+    permission_classes = [IsAuthenticated]
     pagination_class = StandardPagination
     filter_backends = [SearchFilter]  # Включает поиск (можно добавить OrderingFilter для сортировки)
     search_fields = ['id','title', 'slug', 'article_number', 'mesto',]
@@ -410,33 +413,8 @@ class OrderViewSet(viewsets.ModelViewSet):
     ordering = ['-created']
 
     def get_serializer_context(self):
-        # Добавлено: Передаём snapshots в serializer context (для OrderSerializer, только для retrieve где нужны детали)
-        context = super().get_serializer_context()
-        if hasattr(self, 'action') and self.action == 'retrieve':
-            order = self.get_object()
-            order_items = order.items.all()  # Уже prefetch'ед
-            context['order_snapshots'] = self._create_order_snapshots(order_items)
-        return context
-
-    def _create_order_snapshots(self, order_items):
-        # Добавлено: Создаём snapshots: для каждого item, если продукт удалён, копируем key данные как placeholder
-        snapshots = {}
-        for item in order_items:
-            try:
-                product = item.product_price.product  # Попытка доступа (prefetch выполнился) — продукт существует, snapshots не нужна
-            except (Product.DoesNotExist, AttributeError):
-                # Продукт удалён — создаём snapshot с placeholder'ами (если связи не сохранились)
-                snapshots[item.id] = {
-                    'title': 'Товар удалён',  # Placeholder, можно расширить если добавить поля в OrderItem
-                    'images': [],  # Placeholder
-                    'category': {},  # Placeholder
-                    'slug': '',  # Placeholder
-                    'article_number': '',  # Placeholder
-                    'mesto': '',  # Placeholder
-                    'min_price': item.product_price.price,  # Берем из price тегом
-                    # Другие поля: можно добавить в модель OrderItem поля-копии, как в веб-варианте
-                }
-        return snapshots
+        # Удалена логика order_snapshots: snapshots теперь в полях OrderItem
+        return super().get_serializer_context()
 
 
 # Создание продукта с ценами, размерами и изображениями
@@ -657,32 +635,11 @@ class UpdateOrderView(APIView):
     parser_classes = [JSONParser, MultiPartParser, FormParser]
 
     def get(self, request, pk):
-        # Добавлено: snapshots для деталей заказа
         order = get_object_or_404(Order.objects.prefetch_related('items__product_price__product', 'items__product_price__size'), pk=pk)
-        # Создаём snapshots для order_items (как в OrderViewSet)
-        order_snapshots = self._create_order_snapshots(order.items.all())
-        serializer = OrderSerializer(order, context={'order_snapshots': order_snapshots})  # Передаём snapshots в serializer
+        # Удалена логика order_snapshots: snapshots в полях модели
+        serializer = OrderSerializer(order)  # Нет необходимости в context
         return Response(serializer.data)
 
-    def _create_order_snapshots(self, order_items):
-        # Добавлено: Аналогично OrderViewSet: создаём snapshots для удалённых товаров с placeholder'ами
-        snapshots = {}
-        for item in order_items:
-            try:
-                product = item.product_price.product
-            except (Product.DoesNotExist, AttributeError):
-                # Продукт удалён — используем placeholder'ы
-                snapshots[item.id] = {
-                    'title': 'Товар удалён',
-                    'images': [],
-                    'category': {},
-                    'slug': '',
-                    'article_number': '',
-                    'mesto': '',
-                    'min_price': item.product_price.price,
-                    # Другие поля...
-                }
-        return snapshots
 
     def put(self, request, pk):
         order = get_object_or_404(Order.objects.prefetch_related('items__product_price__product', 'items__product_price__size'), pk=pk)

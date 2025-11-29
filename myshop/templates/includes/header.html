@@ -105,7 +105,7 @@
                 <div class="cart" id="cart-item-count">
                   {% with total_items=cart|length %}
                     {% if total_items > 0 %}
-                        {{ total_items|russian_pluralize:"товар,товара,товаров" }}
+                        {{ total_items|russian_pluralize:"товар,товара,товаров" }} 
                     {% endif %}
                   {% endwith %}
                  </div>  
@@ -151,8 +151,18 @@
       </div>
     </div>
   </div>
+
+  <!-- Toast-контейнер для уведомлений (Bootstrap) -->
+<div class="toast-container position-fixed top-0 end-0 p-3">
+  <div id="cart-toast" class="toast align-items-center border-0" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="d-flex">
+      <div class="toast-body" id="toast-message"></div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Закрыть"></button>
+    </div>
+  </div>
+</div>
 </header>
-<!--end ./header-bottom -->
+<!--end ./header-bottom --> 
 
 <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasCart" aria-labelledby="offcanvasCartLabel" data-offcanvas-url="{% url 'cart:cart_detail' %}?partial=offcanvas">
   <div class="offcanvas-header">
@@ -165,6 +175,7 @@
         {% endif %}
       {% endwith %}
     </h5>
+
     <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
   </div>
   <!-- УБРАЛИ initial include: теперь content загружается при открытии -->
@@ -193,6 +204,14 @@
           }
           return cookieValue;
       }
+      window.getCookie = getCookie;  // Делаем глобальной
+
+            // Функция для показа toast
+      function showToast(message) {
+          $('#toast-message').text(message);
+          var toast = new bootstrap.Toast($('#cart-toast'));
+          toast.show();
+      }
 
       // Настройка CSRF для всех AJAX-запросов с использованием куки
       $.ajaxSetup({
@@ -209,6 +228,8 @@
       });
 
       const cartChannel = new BroadcastChannel('cart-updates');
+      window.cartChannel = cartChannel;  // Делаем глобальной
+
       var offcanvasUrl = "{% url 'cart:cart_detail' %}?partial=offcanvas";
   
       $('#offcanvasCart').on('show.bs.offcanvas', function() {
@@ -253,31 +274,39 @@
               });
           });
       }
+      window.attachCartHandlers = attachCartHandlers;  // Делаем глобальной
       
       function updateCartUI(data) {
-    if (data.cart_item_count !== undefined) {
-        var total = data.cart_item_count;
-        var text = data.pluralized_text || (total > 0 ? total + ' товар' : '');
-        $('#cart-item-count').html(text ? text : '');
-        if (total === 0) {
-            $('.cart-badge').addClass('d-none');
-        } else {
-            $('.cart-badge').removeClass('d-none');
-        }
-        console.log('Корзина обновлена: ' + total + ' товаров');
-    }
-    
-    // УБРАЛИ условие: всегда обновляем заголовок офканваса
-    var titleText = data.pluralized_text ? 'В корзине: ' + data.pluralized_text : 'Ваша корзина пуста.';
-    $('#offcanvasCartLabel').text(titleText);
-    
-    // Обновляем офканвас с новым HTML
-    if (data.html_offcanvas) {
-        $('#offcanvasCart .offcanvas-body').html(data.html_offcanvas);
-        attachCartHandlers();
-    }
-}
+          if (data.cart_item_count !== undefined) {
+              var total = data.cart_item_count;
+              var text = data.pluralized_text || (total > 0 ? total + ' товар' : '');
+              $('#cart-item-count').html(text ? text : '');
+              if (total === 0) {
+                  $('.cart-badge').addClass('d-none');
+              } else {
+                  $('.cart-badge').removeClass('d-none');
+              }
+              console.log('Корзина обновлена: ' + total + ' товаров');
+          }
 
+                // Добавлено: показ toast'ов для removed_items при AJAX
+          if (data.removed_items && data.removed_items.length > 0) {
+              data.removed_items.forEach(function(item) {
+                  showToast(`Товар "${item.title}" (артикул: ${item.article_number}, размер: ${item.size}) был удалён из корзины.`);
+              });
+          }
+          
+          // УБРАЛИ условие: всегда обновляем заголовок офканваса
+          var titleText = data.pluralized_text ? 'В корзине: ' + data.pluralized_text : 'Ваша корзина пуста.';
+          $('#offcanvasCartLabel').text(titleText);
+          
+          // Обновляем офканвас с новым HTML
+          if (data.html_offcanvas) {
+              $('#offcanvasCart .offcanvas-body').html(data.html_offcanvas);
+              attachCartHandlers();
+          }
+      }
+      window.updateCartUI = updateCartUI;  // Делаем глобальной
       
       // Слушаем сообщения от других страниц
       cartChannel.onmessage = function(event) {

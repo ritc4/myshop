@@ -108,7 +108,7 @@ class CartAddProductForm(forms.Form):
 
     def clean_quantity(self):
         """Серверная проверка максимума для quantity."""
-        quantity = self.cleaned_data.get('quantity')
+        quantity = self.cleaned_data.get('quantity') 
         if quantity > 100:
             raise forms.ValidationError("Максимум 100 единиц за раз.")
         return min(quantity, 100)  # Обрезаем до 100 на всякий случай

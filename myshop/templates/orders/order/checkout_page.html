@@ -247,6 +247,14 @@
         </div>
       </div>
       <div class="col-lg-6 mb-3">
+        {% if removed_items %}
+          {% for item in removed_items %}
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+              Товар "{{ item.title }}" (артикул: {{ item.article_number }}, размер: {{ item.size }}) был удалён из корзины, так как он больше недоступен.
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Закрыть"></button>
+            </div>
+          {% endfor %}
+        {% endif %}
         <div class="cart-summary p-3 bg-white sidebar h-100">
           <h5 class="section-title">
             <span>Общая сумма заказа</span>
