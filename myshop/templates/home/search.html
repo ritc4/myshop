@@ -183,10 +183,10 @@
                         <ul class="pagination d-flex justify-content-center">
                             {% if page_obj.has_previous %}
                                 <li class="page-item">
-                                    <a class="page-link" href="?page=1&search={{ request.GET.search|urlencode }}&sort={{ request.GET.sort|urlencode }}&per_page={{ per_page }}">&laquo; Первая</a>
+                                    <a class="page-link" href="?page=1&search={{ request.GET.search|urlencode }}&sort={{ request.GET.sort|urlencode }}&per_page={{ per_page }}" title="Первая">&laquo;</a> 
                                 </li>
                                 <li class="page-item">
-                                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}&search={{ request.GET.search|urlencode }}&sort={{ request.GET.sort|urlencode }}&per_page={{ per_page }}">Назад</a>
+                                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}&search={{ request.GET.search|urlencode }}&sort={{ request.GET.sort|urlencode }}&per_page={{ per_page }}" title="Назад">&lsaquo;</a>
                                 </li>
                             {% endif %}
             
@@ -204,10 +204,10 @@
             
                             {% if page_obj.has_next %}
                                 <li class="page-item">
-                                    <a class="page-link" href="?page={{ page_obj.next_page_number }}&search={{ request.GET.search|urlencode }}&sort={{ request.GET.sort|urlencode }}&per_page={{ per_page }}">Вперёд</a>
+                                    <a class="page-link" href="?page={{ page_obj.next_page_number }}&search={{ request.GET.search|urlencode }}&sort={{ request.GET.sort|urlencode }}&per_page={{ per_page }}" title="Вперёд">&rsaquo;</a>
                                 </li>
                                 <li class="page-item">
-                                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}&search={{ request.GET.search|urlencode }}&sort={{ request.GET.sort|urlencode }}&per_page={{ per_page }}">Последняя &raquo;</a>
+                                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}&search={{ request.GET.search|urlencode }}&sort={{ request.GET.sort|urlencode }}&per_page={{ per_page }}" title="Последняя">&raquo;</a>
                                 </li>
                             {% endif %}
                         </ul>

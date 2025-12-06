@@ -354,7 +354,7 @@ class Politica_firm(models.Model):
 class ImageSliderHome(models.Model):
     image = ProcessedImageField(
         upload_to='slider_home/%Y/%m/%d',
-        processors=[ResizeToFit(1600, 800, upscale=False)],
+        processors=[ResizeToFit(1140, 403, upscale=False)],
         format='WEBP',
         options={'quality': 100, 'optimize': True},
         validators=[
@@ -442,20 +442,37 @@ def review_image_upload_path(instance, filename):
 
 
 
+# class ReviewImage(models.Model):
+#     review = models.ForeignKey(Review, related_name='images', on_delete=models.CASCADE)
+#     image = ProcessedImageField(
+#         upload_to=review_image_upload_path,
+#         processors=[ResizeToFit(500, 500, upscale=False)],  # Квадратные миниатюры, как в шаблоне
+#         format='WEBP',
+#         options={'quality': 95, 'optimize': True}, 
+#         validators=[
+#             FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'gif', 'webp']),
+#             validate_file_size,
+#             validate_image_mime_type,  # Новый валидатор
+#         ],
+#         blank=True,
+#         null=True, verbose_name='Изображение', db_index=True,
+#     )
+
+
+
 class ReviewImage(models.Model):
     review = models.ForeignKey(Review, related_name='images', on_delete=models.CASCADE)
-    image = ProcessedImageField(
+    image = models.ImageField(  # Изменено: обычное ImageField без ImageKit-процессоров
         upload_to=review_image_upload_path,
-        processors=[ResizeToFit(500, 500, upscale=False)],  # Квадратные миниатюры, как в шаблоне
-        format='WEBP',
-        options={'quality': 95, 'optimize': True}, 
         validators=[
             FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'gif', 'webp']),
-            validate_file_size,
-            validate_image_mime_type,  # Новый валидатор
+            validate_file_size,  # 20 MB (согласуется с формой)
+            validate_image_mime_type,
         ],
         blank=True,
-        null=True, verbose_name='Изображение', db_index=True,
+        null=True, 
+        verbose_name='Изображение',
+        db_index=True,  # Убрал, так как ImageField не индексируется обычно; если нужно — верните
     )
 
     def clean(self):
@@ -470,7 +487,7 @@ class ReviewImage(models.Model):
     
     def image_tag_review(self):
         # Возвращаем все изображения, связанные с продуктом
-        return self.review.image.all()
+        return self.review.images.all()
     image_tag_review.short_description = "Изображение"
     
     class Meta:

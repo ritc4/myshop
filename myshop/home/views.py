@@ -27,7 +27,10 @@ from django.contrib.postgres.search import SearchVector, SearchQuery
 from django.core.cache import cache
 from django.shortcuts import reverse, redirect
 from django.http import JsonResponse
-
+from django.utils import timezone
+from .tasks import process_images
+import base64
+from django.core.files.storage import default_storage as storage
 
 class HomeView(ListView):
     template_name = "home/home_page.html"
@@ -375,82 +378,6 @@ class ContactsView(FormView):
         return super().form_invalid(form)
 
 
-# class ReviewsView(LoginRequiredMixin, FormView, ListView):
-#     form_class = ReviewForm
-#     template_name = "home/reviews_page.html"
-#     success_url = reverse_lazy("home:reviews")
-#     context_object_name = "reviews"
-#     extra_context = {"title": "Отзывы"}
-#     paginate_by = 5
-
-#     def get_queryset(self):
-#         # Ограничиваем выборку до 5 последних отзывов
-#         return (
-#             Review.objects.all()
-#             .select_related("user")
-#             .prefetch_related("images")
-#             .order_by("-created_at")
-#         )
-
-#     def get_paginate_by(self, queryset):
-#         # Опционально: динамическое per_page из GET (например, ?per_page=10)
-#         per_page = self.request.GET.get("per_page", self.paginate_by)
-#         if isinstance(per_page, str) and per_page.isdigit():
-#             return int(per_page)
-#         return self.paginate_by
-
-#     def get_context_data(self, **kwargs):
-#         context = super().get_context_data(**kwargs)
-#         context.update(
-#             {
-#                 "breadcrumbs": [{"name": "Отзывы", "slug": "/reviews/"}],
-#                 "user": self.request.user,
-#                 "form": self.get_form(),  # Сохраняем форму в контексте
-#             }
-#         )
-#         # Логика ограниченной пагинации (до 5 страниц, центрируя текущую)
-#         page_obj = context.get("page_obj")
-#         if page_obj:
-#             current_page = page_obj.number
-#             total_pages = page_obj.paginator.num_pages
-#             half_range = (
-#                 2  # Половина диапазона (для 5 страниц: 2 слева + текущая + 2 справа)
-#             )
-
-#             start_page = max(1, current_page - half_range)
-#             end_page = min(total_pages, current_page + half_range)
-
-#             # Если диапазон меньше 5, корректируем
-#             if end_page - start_page < 4:
-#                 if start_page == 1:
-#                     end_page = min(total_pages, start_page + 4)
-#                 elif end_page == total_pages:
-#                     start_page = max(1, end_page - 4)
-
-#             page_range = list(range(start_page, end_page + 1))
-
-#             context["page_range"] = page_range
-#             context["show_first"] = start_page > 1
-#             context["show_last"] = end_page < total_pages
-#             context["per_page"] = self.get_paginate_by(None)  # Для сохранения в ссылках
-
-#         return context
-
-#     def form_valid(self, form):
-#         review = form.save(commit=False)
-#         review.user = self.request.user 
-#         review.save()
-
-#         # Сохраняем каждое загруженное изображение с использованием bulk_create
-#         images = self.request.FILES.getlist("images")
-#         review_images = [ReviewImage(review=review, image=image) for image in images]
-#         ReviewImage.objects.bulk_create(review_images)
-
-#         return super().form_valid(form)
-
-#     def form_invalid(self, form):
-#         return super().form_invalid(form)
-
 
 
 class ReviewsView(LoginRequiredMixin, FormView, ListView):
@@ -465,7 +392,7 @@ class ReviewsView(LoginRequiredMixin, FormView, ListView):
         return (
             Review.objects.all()
             .select_related("user")
-            .prefetch_related("images")
+            .prefetch_related("images")  # Prefetch for images
             .order_by("-created_at")
         )
 
@@ -484,6 +411,18 @@ class ReviewsView(LoginRequiredMixin, FormView, ListView):
                 "form": self.get_form(),
             }
         )
+
+        reviews = context['reviews']  # Твой queryset отзывов
+    
+        # Фильтр изображений: только существующие
+        for review in reviews:
+            # Проверяем и отбираем только существующие файлы
+            review.existing_images = [
+                img for img in review.images.all()
+                if storage.exists(img.image.name)  # Проверка существования файла
+            ]
+        
+        context['reviews'] = reviews
         page_obj = context.get("page_obj")
         if page_obj:
             current_page = page_obj.number
@@ -500,24 +439,45 @@ class ReviewsView(LoginRequiredMixin, FormView, ListView):
         return context
 
     def form_valid(self, form):
+        # ДОБАВЛЕНО: Проверка на недавний дублированный отзыв (предотвращает спам)
+        recent_reviews = Review.objects.filter(
+            user=self.request.user,
+            content=form.cleaned_data['content'],
+            created_at__gte=timezone.now() - timezone.timedelta(minutes=1)
+        )
+        if recent_reviews.exists():
+            return JsonResponse({
+                'success': False,
+                'message': 'Похожий отзыв уже отправлен. Подождите или отредактируйте.'
+            }, status=400)
+        
         review = form.save(commit=False)
         review.user = self.request.user
         review.save()
 
         images = self.request.FILES.getlist("images")
-        review_images = [ReviewImage(review=review, image=image) for image in images]
-        ReviewImage.objects.bulk_create(review_images)
+        # Собираем данные файлов: сериализуемые словари (name + base64 content)
+        images_data = []
+        for img in images:
+            img.seek(0)  # Убеждаемся, что файл читается с начала
+            content = img.read()
+            images_data.append({
+                'name': img.name,
+                'content': base64.b64encode(content).decode('utf-8'),  # Сериализуемый string
+                'content_type': img.content_type or 'image/jpeg'  # Добавлено для метаданных
+            })
 
-        # Проверяем AJAX
+        # Запускаем фоновую обработку с передачей данных
+        process_images.delay(review.id, images_data)
+
         if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return JsonResponse({
                 'success': True,
-                'message': 'Отзыв успешно отправлен!',
+                'message': 'Отзыв успешно отправлен! Изображения обрабатываются...',
                 'redirect_url': f"{reverse('home:reviews')}?page=1"
             })
         else:
-            url = reverse("home:reviews")
-            return redirect(f"{url}?page=1")
+            return redirect(f"{reverse('home:reviews')}?page=1")
 
     def form_invalid(self, form):
         if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':

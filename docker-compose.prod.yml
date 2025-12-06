@@ -34,9 +34,9 @@ services:
       timeout: 10s
       retries: 5
   web:
-    image: r162809ws/myshop-web:${TAG:-latest}
+    image: r162809ws/myshop-web:${TAG:-latest} 
     user: "33:33"
-    command: ["./wait-for-it.sh", "db:5432", "--", "sh", "-c", "python myshop/manage.py migrate --settings=myshop.settings.prod && python myshop/manage.py collectstatic --noinput --settings=myshop.settings.prod && if [ \"$(python myshop/manage.py shell --settings=myshop.settings.prod -c 'from django.contrib.auth import get_user_model; User = get_user_model(); print(User.objects.filter(is_superuser=True).exists())')\" != 'True' ]; then python myshop/manage.py createsuperuser --noinput --settings=myshop.settings.prod; fi && uwsgi --ini /app/config/uwsgi/uwsgi.ini"]
+    command: ["./wait-for-it.sh", "db:5432", "--", "sh", "-c", "python myshop/manage.py makemigrations --settings=myshop.settings.prod && python myshop/manage.py migrate --settings=myshop.settings.prod && python myshop/manage.py collectstatic --noinput --settings=myshop.settings.prod && if [ \"$(python myshop/manage.py shell --settings=myshop.settings.prod -c 'from django.contrib.auth import get_user_model; User = get_user_model(); print(User.objects.filter(is_superuser=True).exists())')\" != 'True' ]; then python myshop/manage.py createsuperuser --noinput --settings=myshop.settings.prod || true; fi && uwsgi --ini /app/config/uwsgi/uwsgi.ini"]
     restart: always
     volumes:
       - static_volume:/app/myshop/static

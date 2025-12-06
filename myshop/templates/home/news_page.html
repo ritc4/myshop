@@ -28,4 +28,18 @@
       </div>
   </div>
 </div>
+<script>
+    function toggleDescription(event, id) {
+      event.preventDefault();  // Предотвращаем прокрутку страницы
+      const fullDesc = document.getElementById('full-description-' + id);
+      if (fullDesc.style.display === 'none' || fullDesc.style.display === '') {
+        fullDesc.style.display = 'block';
+      } else {
+        fullDesc.style.display = 'none';
+      }
+      // Дополнительно: можно менять текст ссылки
+      const link = event.target;
+      link.textContent = fullDesc.style.display === 'block' ? 'Свернуть' : 'Читать полностью';
+    }
+    </script>
 {% endblock %}

@@ -244,7 +244,7 @@
 </style>
 
 <script src="{% static 'jquery/jquery-3.7.1.min.js' %}"></script>  <!-- Если не подключен глобально -->
-<script>
+<!-- <script>
     // Функция для обновления per_page через URL
     function updatePerPage(value) {
             var url = new URL(window.location);
@@ -379,6 +379,162 @@
         // Вызываем attachCartHandlers при загрузке страницы, если офканвас открыт или содержит формы (используем глобальную функцию)
         window.attachCartHandlers();
     });
-    </script>
+    </script> -->
 
+
+    <script>
+        // Функция для обновления per_page через URL
+        function updatePerPage(value) {
+            var url = new URL(window.location);
+            url.searchParams.set('per_page', value);
+            window.location.href = url.toString();
+        }
+        
+        $(document).ready(function() {
+            // Инициализируем toast с кастомной задержкой и скоростью затухания (delay для задержки перед скрытием, CSS для transition)
+            $('#cart-toast').toast({
+                delay: 2000  // Задержка перед началом затухания (2 секунды; изменяй по вкусу, в мс)
+            });
+        
+            // Обработчик сортировки
+            $('#name-price').on('change', function() {
+                var sort = $(this).val();
+                var url = new URL(window.location);
+                url.searchParams.set('sort', sort);
+                window.location.href = url.toString();
+            });
+        
+            // Обработка формы добавления в корзину через AJAX (исправлено: делегированный обработчик для класса, а не ID)
+            // Изменено: добавлено отключение кнопки во время обработки AJAX, индикатор загрузки и включение обратно для предотвращения дублирования заказов
+            $(document).on('submit', '.add-to-cart-form', function(e) {
+                e.preventDefault();  // Предотвращаем обычную отправку формы
+                
+                var form = $(this);  // Объявляем form в начале
+                var submitButton = form.find('button[type="submit"]');  // Находим кнопку "Добавить"
+                
+                // Если кнопка уже отключена, выходим (предотвращаем повторные сабмиты)
+                if (submitButton.prop('disabled')) {
+                    return;
+                }
+                
+                submitButton.prop('disabled', true);  // Отключаем кнопку
+                var originalText = submitButton.text();  // Сохраняем оригинальный текст кнопки
+                submitButton.text('Добавление...');  // Показываем индикатор загрузки
+                
+                // Валидация quantity на клиенте (финальная проверка перед отправкой)
+                var quantityInput = form.find('input[name="quantity"]');
+                var quantity = parseInt(quantityInput.val());
+                var max = parseInt(quantityInput.data('max')) || 100;  // Добавлено: max из data-max или 100 по умолчанию
+                if (quantity < 1 || isNaN(quantity)) {
+                    quantityInput.val(1);  // Устанавливаем минимум 1
+                    submitButton.prop('disabled', false).text(originalText);  // Включаем кнопку обратно и восстанавливаем текст
+                    return;  // Прерываем отправку, чтобы пользователь мог скорректировать
+                } else if (quantity > max) {
+                    quantityInput.val(max);  // Добавлено: ограничение max
+                    submitButton.prop('disabled', false).text(originalText);  // Включаем кнопку обратно и восстанавливаем текст
+                    return;  // Прерываем отправку
+                }
+                
+                $.ajax({
+                    url: form.attr('action'),
+                    type: 'POST',
+                    data: form.serialize(),
+                    success: function(data) {
+                        if (data.success) {
+                            window.updateCartUI(data);  // Обновляем UI локально (используем глобальную функцию)
+                            window.cartChannel.postMessage(data);  // Синхронизируем с другими страницами (глобальный канал)
+                            // Показываем toast-уведомление
+                            $('#toast-message').text(data.message || 'Товар добавлен в корзину!');
+                            $('#cart-toast').toast('show');
+                            
+                            // НОВОЕ: Закрываем модальное окно автоматически
+                            var modal = form.closest('.modal');  // Находим ближайший модал к форме
+                            modal.modal('hide');  // Закрываем его
+                        } else {
+                            alert('Ошибка добавления в корзину: ' + (data.error || 'Неизвестная ошибка'));
+                        }
+                        submitButton.prop('disabled', false).text(originalText);  // Включаем кнопку обратно и восстанавливаем текст
+                    },
+                    error: function(xhr) {
+                        if (xhr.status === 403) {
+                            alert('Ошибка CSRF: обновите страницу и попробуйте снова.');
+                        } else {
+                            alert('Ошибка отправки формы');
+                        }
+                        console.error('AJAX error:', arguments);
+                        submitButton.prop('disabled', false).text(originalText);  // Включаем кнопку обратно и восстанавливаем текст
+                    },
+                    complete: function() {
+                        // Всегда включаем кнопку (для двойной надежности)
+                        submitButton.prop('disabled', false).text(originalText);
+                    }
+                });
+            });
+        
+            // Обработчик для поля quantity: валидация в реальном времени (для модала) - изменено: фильтруем нецифры и позволяем пустую строку, добавлено ограничение max
+            $('input[name="quantity"]').on('input', function() {
+                var quantityInput = $(this);
+                var val = quantityInput.val().replace(/[^0-9]/g, '');  // Удаляем все нецифровые символы
+                quantityInput.val(val);  // Устанавливаем очищенное значение
+                var quantity = parseInt(val);
+                var max = parseInt(quantityInput.data('max')) || 100;  // Добавлено: max из data-max или 100 по умолчанию
+                if (val !== '' && (quantity < 1 || isNaN(quantity))) {
+                    quantityInput.val(1);  // Исправляем только если введено что-то неправильное, но не пустое
+                } else if (val !== '' && quantity > max) {
+                    quantityInput.val(max);  // Добавлено: ограничение max
+                }
+            });
+        
+            // Добавлено: Обработчик для поля quantity в офканвасе (аналогично product.html, предполагаем id="offcanvasCart")
+            $('#offcanvasCart input[name="quantity"]').on('input', function() {
+                var quantityInput = $(this);
+                var val = quantityInput.val().replace(/[^0-9]/g, '');  // Удаляем все нецифровые символы
+                quantityInput.val(val);  // Устанавливаем очищенное значение
+                var quantity = parseInt(val);
+                var max = parseInt(quantityInput.data('max')) || 100;  // max из data-max или 100 по умолчанию
+                if (val !== '' && (quantity < 1 || isNaN(quantity))) {
+                    quantityInput.val(1);  // Исправляем только если введено что-то неправильное, но не пустое
+                } else if (val !== '' && quantity > max) {
+                    quantityInput.val(max);  // Ограничение max
+                }
+            });
+        
+            // Слушаем сообщения от других страниц (используем глобальный канал)
+            window.cartChannel.onmessage = function(event) {
+                window.updateCartUI(event.data);
+            };
+        
+            // Обработчик изменения размера для динамического обновления цены в модальном окне
+            $('select[id^="size-select_product_"]').on('change', function() {
+                var selectedOption = $(this).find('option:selected');
+                var price = selectedOption.data('price');  // Предполагаем, что в <option> есть data-price="цена"
+                var productId = $(this).attr('id').split('_').pop();  // Извлекаем product.id из ID селекта
+                if (price !== undefined) {
+                    $('#price-display-' + productId).text(price + ' ₽');  // Обновляем отображение цены (адаптируйте формат, если отличается)
+                }
+            });
+        
+            // Инициализация цены для всех модальных окон при загрузке страницы
+            $('select[id^="size-select_product_"]').each(function() {
+                $(this).trigger('change');  // Триггерим change для установки начальной цены
+            });
+        
+            // Обработчик для перемещения фокуса при начале закрытия модала (исправляет aria-hidden ошибку)
+            $('.modal').on('hide.bs.modal', function() {
+                var triggerButton = $(this).data('triggerButton');
+                if (triggerButton) {
+                    triggerButton.focus();  // Перемещаем фокус на кнопку, открывшую модал, ДО применения aria-hidden
+                }
+            });
+        
+            // Сохраняем кнопку-триггер при открытии модала
+            $('.add-to-cart').on('click', function() {
+                var modalId = $(this).data('bs-target');
+                $(modalId).data('triggerButton', $(this));
+            });
+        
+            // Вызываем attachCartHandlers при загрузке страницы, если офканвас открыт или содержит формы (используем глобальную функцию)
+            window.attachCartHandlers();
+        });
+    </script>
 {% endblock %} 

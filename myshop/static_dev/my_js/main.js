@@ -125,90 +125,246 @@ $(document).ready(function() {
 
 
 
+// Обработчик показать или скрыть выбор рейтинга в reviews_page.html новый
+$(document).ready(function() {
+  // Toast-подобные уведомления (то же, что у вас)
+  function showNotification(message, type = 'error', duration = 3000) {
+    $('.notification-alert').remove();
+    const alertClass = type === 'success' ? 'alert-success' : type === 'warning' ? 'alert-warning' : type === 'info' ? 'alert-info' : 'alert-danger';
+    const notification = $(`
+      <div class="notification-alert alert ${alertClass} text-center p-3 mb-0 shadow-lg" role="alert">
+        ${message}
+      </div>
+    `).css({ 
+      position: 'fixed',
+      top: '50%',
+      left: '50%',
+      transform: 'translate(-50%, -50%)', 
+      zIndex: '9999',
+      maxWidth: '400px',
+      width: '90%',
+      opacity: '0',
+      transition: 'opacity 0.3s ease-in-out',
+      borderRadius: '8px'
+    });
+    $('body').append(notification);
+    notification.animate({ opacity: 1 }, 300);
+    setTimeout(function() {
+      notification.animate({ opacity: 0 }, 300, function() {
+        $(this).remove();
+      });
+    }, duration);
+  }
 
-// Обработчик события изменения для выпадающего списка окна product_page.html старый
+  // ИСПРАВЛЕНО: Сброс превью и всех полей формы (для использования при закрытии модала)
+  function resetAllPreviews() {
+    imagePreviewContainer.empty();
+    addedImages = [];
+    totalSize = 0;  // Сброс общего размера
+    updateButtons();
+    updateImageCounter();
+    // ДОБАВЛЕНО: Очистка текста отзыва, рейтингов и других полей
+    $('textarea[name="content"]').val('');
+    $('.star-rating').each(function() {
+      const $starRating = $(this);
+      const $stars = $starRating.find('.star');
+      const $inputField = $('#' + $starRating.data('field'));
+      $inputField.val('');  // Сброс скрытого поля рейтинга
+      $stars.removeClass('selected');  // Убираем визуальные звёзды
+    });
+  }
+
+  // Звёздный рейтинг — оставьте как есть
+  $('.star-rating').each(function() {
+      const $starRating = $(this);
+      const $stars = $starRating.find('.star');
+      const $inputField = $('#' + $starRating.data('field'));
+      $stars.on('click', function() {
+          const value = $(this).data('value');
+          $inputField.val(value);
+          $stars.removeClass('selected');
+          for (let i = 0; i < value; i++) {
+              $stars.eq(i).addClass('selected');
+          }
+      });
+  });
+
+  // Константы изображений (сжатие до 5MB/client)
+  const maxFileSize = 5 * 1024 * 1024; // 5 MB
+  const maxFiles = 5;
+  const maxTotalSize = 25 * 1024 * 1024; // 25 MB total
+  const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+  const imagePreviewContainer = $('#image-preview-container');
+  const imageInput = $('input[name="images"]');
+  const addButton = $('#add-images-button');
+  const removeAllButton = $('#remove-all-images-button');
+  let addedImages = []; // Массив сжатых Blob
+  let totalSize = 0; // Общий размер добавленных изображений
+
+  function hasImages() { return addedImages.length > 0; }
+  function updateButtons() {
+    removeAllButton.toggle(hasImages());
+  }
+  function createPreview(file, index) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const container = $('<div>').addClass('image-container').css({ position: 'relative', margin: '10px' });
+      const img = $('<img>').attr('src', e.target.result).css({ height: '200px', width: 'auto', objectFit: 'contain' });
+      const removeBtn = $('<button>').addClass('remove-single btn btn-sm btn-danger').css({ position: 'absolute', top: 5, right: 5 }).html('&times;').data('file', file);
+      container.append(img).append(removeBtn).appendTo(imagePreviewContainer).animate({ opacity: 1 }, 300);
+    };
+    reader.readAsDataURL(file);
+  }
+  function updateImageCounter() { $('#image-counter').text(`${addedImages.length}/${maxFiles}`); }
+
+  addButton.on('click', () => imageInput.click());
+
+  // Сжатие через Compressor.js перед добавлением
+  imageInput.on('change', (event) => {
+    const files = Array.from(event.target.files);
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      if (addedImages.length >= maxFiles) { 
+        showNotification(`Максимум ${maxFiles} изображений.`, 'warning'); 
+        continue; 
+      }
+      if (addedImages.some(img => img.name === file.name)) { 
+        showNotification(`${file.name} уже добавлен.`, 'warning'); 
+        continue; 
+      }
+      if (totalSize + file.size > maxTotalSize) {
+        showNotification(`Общий размер изображений превысит ${maxTotalSize / (1024 * 1024)} MB.`);
+        continue;
+      }
+      if (file.size > maxFileSize) { 
+        showNotification(`Размер файла ${Math.floor(file.size / 1e6)}MB что превышает 5MB.`, 'error'); 
+        continue; 
+      }
+      if (!allowedTypes.includes(file.type)) {
+        showNotification(`Файл "${file.name}" не является изображением в формате JPEG, PNG, GIF или WebP.`);
+        continue;
+      }
+
+      new Compressor(file, {
+        quality: 0.8,  // 80%
+        maxWidth: 1920,  // Подгонка под размер (до обработки будет резать сервер)
+        maxHeight: 1920,
+        convertSize: 1e6,
+        success(compressedFile) {
+          totalSize += compressedFile.size;
+          addedImages.push(compressedFile);
+          createPreview(file, addedImages.length - 1);
+          showNotification(`${file.name}: Добавлено.`, 'success', 2000);
+          updateImageCounter();
+          updateButtons();  // ИСПРАВЛЕНО: Добавлен вызов для показа кнопки "Удалить все" после добавления изображения(ий)
+        },
+        error(err) { showNotification('Ошибка сжатия.', 'warning'); }
+      });
+    }
+    imageInput.val('');
+  });
+
+  imagePreviewContainer.on('click', '.remove-single', function() {
+    const index = imagePreviewContainer.find('.image-container').index($(this).parent());
+    if (index !== -1) { 
+      totalSize -= addedImages[index].size;
+      addedImages.splice(index, 1); 
+      $(this).parent().remove(); 
+      updateButtons(); 
+      updateImageCounter(); 
+    }
+  });
+
+  removeAllButton.on('click', () => {
+    imagePreviewContainer.empty(); 
+    addedImages = []; 
+    totalSize = 0;
+    updateButtons(); 
+    updateImageCounter(); 
+  });
+
+  // Валидация формы с прогрессом
+  let isSubmitting = false;
+  $('#reviewForm').on('submit', function(event) {
+    if (isSubmitting) return;
+    const content = $('textarea[name="content"]').val().trim();
+    if (!content) { showNotification('Введите текст отзыва.'); event.preventDefault(); return; }
+    let ratingsValid = true;
+    // ИСПРАВЛЕНО: Используем function() вместо () =>, чтобы this работал правильно,и проверка рейтингов проходила
+    $('.star-rating').each(function() { 
+      const val = $('#' + $(this).data('field')).val(); 
+      if (!val || val < 1) ratingsValid = false; 
+    });
+    if (!ratingsValid) { showNotification('Заполните рейтинги.'); event.preventDefault(); return; }
+
+    isSubmitting = true;
+    const submitBtn = $('#submit-review-btn').prop('disabled', true).text('Отправляется...');
+    const formData = new FormData(this);
+    addedImages.forEach(img => formData.append('images', img));
+
+    $.ajax({
+      url: this.action,
+      type: this.method,
+      data: formData,
+      processData: false,
+      contentType: false,
+      xhr: () => {
+        const xhr = new XMLHttpRequest();
+        let lastProgress = 0;
+        xhr.upload.addEventListener("progress", e => {
+          if (e.lengthComputable) {
+            const percent = Math.round(e.loaded / e.total * 100);
+            if (percent > lastProgress + 10) { showNotification(`Загрузка: ${percent}%...`, 'info', 1500); lastProgress = percent; }
+          }
+        });
+        return xhr;
+      },
+      success(response) {
+        if (response.success) { 
+          showNotification('Сохранено!', 'success', 3000); 
+          $('#reviewsModal').modal('hide'); 
+          resetAllPreviews();  // Теперь определено — сбрасывает изображения
+          setTimeout(() => location.href = response.redirect_url, 500); 
+        } else showNotification(response.message, 'error');
+        isSubmitting = false; submitBtn.prop('disabled', false).text('Отправить отзыв');
+      },
+      error(xhr) { showNotification('Ошибка: ' + (xhr.status || 'timeout'), 'error'); isSubmitting = false; submitBtn.prop('disabled', false).text('Отправить отзыв'); },
+      timeout: 60000
+    });
+    event.preventDefault();
+  });
+
+  // ДОБАВЛЕНО: Исправление ошибки с фокусом (aria-hidden) — добавлен setTimeout для правильного порядка событий
+  let triggerElement = null;
+  $('#reviewsModal').on('show.bs.modal', function(event) {
+    triggerElement = event.relatedTarget;  // Автоматически передаётся Bootstrap
+  });
+  $('#reviewsModal').on('hide.bs.modal', function() {
+    setTimeout(() => {
+      if (triggerElement) {
+        triggerElement.focus();  // Возвращаем фокус на кнопку открытия после применения aria-hidden
+      }
+    }, 0);
+  });
+
+  // ДОБАВЛЕНО: Обработчик закрытия модала — сброс всего, если не отправлено
+  $('#reviewsModal').on('hidden.bs.modal', function() {
+    if (!isSubmitting) {  // Только если форма не отправляется (чтобы не сбросить после отправки)
+      resetAllPreviews();
+    }
+  });
+});
+
+
+
+
+
+
+
+
+// // Обработчик показать фото профиля в profile.html///////////////////////////////////////
 // $(document).ready(function() {
-//   // Инициализация отображения цены при загрузке страницы
-//   var sizeSelect = $('#size-select_product');
-//   var priceDisplay = $('#price-display');
-
-//   if (sizeSelect.length && priceDisplay.length) {
-//       // Получаем выбранный элемент и его цену
-//       var selectedOption = sizeSelect.find('option:selected');
-//       var price = selectedOption.length ? selectedOption.data('price') : null;
-
-//       // Устанавливаем начальное значение цены
-//       priceDisplay.text(price ? price + ' ₽' : 'Цена недоступна');
-//   }
-
-//   // Добавляем общий обработчик событий для изменения размера
-//   $(document).on('change', '#size-select_product', function() {
-//       var selectedOption = $(this).find('option:selected');
-//       var price = selectedOption.length ? selectedOption.data('price') : null;
-
-//       // Проверяем, есть ли выбранная опция и выводим соответствующую цену
-//       priceDisplay.text(price ? price + ' ₽' : 'Цена недоступна');
-//   });
-// });
-
-
-// // Обработчик события вывод полного описания новости news_page.html
-// $(document).ready(function() {
-//   window.toggleDescription = function(event, id) {
-//       event.preventDefault();
-//       const descriptionElement = $(`#full-description-${id}`);
-      
-//       if (descriptionElement.css("display") === "none") {
-//           descriptionElement.css("display", "block");
-//           $(event.target).text("Скрыть");
-//       } else {
-//           descriptionElement.css("display", "none");
-//           $(event.target).text("Читать полностью");
-//       }
-//   };
-// });
-
-
-// // Обработчик события вывод сортировки по цене и названию продуктов в category_page.html
-// $(document).ready(function() {
-//   // Проверяем, существует ли элемент с ID 'name-price'
-//   const select = $('#name-price');
-  
-//   if (select.length) {
-//       // Функция сортировки
-//       function sortProducts() {
-//           const selectedValue = select.val();
-
-//           // Получаем текущее значение per_page из URL
-//           const urlParams = new URLSearchParams(window.location.search);
-//           const perPage = urlParams.get('per_page') || 30; // Установите значение по умолчанию, если per_page не найден
-
-//           // Обновляем URL с параметрами сортировки и per_page
-//           window.location.href = `?sort=${encodeURIComponent(selectedValue)}&per_page=${encodeURIComponent(perPage)}`;
-//       }
-
-//       // Привязываем обработчик события
-//       select.on('change', sortProducts);
-//   }
-// });
-
-
-
-// // Обработчик события вывод сортировки по количеству продуктов в category_page.html
-// function updatePerPage(value) {
-//   console.log('Updating per_page to:', value); // Проверка значения
-//   const newUrl = new URL(window.location.href);
-//   newUrl.searchParams.set('per_page', value);
-//   newUrl.searchParams.set('page', 1); // Сбрасываем страницу на 1
-//   console.log('New URL:', newUrl.toString()); // Проверка нового URL
-//   window.location.href = newUrl.toString();
-// }
-
-
-
-// // Обработчик показать или скрыть выбор рейтинга в reviews_page.html новый
-// $(document).ready(function() {
-//   // Функция показа уведомления посередине экрана (без изменений)
+//   // Функция показа уведомления посередине экрана
 //   function showNotification(message, type = 'error', duration = 3000) {
 //     $('.notification-alert').remove();
 //     const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
@@ -237,515 +393,87 @@ $(document).ready(function() {
 //     }, duration);
 //   }
 
-//   // Звёздный рейтинг (без изменений)
-//   $('.star-rating').each(function() {
-//       const $starRating = $(this);
-//       const $stars = $starRating.find('.star');
-//       const $inputField = $('#' + $starRating.data('field'));
-//       $stars.on('click', function() {
-//           const value = $(this).data('value');
-//           $inputField.val(value);
-//           $stars.removeClass('selected');
-//           for (let i = 0; i < value; i++) {
-//               $stars.eq(i).addClass('selected');
-//           }
-//           console.log('Star clicked:', value);
-//       });
-//   });
-
-//   // Новый обработчик: показать или скрыть выбор рейтинга
-//   // Предполагаем, что в HTML есть чекбокс с id="show-rating-checkbox" и контейнер с классом "star-rating-container" (или используем .star-rating напрямую)
-//   // Если чекбокс отмечен, показываем рейтинг; иначе скрываем
-//   $('#show-rating-checkbox').on('change', function() {
-//     const isChecked = $(this).is(':checked');
-//     $('.star-rating').toggle(isChecked);  // Показываем/скрываем все элементы с классом star-rating
-//     // Опционально: сбрасываем значения рейтинга при скрытии
-//     if (!isChecked) {
-//       $('.star-rating').find('input[type="hidden"]').val('');  // Сбрасываем скрытые поля рейтинга
-//       $('.star-rating').find('.star').removeClass('selected');  // Снимаем выделение звёзд
-//     }
-//   });
-
-//   // Константы для изображений (без изменений)
-//   const maxFileSize = 20 * 1024 * 1024;
-//   const maxFiles = 5;
-//   const maxTotalSize = 100 * 1024 * 1024;
+//   // Константы
+//   const maxFileSize = 20 * 1024 * 1024; // 100 MB (синхронизировано с Nginx и сервером)
 //   const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-//   const imagePreviewContainer = $('#image-preview-container');
-//   const imageInput = $('input[name="images"]');
-//   const addButton = $('#add-images-button');
-//   const removeAllButton = $('#remove-all-images-button');
-//   const addedImages = [];
+//   const defaultImageSrc = $('#profileImage').data('default-src'); // Берем из data-default-src
 
-//   function hasImages() {
-//     return addedImages.length > 0;
+//   // Функция проверки фото
+//   function hasPhoto() {
+//     const src = $('#profileImage').attr('src');
+//     return src && src !== defaultImageSrc;
 //   }
 
-//   function updateButtons() {
-//     if (hasImages()) {
-//       removeAllButton.show();
+//   // Функция сброса превью
+//   function resetPreview() {
+//     $('#profileImage').animate({ opacity: 0 }, 200, function() {
+//       $('#profileImage').attr('src', defaultImageSrc).attr('alt', 'Default User Photo');
+//       $('#profileImage').animate({ opacity: 1 }, 300);
+//     });
+//     $('#photo-clear_id').val('true');
+//     $('#id_photo').val('');
+//     $('#photoButton').text('Добавить фото').prop('disabled', false);
+//   }
+
+//   // Обработчик кнопки
+//   $('#photoButton').on('click', function() {
+//     if (hasPhoto()) {
+//       resetPreview();
 //     } else {
-//       removeAllButton.hide();
-//     }
-//   }
-
-//   function resetAllPreviews() {
-//     imagePreviewContainer.animate({ opacity: 0 }, 200, function() {
-//       imagePreviewContainer.empty().css('opacity', '1');
-//     });
-//     addedImages.length = 0;
-//     imageInput.val('');
-//     updateButtons();
-//   }
-
-//   addButton.on('click', function() {
-//     imageInput.click();
-//   });
-
-//   removeAllButton.on('click', function() {
-//     if (confirm('Вы уверены, что хотите удалить все изображения?')) {
-//       resetAllPreviews();
+//       $('#id_photo').click();
 //     }
 //   });
 
-//   imageInput.on('change', function(event) {
-//     const files = this.files;
-//     if (!files.length) return;
-//     let validFiles = [];
-//     let hasErrors = false;
-//     let totalSize = addedImages.reduce((sum, f) => sum + f.size, 0);
+//   // Обработчик выбора файла
+//   $('#id_photo').on('change', function(event) {
+//     const file = event.target.files[0];
+//     if (!file) return;
 
-//     for (let i = 0; i < files.length; i++) {
-//       const file = files[i];
-//       if (!allowedTypes.includes(file.type)) {
-//         showNotification(`Файл "${file.name}" не является изображением в формате JPEG, PNG, GIF или WebP.`);
-//         hasErrors = true;
-//         continue;
-//       }
-//       if (file.size > maxFileSize) {
-//         showNotification(`Размер файла "${file.name}" превышает ${maxFileSize / (1024 * 1024)} MB.`);
-//         hasErrors = true;
-//         continue;
-//       }
-//       if (addedImages.some(existing => existing.name === file.name && existing.size === file.size)) {
-//         showNotification(`Изображение "${file.name}" уже добавлено!`);
-//         hasErrors = true;
-//         continue;
-//       }
-//       if (addedImages.length + validFiles.length >= maxFiles) {
-//         showNotification(`Максимум ${maxFiles} изображений.`);
-//         hasErrors = true;
-//         break;
-//       }
-//       if (totalSize + file.size > maxTotalSize) {
-//         showNotification(`Общий размер изображений превысит ${maxTotalSize / (1024 * 1024)} MB.`);
-//         hasErrors = true;
-//         continue;
-//       }
-//       totalSize += file.size;
-//       validFiles.push(file);
-//     }
-
-//     if (!validFiles.length && !hasErrors) return;
-
-//     validFiles.forEach(file => {
-//       const reader = new FileReader();
-//       reader.onload = function(e) {
-//         const imageContainer = $('<div>').addClass('image-container').css({
-//           display: 'inline-block',
-//           position: 'relative',
-//           margin: '10px',
-//           opacity: '0'
-//         });
-//         const img = $('<img>').attr('src', e.target.result).css({
-//           height: '200px',
-//           width: 'auto',
-//           objectFit: 'contain'
-//         }).addClass('image-preview');
-//         const removeButton = $('<button>').addClass('remove-single btn btn-sm btn-danger').attr('type', 'button').css({
-//           position: 'absolute',
-//           top: '5px',
-//           right: '5px',
-//           borderRadius: '50%',
-//           width: '20px',
-//           height: '20px',
-//           padding: '0',
-//           fontSize: '12px'
-//         }).html('&times;').data('file', file);
-
-//         imageContainer.append(img).append(removeButton);
-//         imagePreviewContainer.append(imageContainer);
-//         imageContainer.animate({ opacity: 1 }, 300);
-//         addedImages.push(file);
-//         updateButtons();
-//       };
-//       reader.onerror = function() {
-//         showNotification(`Ошибка чтения файла "${file.name}".`);
-//       };
-//       reader.readAsDataURL(file);
-//     });
-//     $(this).val('');
-//   });
-
-//   imagePreviewContainer.on('click', '.remove-single', function() {
-//     const fileToRemove = $(this).data('file');
-//     const index = addedImages.findIndex(f => f.name === fileToRemove.name && f.size === fileToRemove.size);
-//     if (index !== -1) {
-//       addedImages.splice(index, 1);
-//       $(this).parent().animate({ opacity: 0 }, 300, function() {
-//         $(this).remove();
-//         updateButtons();
-//       });
-//     }
-//   });
-
-//   // Валидация и отправка формы с защитой от повторной отправки
-//   let isSubmitting = false;  // Флаг для предотвращения повторной отправки
-//   $('#reviewForm').on('submit', function(event) {
-//     if (isSubmitting) return;  // Если уже отправляется, игнорируем
-//     let isValid = true;
-    
-//     // Проверка текста отзыва
-//     const content = $('textarea[name="content"]').val().trim();
-//     if (!content) {
-//       showNotification('Пожалуйста, напишите текст отзыва.');
-//       isValid = false;
-//     }
-    
-//     // Проверка рейтингов (обязательны: каждый от 1 до 5)
-//     let ratingsSet = true;
-//     $('.star-rating').each(function() {
-//       const $inputField = $('#' + $(this).data('field'));
-//       const value = parseInt($inputField.val());
-//       if (isNaN(value) || value < 1 || value > 5) {
-//         ratingsSet = false;
-//         return false;  // Прерываем цикл, если рейтинг некорректен
-//       }
-//     });
-//     if (!ratingsSet) {
-//       showNotification('Пожалуйста, установите все рейтинги.');
-//       isValid = false;
-//     }
-    
-//     // Убрана проверка изображений — отзыв может быть без них
-    
-//     if (!isValid) {
-//       event.preventDefault();
+//     // Валидация типа
+//     if (!allowedTypes.includes(file.type)) {
+//       showNotification('Пожалуйста, выберите изображение в формате JPEG, PNG, GIF или WebP.');
+//       resetPreview();
 //       return;
 //     }
-    
-//     isSubmitting = true;  // Устанавливаем флаг
-//     const formData = new FormData(this);
-//     addedImages.forEach(image => {
-//         formData.append('images', image);
-//     });
-//     $.ajax({
-//         url: this.action,
-//         type: this.method,
-//         data: formData,
-//         processData: false,
-//         contentType: false,
-//         success: function(response) {
-//           console.log('Отзыв успешно отправлен');
-//           showNotification('Отзыв успешно отправлен!', 'success', 2000);
-//           $('#reviewsModal').modal('hide');
-//           resetAllPreviews();
-//           setTimeout(() => window.location.href = response.redirect_url, 500);
-//           isSubmitting = false;
-//       },
-//         error: function(error) {
-//             console.error('Ошибка:', error);
-//             showNotification('Ошибка при отправке. Попробуйте снова.');
-//             isSubmitting = false;  // Сбрасываем флаг после ошибки
-//         }
-//     });
-//     event.preventDefault();
-//   });
-
-//   // ДОБАВЛЕНО: Обработчик для перемещения фокуса при начале закрытия модала (исправляет aria-hidden ошибку)
-//   $('.modal').on('hide.bs.modal', function() {
-//     var triggerButton = $(this).data('triggerButton');
-//     if (triggerButton) {
-//       triggerButton.focus();  // Перемещаем фокус на кнопку, открывшую модал, ДО применения aria-hidden
+//     // Валидация размера
+//     if (file.size > maxFileSize) {
+//       showNotification(`Размер файла не должен превышать ${maxFileSize / (1024 * 1024)} MB.`);
+//       resetPreview();
+//       return;
 //     }
+
+//     // Индикатор загрузки
+//     $('#photoButton').text('Загрузка...').prop('disabled', true);
+
+//     // Превью
+//     const reader = new FileReader();
+//     reader.onload = function(e) {
+//       $('#profileImage').attr('src', e.target.result).attr('alt', 'User Photo').css('opacity', '0').animate({ opacity: 1 }, 300);
+//       $('#photo-clear_id').val('false');
+//       $('#photoButton').text('Удалить фото').prop('disabled', false);
+//     };
+//     reader.onerror = function() {
+//       showNotification('Ошибка чтения файла. Попробуйте другой файл.');
+//       resetPreview();
+//     };
+//     reader.readAsDataURL(file);
 //   });
 
-//   // ДОБАВЛЕНО: Сохраняем кнопку-триггер при открытии модала (адаптировано для reviewsModal; предположим, кнопка имеет класс или ID, например, '.open-reviews-modal')
-//   $('.open-reviews-modal').on('click', function() {  // Замени на реальный селектор кнопки, открывающей #reviewsModal
-//     $('#reviewsModal').data('triggerButton', $(this));
-//   });
+//   // Инициализация
+//   if (!hasPhoto()) {
+//     $('#photoButton').text('Добавить фото');
+//   } else {
+//     $('#photoButton').text('Удалить фото');
+//   }
 // });
 
 
-// Обработчик события изменения для выпадающего списка окна product_page.html (новый)
-$(document).ready(function() {
-  // Функция показа уведомления посередине экрана (без изменений)
-  function showNotification(message, type = 'error', duration = 3000) {
-    $('.notification-alert').remove();
-    const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
-    const notification = $(`
-      <div class="notification-alert alert ${alertClass} text-center p-3 mb-0 shadow-lg" role="alert">
-        ${message}
-      </div>
-    `).css({
-      position: 'fixed',
-      top: '50%',
-      left: '50%',
-      transform: 'translate(-50%, -50%)',
-      zIndex: '9999',
-      maxWidth: '400px',
-      width: '90%',
-      opacity: '0',
-      transition: 'opacity 0.3s ease-in-out',
-      borderRadius: '8px'
-    });
-    $('body').append(notification);
-    notification.animate({ opacity: 1 }, 300);
-    setTimeout(function() {
-      notification.animate({ opacity: 0 }, 300, function() {
-        $(this).remove();
-      });
-    }, duration);
-  }
-
-  // Звёздный рейтинг (без изменений)
-  $('.star-rating').each(function() {
-      const $starRating = $(this);
-      const $stars = $starRating.find('.star');
-      const $inputField = $('#' + $starRating.data('field'));
-      $stars.on('click', function() {
-          const value = $(this).data('value');
-          $inputField.val(value);
-          $stars.removeClass('selected');
-          for (let i = 0; i < value; i++) {
-              $stars.eq(i).addClass('selected');
-          }
-          console.log('Star clicked:', value);
-      });
-  });
-
-  // Удалено: логика чекбокса для показа/скрытия рейтинга (теперь рейтинги всегда видимы и обязательны)
-
-  // Константы для изображений (без изменений)
-  const maxFileSize = 20 * 1024 * 1024;
-  const maxFiles = 5;
-  const maxTotalSize = 100 * 1024 * 1024;
-  const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-  const imagePreviewContainer = $('#image-preview-container');
-  const imageInput = $('input[name="images"]');
-  const addButton = $('#add-images-button');
-  const removeAllButton = $('#remove-all-images-button');
-  const addedImages = [];
-
-  function hasImages() {
-    return addedImages.length > 0;
-  }
-
-  function updateButtons() {
-    if (hasImages()) {
-      removeAllButton.show();
-    } else {
-      removeAllButton.hide();
-    }
-  }
-
-  function resetAllPreviews() {
-    imagePreviewContainer.animate({ opacity: 0 }, 200, function() {
-      imagePreviewContainer.empty().css('opacity', '1');
-    });
-    addedImages.length = 0;
-    imageInput.val('');
-    updateButtons();
-  }
-
-  addButton.on('click', function() {
-    imageInput.click();
-  });
-
-  removeAllButton.on('click', function() {
-    if (confirm('Вы уверены, что хотите удалить все изображения?')) {
-      resetAllPreviews();
-    }
-  });
-
-  imageInput.on('change', function(event) {
-    const files = this.files;
-    if (!files.length) return;
-    let validFiles = [];
-    let hasErrors = false;
-    let totalSize = addedImages.reduce((sum, f) => sum + f.size, 0);
-
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      if (!allowedTypes.includes(file.type)) {
-        showNotification(`Файл "${file.name}" не является изображением в формате JPEG, PNG, GIF или WebP.`);
-        hasErrors = true;
-        continue;
-      }
-      if (file.size > maxFileSize) {
-        showNotification(`Размер файла "${file.name}" превышает ${maxFileSize / (1024 * 1024)} MB.`);
-        hasErrors = true;
-        continue;
-      }
-      if (addedImages.some(existing => existing.name === file.name && existing.size === file.size)) {
-        showNotification(`Изображение "${file.name}" уже добавлено!`);
-        hasErrors = true;
-        continue;
-      }
-      if (addedImages.length + validFiles.length >= maxFiles) {
-        showNotification(`Максимум ${maxFiles} изображений.`);
-        hasErrors = true;
-        break;
-      }
-      if (totalSize + file.size > maxTotalSize) {
-        showNotification(`Общий размер изображений превысит ${maxTotalSize / (1024 * 1024)} MB.`);
-        hasErrors = true;
-        continue;
-      }
-      totalSize += file.size;
-      validFiles.push(file);
-    }
-
-    if (!validFiles.length && !hasErrors) return;
-
-    validFiles.forEach(file => {
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const imageContainer = $('<div>').addClass('image-container').css({
-          display: 'inline-block',
-          position: 'relative',
-          margin: '10px',
-          opacity: '0'
-        });
-        const img = $('<img>').attr('src', e.target.result).css({
-          height: '200px',
-          width: 'auto',
-          objectFit: 'contain'
-        }).addClass('image-preview');
-        const removeButton = $('<button>').addClass('remove-single btn btn-sm btn-danger').attr('type', 'button').css({
-          position: 'absolute',
-          top: '5px',
-          right: '5px',
-          borderRadius: '50%',
-          width: '20px',
-          height: '20px',
-          padding: '0',
-          fontSize: '12px'
-        }).html('&times;').data('file', file);
-
-        imageContainer.append(img).append(removeButton);
-        imagePreviewContainer.append(imageContainer);
-        imageContainer.animate({ opacity: 1 }, 300);
-        addedImages.push(file);
-        updateButtons();
-      };
-      reader.onerror = function() {
-        showNotification(`Ошибка чтения файла "${file.name}".`);
-      };
-      reader.readAsDataURL(file);
-    });
-    $(this).val('');
-  });
-
-  imagePreviewContainer.on('click', '.remove-single', function() {
-    const fileToRemove = $(this).data('file');
-    const index = addedImages.findIndex(f => f.name === fileToRemove.name && f.size === fileToRemove.size);
-    if (index !== -1) {
-      addedImages.splice(index, 1);
-      $(this).parent().animate({ opacity: 0 }, 300, function() {
-        $(this).remove();
-        updateButtons();
-      });
-    }
-  });
-
-  // Валидация и отправка формы с защитой от повторной отправки
-  let isSubmitting = false;  // Флаг для предотвращения повторной отправки
-  $('#reviewForm').on('submit', function(event) {
-    if (isSubmitting) return;  // Если уже отправляется, игнорируем
-    let isValid = true;
-    
-    // Проверка текста отзыва
-    const content = $('textarea[name="content"]').val().trim();
-    if (!content) {
-      showNotification('Пожалуйста, напишите текст отзыва.');
-      isValid = false;
-    }
-    
-    // Проверка рейтингов (обязательны: каждый от 1 до 5)
-    let ratingsSet = true;
-    $('.star-rating').each(function() {
-      const $inputField = $('#' + $(this).data('field'));
-      const value = parseInt($inputField.val());
-      if (isNaN(value) || value < 1 || value > 5) {
-        ratingsSet = false;
-        return false;  // Прерываем цикл, если рейтинг некорректен
-      }
-    });
-    if (!ratingsSet) {
-      showNotification('Пожалуйста, установите все рейтинги.');
-      isValid = false;
-    }
-    
-    // Убрана проверка изображений — отзыв может быть без них
-    
-    if (!isValid) {
-      event.preventDefault();
-      return;
-    }
-    
-    isSubmitting = true;  // Устанавливаем флаг
-    const formData = new FormData(this);
-    addedImages.forEach(image => {
-        formData.append('images', image);
-    });
-    $.ajax({
-        url: this.action,
-        type: this.method,
-        data: formData,
-        processData: false,
-        contentType: false,
-        success: function(response) {
-          console.log('Отзыв успешно отправлен');
-          showNotification('Отзыв успешно отправлен!', 'success', 2000);
-          $('#reviewsModal').modal('hide');
-          resetAllPreviews();
-          setTimeout(() => window.location.href = response.redirect_url, 500);
-          isSubmitting = false;
-      },
-        error: function(error) {
-            console.error('Ошибка:', error);
-            showNotification('Ошибка при отправке. Попробуйте снова.');
-            isSubmitting = false;  // Сбрасываем флаг после ошибки
-        }
-    });
-    event.preventDefault();
-  });
-
-  // ДОБАВЛЕНО: Обработчик для перемещения фокуса при начале закрытия модала (исправляет aria-hidden ошибку)
-  $('.modal').on('hide.bs.modal', function() {
-    var triggerButton = $(this).data('triggerButton');
-    if (triggerButton) {
-      triggerButton.focus();  // Перемещаем фокус на кнопку, открывшую модал, ДО применения aria-hidden
-    }
-  });
-
-  // ДОБАВЛЕНО: Сохраняем кнопку-триггер при открытии модала (адаптировано для reviewsModal; предположим, кнопка имеет класс или ID, например, '.open-reviews-modal')
-  $('.open-reviews-modal').on('click', function() {  // Замени на реальный селектор кнопки, открывающей #reviewsModal
-    $('#reviewsModal').data('triggerButton', $(this));
-  });
-});
 
 
 
 
 
-
-
-
-
-
-// Обработчик показать фото профиля в profile.html/////////////////////////////////////// новый
+// // Обработчик показать фото профиля в profile.html/////////////////////////////////////// новый
 $(document).ready(function() {
   // Функция показа уведомления посередине экрана
   function showNotification(message, type = 'error', duration = 3000) {
@@ -777,7 +505,7 @@ $(document).ready(function() {
   }
 
   // Константы
-  const maxFileSize = 20 * 1024 * 1024; // 100 MB (синхронизировано с Nginx и сервером)
+  const maxFileSize = 20 * 1024 * 1024; // 20 MB (исходный лимит перед компрессией, синхронизировано с Nginx и сервером)
   const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
   const defaultImageSrc = $('#profileImage').data('default-src'); // Берем из data-default-src
 
@@ -826,20 +554,49 @@ $(document).ready(function() {
     }
 
     // Индикатор загрузки
-    $('#photoButton').text('Загрузка...').prop('disabled', true);
+    $('#photoButton').text('Компрессия...').prop('disabled', true);
 
-    // Превью
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      $('#profileImage').attr('src', e.target.result).attr('alt', 'User Photo').css('opacity', '0').animate({ opacity: 1 }, 300);
-      $('#photo-clear_id').val('false');
-      $('#photoButton').text('Удалить фото').prop('disabled', false);
-    };
-    reader.onerror = function() {
-      showNotification('Ошибка чтения файла. Попробуйте другой файл.');
-      resetPreview();
-    };
-    reader.readAsDataURL(file);
+    // Компрессия с помощью Compressor.js (качество 0.8, макс. размер 2MB)
+    new Compressor(file, {
+      quality: 0.8, // Качество (0.6-0.9 рекомендуется для баланса размера и качества)
+      maxWidth: 1200, // Максимальная ширина (опционально, можно убрать если не нужно)
+      maxHeight: 1200, // Максимальная высота (опционально)
+      compress: true,
+      success(result) {
+        // Валидация после компрессии
+        if (result.size > maxFileSize) {
+          showNotification(`После компрессии размер файла всё ещё превышает ${maxFileSize / (1024 * 1024)} MB. Выберите меньшее изображение.`);
+          resetPreview();
+          return;
+        }
+
+        // Создание нового DataTransfer для замены файла в input
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(new File([result], file.name, { type: result.type }));
+
+        // Замена файла в input (для отправки на сервер сжатой версии)
+        event.target.files = dataTransfer.files;
+
+        // Превью на основе сжатого файла
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          $('#profileImage').attr('src', e.target.result).attr('alt', 'User Photo').css('opacity', '0').animate({ opacity: 1 }, 300);
+          $('#photo-clear_id').val('false');
+          $('#photoButton').text('Удалить фото').prop('disabled', false);
+          showNotification('Изображение сжато и загружено!', 'success'); // Опционально уведомление об успехе
+        };
+        reader.onerror = function() {
+          showNotification('Ошибка чтения сжатого файла. Попробуйте другой файл.');
+          resetPreview();
+        };
+        reader.readAsDataURL(result); // Используем result вместо file для превью
+      },
+      error(err) {
+        console.error('Ошибка компрессии:', err);
+        showNotification('Ошибка сжатия изображения. Попробуйте другой файл.');
+        resetPreview();
+      }
+    });
   });
 
   // Инициализация
@@ -849,12 +606,5 @@ $(document).ready(function() {
     $('#photoButton').text('Удалить фото');
   }
 });
-
-
-
-
-
-
-
 
 

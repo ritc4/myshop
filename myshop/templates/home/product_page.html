@@ -93,7 +93,7 @@
   </div>
 </div>
 
-<script>
+<!-- <script>
   $(document).ready(function() {
     // Инициализируем toast с кастомной задержкой и скоростью затухания (delay для задержки перед скрытием, CSS для transition)
     $('#cart-toast').toast({
@@ -208,6 +208,141 @@
       }
     });
   });
-</script>
+</script> -->
 
+<script>
+  $(document).ready(function() {
+    // Инициализируем toast с кастомной задержкой и скоростью затухания (delay для задержки перед скрытием, CSS для transition)
+    $('#cart-toast').toast({
+      delay: 2000  // Задержка перед началом затухания (2 секунды; изменяй по вкусу, в мс)
+    });
+
+    // Функция инициализации цены при загрузке
+    function initializePrice() {
+      var selectedOption = $('#size-select_product option:selected');
+      if (selectedOption.val()) {
+        var price = selectedOption.data('price');
+        if (price) {
+          $('#price-display').text(price + ' ₽');
+        }
+      } else {
+        // Если размер не выбран, используем первое доступное или оставляем по умолчанию
+        var firstOption = $('#size-select_product option').eq(1); // Пропускаем "Выберите размер"
+        if (firstOption.length) {
+          var price = firstOption.data('price');
+          if (price) {
+            $('#price-display').text(price + ' ₽');
+          }
+        }
+      }
+    }
+
+    // Вызываем инициализацию цены при загрузке
+    initializePrice();
+
+    // В submit формы: финальная проверка max перед отправкой
+    $('#add-to-cart-form').on('submit', function(e) {
+      e.preventDefault();
+
+      var form = $(this);
+      var submitButton = form.find('button[type="submit"]');  // Находим кнопку
+      var quantityInput = form.find('#quantity');
+      var quantity = parseInt(quantityInput.val());
+      var max = parseInt(quantityInput.data('max')) || 100;
+
+      // Предотвращение дублирования заказов: проверяем, отключена ли кнопка
+      if (submitButton.prop('disabled')) {
+        return;
+      }
+
+      // Отключаем кнопку для предотвращения повторных нажатий
+      submitButton.prop('disabled', true);
+      var originalText = submitButton.text();  // Сохраняем оригинальный текст
+      submitButton.text('Добавление...');  // Показываем индикатор загрузки
+
+      if (quantity < 1 || isNaN(quantity)) {
+        quantityInput.val(1);
+        quantity = 1;
+      } else if (quantity > max) {
+        quantityInput.val(max);
+        quantity = max;
+      }
+
+      $.ajax({
+        url: form.attr('action'),
+        type: 'POST',
+        data: form.serialize(),
+        success: function(data) {
+          if (data.success) {
+            window.updateCartUI(data);  // Используем глобальную функцию
+            window.cartChannel.postMessage(data);  // Синхронизируем с другими страницами
+            // Показываем toast-уведомление
+            $('#toast-message').text(data.message || 'Товар добавлен в корзину!');
+            $('#cart-toast').toast('show');
+          } else {
+            alert('Ошибка добавления в корзину: ' + (data.error || 'Неизвестная ошибка'));
+          }
+          // Включаем кнопку и восстанавливаем текст
+          submitButton.prop('disabled', false).text(originalText);
+        },
+        error: function(xhr) {
+          if (xhr.status === 403) {
+            alert('Ошибка CSRF: обновите страницу и попробуйте снова.');
+          } else {
+            alert('Ошибка отправки формы');
+          }
+          console.error('AJAX error:', arguments);
+          // Включаем кнопку и восстанавливаем текст
+          submitButton.prop('disabled', false).text(originalText);
+        },
+        complete: function() {
+          // Всегда включаем кнопку для двойной надежности
+          submitButton.prop('disabled', false).text(originalText);
+        }
+      });
+    });
+
+    // Обработчик для поля quantity: валидация в реальном времени (расширен: +max)
+    $('#quantity').on('input', function() {
+      var quantityInput = $(this);
+      var val = quantityInput.val().replace(/[^0-9]/g, '');  // Удаляем все нецифровые символы
+      quantityInput.val(val);  // Устанавливаем очищенное значение
+      var quantity = parseInt(val);
+      var max = parseInt(quantityInput.data('max')) || 100;  // Добавлено: max из data-max
+      if (val !== '' && (quantity < 1 || isNaN(quantity))) {
+        quantityInput.val(1);  // Исправляем только если введено что-то неправильное, но не пустое
+      } else if (val !== '' && quantity > max) {
+        quantityInput.val(max);  // Добавлено: ограничение max
+      }
+    });
+
+    // Слушаем сообщения от других страниц (используем глобальный канал)
+    window.cartChannel.onmessage = function(event) {
+      window.updateCartUI(event.data);
+    };
+
+    // Обработчик для quantity в офканвасе: валидация в реальном времени (используем глобальную функцию)
+    $('#offcanvasCart input[name="quantity"]').on('input', function() {
+      var quantityInput = $(this);
+      var val = quantityInput.val().replace(/[^0-9]/g, '');  // Удаляем все нецифровые символы
+      quantityInput.val(val);  // Устанавливаем очищенное значение
+      var quantity = parseInt(val);
+      var max = 100;  // Фиксированный max или получить из data-max, если есть
+      if (val !== '' && (quantity < 1 || isNaN(quantity))) {
+        quantityInput.val(1);  // Исправляем только если введено что-то неправильное, но не пустое
+      } else if (val !== '' && quantity > max) {
+        quantityInput.val(max);
+      }
+    });
+
+    // Обработка изменения размера для динамического обновления цены
+    $('#size-select_product').on('change', function() {
+      var selectedOption = $(this).find('option:selected');
+      var price = selectedOption.data('price');
+      if (price) {
+        $('#price-display').text(price + ' ₽');
+      }
+    });
+  });
+</script>
 {% endblock %}

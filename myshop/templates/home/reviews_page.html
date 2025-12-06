@@ -8,61 +8,67 @@
     <div class="reviews">
       <div class="tab-content" id="myTabContent">
         <div class="tab-pane fade active show" id="reviews-tab-pane" role="tabpanel" aria-labelledby="reviews-tab" tabindex="0">
-          <button type="button" class="btn btn-dark mb-3" data-bs-toggle="modal" data-bs-target="#reviewsModal">
+          <button type="button" class="btn btn-dark mb-3 open-reviews-modal" data-bs-toggle="modal" data-bs-target="#reviewsModal">
             Написать отзыв
           </button>
-          {% for i in reviews %}
-            <div class="card product-reviews mb-3 shadow-sm">
-              <div class="card-body">
-                <div class="d-flex align-items-center mb-3">
-                  <div class="img-profile me-3">
-                    {% if i.user.photo %}
-                      <img class="profile-img rounded-circle" src="{{ i.user.photo.url }}" alt="User  Photo">
-                    {% else %}
-                      <img class="profile-img rounded-circle" src="{% static 'img/users/no_image_users.png' %}" alt="Default User Photo">
+
+          <div class="row">  <!-- Добавлен .row с gy-4 для вертикального зазора между карточками -->
+            {% for i in reviews %}
+              <div class="col-12">  <!-- Обернул каждую карточку в col-12 для responsive-поведения (полный ширина экрана) -->
+                <div class="card product-reviews mb-3 shadow-sm border">  <!-- Увеличил mb-3 на mb-4; добавил border для лучшего разделения -->
+                  <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                      <div class="img-profile me-3">
+                        {% if i.user.photo %}
+                          <img class="profile-img rounded-circle" src="{{ i.user.photo.url }}" alt="User Photo">
+                        {% else %}
+                          <img class="profile-img rounded-circle" src="{% static 'img/users/no_image_users.png' %}" alt="Default User Photo">
+                        {% endif %}
+                      </div>
+                      <div>
+                        <h5 class="card-title mb-0">{{ i.user }} <small class="text-muted">{{ i.user.city }}</small></h5>
+                        <h6 class="text-muted">{{ i.created_at|date:"d.m.Y" }}</h6>
+                      </div>
+                    </div>
+
+                    <div class="rating mb-3">
+                      <div class="d-flex align-items-center">
+                        <strong class="me-2">Качество товара:</strong>
+                        {% for star in "★★★★★" %}
+                          <span class="star {% if forloop.counter <= i.kachestvo_rating %}text-warning{% endif %}">&#9733;</span>
+                        {% endfor %}
+                      </div>
+                      <div class="d-flex align-items-center">
+                        <strong class="me-2">Качество обслуживания:</strong>
+                        {% for star in "★★★★★" %}
+                          <span class="star {% if forloop.counter <= i.obsluga_rating %}text-warning{% endif %}">&#9733;</span>
+                        {% endfor %}
+                      </div>
+                      <div class="d-flex align-items-center">
+                        <strong class="me-2">Соблюдение сроков:</strong>
+                        {% for star in "★★★★★" %}
+                          <span class="star {% if forloop.counter <= i.sroki_rating %}text-warning{% endif %}">&#9733;</span>
+                        {% endfor %}
+                      </div>
+                    </div>
+
+                    <div class="card-text mt-3">
+                      <p>{{ i.content }}</p>
+                    </div>
+
+                    {% if i.existing_images %}
+                    <div class="img-review d-flex flex-wrap mt-2">
+                      {% for image in i.existing_images %}
+                        <img class="review-img me-2" src="{{ image.image.url }}" alt="Изображение отзыва"
+                            style="max-width: auto; max-height: 200px; object-fit: contain; margin: 0.5rem;">
+                      {% endfor %}
+                    </div>
                     {% endif %}
                   </div>
-                  <div>
-                    <h5 class="card-title mb-0">{{ i.user }} <small class="text-muted">{{ i.user.city }}</small></h5>
-                    <h6 class="text-muted">{{ i.created_at|date:"d.m.Y" }}</h6>
-                  </div>
                 </div>
-
-                <div class="rating mb-3">
-                  <div class="d-flex align-items-center">
-                    <strong class="me-2">Качество товара:</strong>
-                    {% for star in "★★★★★" %}
-                      <span class="star {% if forloop.counter <= i.kachestvo_rating %}text-warning{% endif %}">&#9733;</span>
-                    {% endfor %}
-                  </div>
-                  <div class="d-flex align-items-center">
-                    <strong class="me-2">Качество обслуживания:</strong>
-                    {% for star in "★★★★★" %}
-                      <span class="star {% if forloop.counter <= i.obsluga_rating %}text-warning {% endif %}">&#9733;</span>
-                    {% endfor %}
-                  </div>
-                  <div class="d-flex align-items-center">
-                    <strong class="me-2">Соблюдение сроков:</strong>
-                    {% for star in "★★★★★" %}
-                      <span class="star {% if forloop.counter <= i.sroki_rating %}text-warning {% endif %}">&#9733;</span>
-                    {% endfor %}
-                  </div>
-                </div>
-
-                <div class="card-text mt-3">
-                  <p>{{ i.content }}</p>
-                </div>
-
-                {% if i.images %}
-                <div class="img-review d-flex flex-wrap mt-2">
-                  {% for image in i.images.all %}
-                    <img class="review-img me-2" src="{{ image.image.url }}" alt="Отзыв" style="max-width: auto; max-height: 200px; object-fit: contain; margin: 0.5rem;">
-                  {% endfor %}
-                </div>
-                {% endif %}
               </div>
-            </div>
-          {% endfor %}
+            {% endfor %}
+          </div>  <!-- Закрытие внутреннего .row -->
         </div>
       </div>
     </div>
@@ -70,11 +76,11 @@
 </div>
 
 <!-- Modal -->
-<div class="modal fade" id="reviewsModal" tabindex="-1" aria-labelledby="reviewsModal" aria-hidden="true">
+<div class="modal fade" id="reviewsModal" tabindex="-1" aria-labelledby="reviewsModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content">
       <div class="modal-header">
-        <h1 class="modal-title fs-5" id="exampleModalLabel">{{ user }} {{ user.city }}</h1>
+        <h1 class="modal-title fs-5" id="reviewsModalLabel">{{ user }} {{ user.city }}</h1>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <form method="POST" enctype="multipart/form-data" id="reviewForm" novalidate>
@@ -97,6 +103,7 @@
               <div class="review-form-images p-2">
                 {{ i }}
                 <div class="mt-2 d-flex flex-column flex-sm-row gap-2">
+                  <span id="image-counter" class="align-self-center text-muted">0/5</span>
                   <button type="button" id="add-images-button" class="btn btn-outline-dark">Добавить изображения</button>
                   <button type="button" id="remove-all-images-button" class="btn btn-outline-danger" style="display: none;">Удалить все изображения</button>
                 </div>
@@ -110,15 +117,16 @@
             {% endfor %}
             <div class="modal-footer">
               <small class="text-muted d-block mt-1">
-                Поддерживаемые форматы: JPEG, PNG, GIF, WebP. Максимум 5 изображений по 20 MB каждое (общий размер до 100 MB).
+                Поддерживаемые форматы: JPEG, PNG, GIF, WebP. Максимум 5 изображений по 5 MB каждое (общий размер до 25 MB).
               </small>
-              <button type="submit" class="btn btn-dark">Отправить отзыв</button>
+              <button type="submit" id="submit-review-btn" class="btn btn-dark">Отправить отзыв</button>
             </div>
         </div>
       </form>
     </div>
   </div>
 </div>
+
 <!-- Пагинация -->
 <div class="col-12 mb-3">
   {% if page_obj.has_other_pages %}
