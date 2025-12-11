@@ -16,7 +16,7 @@ import json
 
 class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = CategorySerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser]
     queryset = Category.objects.select_related(
         'parent', 
         'parent__parent', 
@@ -32,7 +32,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         'product_prices__size', 'images' 
     )
     serializer_class = ProductSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser]
     pagination_class = StandardPagination
     filter_backends = [SearchFilter]  # Включает поиск (можно добавить OrderingFilter для сортировки)
     search_fields = ['id','title', 'slug', 'article_number', 'mesto',]

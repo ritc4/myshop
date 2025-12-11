@@ -12,9 +12,7 @@ from django.core.validators import FileExtensionValidator, MinValueValidator
 from django.core.exceptions import ValidationError
 from PIL import Image
 import io
-import os
 from django.utils.text import slugify
-
 
 
 
@@ -48,40 +46,14 @@ def validate_image_mime_type(value):
 
 
 
-# class Category(MPTTModel):
-#     name = models.CharField(max_length=255, unique=True,verbose_name='Категория')
-#     parent = TreeForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='children',verbose_name='Подкатегория')
-#     slug = models.SlugField(max_length=255,verbose_name='Url',unique=True)
-#     image = models.ImageField(upload_to='categories/%Y/%m/%d', blank=True, null=True,verbose_name='Фото')  # Поле для изображения категории
-
-#     def get_absolute_url(self):
-#         return reverse("home:category", kwargs={"slug": self.slug})
-    
-#     def __str__(self):
-#         return self.name
-    
-#     class Meta:
-#         verbose_name = 'Категорию'
-#         verbose_name_plural = 'Категории'
-#         indexes = [
-#             models.Index(fields=['name']),]
-
-#     class MPTTMeta:
-#         order_insertion_by = ['name']
-
-#     def get_breadcrumbs(self):
-#         return self.get_ancestors(include_self=True)
-
-
-# Функция для пути категорий (уже была, теперь используется)
+# Новая функция для пути без иерархии 
 def category_image_upload_path(instance, filename):
-    category_slug = slugify(instance.name)
-    now = datetime.now()
+    # Фиксируем дату при загрузке (uploaded_at для полной заморозки)
+    now = instance.uploaded_at if hasattr(instance, 'uploaded_at') and instance.uploaded_at else timezone.now()
     year = now.strftime('%Y')
     month = now.strftime('%m')
     day = now.strftime('%d')
-    path = f'categories/{category_slug}/{year}/{month}/{day}/'
-    return os.path.join(path, filename)
+    return f"categories/{year}/{month}/{day}/{instance.slug}/{filename}"
 
 
 
@@ -104,6 +76,7 @@ class Category(MPTTModel):
         null=True, 
         verbose_name='Фото',
     )
+    uploaded_at = models.DateTimeField(default=timezone.now, editable=False)
 
 
     def get_absolute_url(self):
@@ -159,7 +132,7 @@ class ProductPrice(models.Model):
 
 class Product(models.Model):
     title = models.CharField(max_length=255,verbose_name='Название товара')
-    description = CKEditor5Field(config_name='extends',max_length=255,blank=True,verbose_name='Описание',db_index=True)
+    description = CKEditor5Field(config_name='extends',max_length=2000,blank=True,verbose_name='Описание',db_index=True)
     article_number = models.IntegerField(unique=True,verbose_name='Артикул',db_index=True)
     stock = models.IntegerField(default=100, validators=[MinValueValidator(0)],verbose_name='Остаток',db_index=True)  # Остаток товара в штуках
     unit = models.CharField(max_length=10, default='шт',verbose_name='Единица измерения',db_index=True)  # Единица измерения, по умолчанию 'шт'
@@ -170,7 +143,7 @@ class Product(models.Model):
     slug = models.SlugField(max_length=200, unique=True)  # Поле slug
     category = TreeForeignKey(Category, on_delete=models.PROTECT,related_name='cat',verbose_name='Категория')  
     
-    class Meta:
+    class Meta: 
         ordering = ['title']
         indexes = [
             models.Index(fields=['id', 'slug']),
@@ -189,39 +162,16 @@ class Product(models.Model):
         return reverse("home:product_detail", kwargs={"slug": self.slug, "id":self.id})
 
 
-    class Meta:
-        verbose_name = 'Товар'
-        verbose_name_plural = 'Товары'
-
-    
-
 
 
 def product_image_upload_path(instance, filename):
-    # Путь: products/%Y/%m/%d/{category_slug}/filename
-    now = datetime.now()
-    year, month, day = now.year, f"{now.month:02d}", f"{now.day:02d}"
-    category_slug = instance.product.category.slug if instance.product.category else "no-category"  # Защита от пустого slug
-    return f"products/{year}/{month}/{day}/{category_slug}/{filename}"
-
-
-
-# class ProductImage(models.Model):
-#     product = models.ForeignKey(Product, related_name='images', on_delete=models.CASCADE)
-#     image = models.ImageField(upload_to=product_image_upload_path,blank=True,null=True, verbose_name='Изображение',db_index=True)
-    
-#     def __str__(self):
-#         return f"Изображение {self.id} для {self.product.title}"
-    
-#     def image_tag(self):
-#         if self.image:
-#             return format_html('<img src="{}" width="100" height="100" />', self.image.url)
-#         return "Нет изображения"
-#     image_tag.short_description = "Фото"
-    
-#     class Meta:
-#         verbose_name = 'Фото товара'
-#         verbose_name_plural = 'Фото товаров'
+    # Используем uploaded_at для фиксации даты, если поле существует (иначе fallback на текущую дату)
+    now = instance.uploaded_at if hasattr(instance, 'uploaded_at') and instance.uploaded_at else timezone.now()
+    year = now.strftime('%Y')
+    month = now.strftime('%m')
+    day = now.strftime('%d')
+    product_slug = instance.product.slug  # Slug продукта
+    return f"products/{year}/{month}/{day}/{product_slug}/{filename}"
 
 
 
@@ -240,6 +190,7 @@ class ProductImage(models.Model):
         blank=True,
         null=True, verbose_name='Изображение', db_index=True,
     )
+    uploaded_at = models.DateTimeField(default=timezone.now, editable=False)
 
     def __str__(self):
         return f"Изображение {self.id} для {self.product.title}"
@@ -270,19 +221,6 @@ class News(models.Model):
         verbose_name_plural = 'Новости'
 
 
-# class SizeTable(models.Model):
-#     title = models.CharField(max_length=255,verbose_name='Размерная таблица',blank=False)
-#     image = models.ImageField(upload_to='size_table/%Y/%m/%d', blank=True,null=True, verbose_name='Изображение')
-
-
-#     def __str__(self):
-#         return f"{self.title}"
-    
-#     class Meta:
-#         verbose_name = 'Размерная таблица'
-#         verbose_name_plural = 'Размерные таблицы'
-
-
 
 
 class SizeTable(models.Model):
@@ -310,8 +248,6 @@ class SizeTable(models.Model):
 
 
 
-
-
 class Uslovie_firm(models.Model):
     title = models.CharField(max_length=255,verbose_name='Условие сотрудничества',blank=False)
     description = CKEditor5Field(config_name='extends',verbose_name='Описание',blank=False)
@@ -335,19 +271,6 @@ class Politica_firm(models.Model):
     class Meta:
         verbose_name = 'Политика конфиденциальности'
         verbose_name_plural = 'Политика конфиденциальности'
-
-# class ImageSliderHome(models.Model):
-#     image = models.ImageField(upload_to='slider_home/%Y/%m/%d', blank=True,null=True, verbose_name='Изображение')
-
-
-#     def __str__(self):
-#         return f"{self.image}"
-
-
-#     class Meta:
-#         verbose_name = 'Изображение главной страницы'
-#         verbose_name_plural = 'Изображения главной страницы'
-
 
 
 
@@ -373,7 +296,6 @@ class ImageSliderHome(models.Model):
     class Meta:
         verbose_name = 'Изображение главной страницы'
         verbose_name_plural = 'Изображения главной страницы'
-
 
 
 
@@ -420,43 +342,6 @@ def review_image_upload_path(instance, filename):
         date_str = 'unknown'
     # Возвращаем путь: review_home/username/год/месяц/день/filename
     return f'review_home/{user_login}/{date_str}/{filename}'
-
-
-# class ReviewImage(models.Model):
-#     review = models.ForeignKey(Review, related_name='images', on_delete=models.CASCADE)
-#     image = models.ImageField(upload_to=review_image_upload_path, blank=True, null=True, verbose_name='Изображение',db_index=True)
-
-    
-#     def __str__(self):
-#         return f"{self.review}"
-    
-#     def image_tag_review(self):
-#         # Возвращаем все изображения, связанные с продуктом
-#         return self.review.image.all()
-#     image_tag_review.short_description = "Изображение"
-    
-#     class Meta:
-#         verbose_name = 'Изображение отзыва'
-#         verbose_name_plural = 'Изображения отзывов'
-
-
-
-
-# class ReviewImage(models.Model):
-#     review = models.ForeignKey(Review, related_name='images', on_delete=models.CASCADE)
-#     image = ProcessedImageField(
-#         upload_to=review_image_upload_path,
-#         processors=[ResizeToFit(500, 500, upscale=False)],  # Квадратные миниатюры, как в шаблоне
-#         format='WEBP',
-#         options={'quality': 95, 'optimize': True}, 
-#         validators=[
-#             FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png', 'gif', 'webp']),
-#             validate_file_size,
-#             validate_image_mime_type,  # Новый валидатор
-#         ],
-#         blank=True,
-#         null=True, verbose_name='Изображение', db_index=True,
-#     )
 
 
 

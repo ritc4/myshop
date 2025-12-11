@@ -24,6 +24,22 @@ DATABASES = {
 # Для CELERY
 CELERY_BROKER_URL = 'amqp://guest:guest@localhost:5672//'
 
+
+
+
+
+# # рабочий парсер товаров очень, быстрый но не устанавливает первую фотографию товара а рандомна.
+# # Бэкенд для результатов задач
+# CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'  # Или другой URL, если Redis на другом порту/хосте
+
+# # Оpcционально: настройки для сериализации результатов (для совместимости)
+# CELERY_RESULT_SERIALIZER = 'json'
+# CELERY_ACCEPT_CONTENT = ['json']
+
+
+
+
+
 # Для RABBITMQ
 RABBITMQ_DEFAULT_USER = 'guest'
 RABBITMQ_DEFAULT_PASS = 'guest'

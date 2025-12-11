@@ -47,6 +47,19 @@ REDIS_DB = config('REDIS_DB')
 REDIS_PASSWORD = config('REDIS_PASSWORD')  # Переопределите, если нужно
 
 
+
+
+# # рабочий парсер товаров очень, быстрый но не устанавливает первую фотографию товара а рандомна.
+# # Бэкенд для результатов задач
+# CELERY_RESULT_BACKEND = f'redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}'  # Или другой URL, если Redis на другом порту/хосте
+
+# # Оpcционально: настройки для сериализации результатов (для совместимости)
+# CELERY_RESULT_SERIALIZER = 'json'
+# CELERY_ACCEPT_CONTENT = ['json']
+
+
+
+
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.redis.RedisCache',
