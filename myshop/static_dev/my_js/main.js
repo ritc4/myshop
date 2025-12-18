@@ -125,6 +125,12 @@ $(document).ready(function() {
 
 
 
+
+
+
+
+
+
 // Обработчик показать или скрыть выбор рейтинга в reviews_page.html новый
 $(document).ready(function() {
   // Toast-подобные уведомления (то же, что у вас)

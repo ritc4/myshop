@@ -13,10 +13,11 @@ from rest_framework.permissions import IsAdminUser  # Изменено: тепе
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import MultiPartParser, JSONParser, FormParser  # Добавлено для обработки файлов
 import json
+from .permissions import IsAdminOrAuthenticatedReadOnly, OrderPermission
 
 class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = CategorySerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAdminOrAuthenticatedReadOnly]
     queryset = Category.objects.select_related(
         'parent', 
         'parent__parent', 
@@ -32,7 +33,7 @@ class ProductViewSet(viewsets.ReadOnlyModelViewSet):
         'product_prices__size', 'images' 
     )
     serializer_class = ProductSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAdminOrAuthenticatedReadOnly]
     pagination_class = StandardPagination
     filter_backends = [SearchFilter]  # Включает поиск (можно добавить OrderingFilter для сортировки)
     search_fields = ['id','title', 'slug', 'article_number', 'mesto',]
@@ -44,11 +45,18 @@ class OrderViewSet(viewsets.ModelViewSet):
         'items__product_price__product__images'  # Изменено: для изображений теперь через product_price
     )
     serializer_class = OrderSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [OrderPermission]
     pagination_class = StandardPagination
     filter_backends = [SearchFilter]  # Включает поиск (можно добавить OrderingFilter для сортировки)
     search_fields = ['id', 'first_name_last_name', 'address', 'status', 'email', 'phone']
     ordering = ['-created']
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        user = self.request.user
+        if not user.is_staff:
+            qs = qs.filter(email=user.email)  # Фильтр для не-админов: только свои заказы
+        return qs
 
     def get_serializer_context(self):
         # Удалена логика order_snapshots: snapshots теперь в полях OrderItem

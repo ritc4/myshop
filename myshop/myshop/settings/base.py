@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'django_ckeditor_5',
     'django.contrib.postgres',
     'rest_framework',
+    'rest_framework.authtoken',
     'captcha',
     'imagekit',
     'redisboard',
@@ -64,11 +65,35 @@ INSTALLED_APPS = [
 # CAPTCHA_NOISE_FUNCTIONS = ('captcha.helpers.noise_arcs', 'captcha.helpers.noise_dots')  # Шум
 
 
-REST_FRAMEWORK = {
- 'DEFAULT_PERMISSION_CLASSES': [
-    'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly']
-}   
+# REST_FRAMEWORK = {
+#  'DEFAULT_PERMISSION_CLASSES': [
+#     'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly']
+# }   
 
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',  # Добавьте для токенов
+        'rest_framework.authentication.SessionAuthentication',  # Опционально, для веб-интерфейса API
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',  # Требуем аутентификации по умолчанию (анонимы 401)
+    ],
+    'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.URLPathVersioning',  # Версии по пути
+    'DEFAULT_VERSION': 'v1',  # Версия по умолчанию
+    'ALLOWED_VERSIONS': ['v1'],  # Разрешённые версии
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+    ],
+    # 'DEFAULT_THROTTLE_CLASSES': [
+    #     'rest_framework.throttling.AnonRateThrottle',
+    #     'rest_framework.throttling.UserRateThrottle',
+    # ],
+    # 'DEFAULT_THROTTLE_RATES': {
+    #     'anon': '100/hour',  # Для анонимных пользователей
+    #     'user': '1000/hour',  # Для аутентифицированных пользователей
+    # },
+}
 
 
 
@@ -84,6 +109,7 @@ MIDDLEWARE = [
     
     # Добавьте ваш middleware
     'visit_user.middleware.VisitMiddleware',
+    'home.middleware.DynamicSubdomainRedirectMiddleware',
 ]
 
 ROOT_URLCONF = 'myshop.urls'

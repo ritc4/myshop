@@ -22,6 +22,33 @@ from debug_toolbar.toolbar import debug_toolbar_urls
 from django.contrib.sitemaps.views import sitemap
 from sitemaps import sitemaps  # Импорт из корневого sitemaps.py
 
+# Добавляем импорт для robots.txt view
+from django.http import HttpResponse
+
+
+
+def robots_txt(request):
+    """
+    Возвращает содержимое robots.txt.
+    Настройте правила под ваш сайт: запреты/разрешения для ботов.
+    """
+    lines = [
+        "User-agent: *",  # Применяется ко всем ботам (Googlebot, YandexBot и т.д.)
+        "Allow: /",       # Разрешаем индексацию всего сайта по умолчанию
+        "Disallow: /rws!-cozy-admin/",  # Запрещаем админку (ваш кастомный путь)
+        "Disallow: /api/",             # Запрещаем API (не индексируем внутренние данные)
+        "Disallow: /cart/",            # Запрещаем корзину (личные данные пользователя)
+        "Disallow: /orders/",          # Запрещаем заказы (личная информация)
+        "Disallow: /users/",           # Запрещаем личный кабинет (если это профили пользователей)
+        "Disallow: /captcha/",         # Запрещаем CAPTCHA (утилитарные страницы)
+        "Disallow: /ckeditor5/",
+        "Disallow: /rws!-flower-admin/",
+        "",                            # Пустая строка для разделителя
+        "Sitemap: https://cozy-opt.ru/sitemap.xml"  # Ссылка на вашу sitemap (замените yourdomain.com на реальный домен)
+    ]
+    content = "\n".join(lines)  # Формируем текст с переносами строк
+    return HttpResponse(content, content_type="text/plain")
+
 
 
 
@@ -36,6 +63,7 @@ urlpatterns = [
     path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='sitemap'),
     path('api/', include('api.urls', namespace='api')),
     path('captcha/', include('captcha.urls')),
+    path('robots.txt', robots_txt, name='robots_txt'),
         ]
 
 

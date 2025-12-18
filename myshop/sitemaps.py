@@ -39,3 +39,5 @@ sitemaps = {
     'categories': CategorySitemap,
     'products': ProductSitemap,
 }
+
+

@@ -72,7 +72,7 @@
         <img src="file://{{ logo_path }}" class="img-fluid header-img-logo" alt="Логотип" style="max-width: 150px; height: auto;" />
     </div>
 
-    <h2>cozy.su</h2>
+    <h2>cozy-opt.ru</h2>
     <p>Email: cozyopt@gmail.com</p>
     <h3>Товарный чек № {{ order.id }} от {{ order.created|date:"d.m.Y" }}</h3>
 
@@ -114,8 +114,8 @@
             <tr class="delivery">
                 <td colspan="3">Выбранный способ доставки:</td>
                 <td colspan="2">{{ order.delivery_method }}</td>
-                {% if order.price_delivery %}
-                    <td colspan="1">{{ order.price_delivery }} ₽</td>
+                {% if order.price_delivery %} 
+                    <td colspan="1">{{ order.price_delivery }} ₽</td> 
                 {% else %}
                     <td colspan="1"></td>
                 {% endif %}

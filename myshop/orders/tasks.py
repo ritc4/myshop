@@ -230,7 +230,98 @@
 #     return email.send()
 
 
-# новый 2
+# # новый 2 рабочий
+# from celery import shared_task
+# from django.core.mail import send_mail
+# from .models import Order
+# from weasyprint import HTML, CSS  # Обновлён импорт для современного WeasyPrint
+# from django.conf import settings
+# from django.templatetags.static import static
+# from django.core.mail import EmailMessage
+# from django.template.loader import render_to_string
+# import logging
+# import time
+# from threading import Thread
+# from io import BytesIO
+# import base64
+# from django.contrib.staticfiles.storage import staticfiles_storage
+
+# logger = logging.getLogger(__name__)
+
+# @shared_task(bind=True, max_retries=3, default_retry_delay=60)  # Повторы: до 3 раз с задержкой 60 сек
+# def handle_order_created(self, order_id):
+#     try:
+#         # Получение заказа с оптимизированными запросами
+#         order = Order.objects.select_related('delivery_method').prefetch_related(
+#             'items__product_price__product', 'items__product_price__size'
+#         ).get(id=order_id)
+        
+#         # Логика для данных в шаблоне
+#         total_quantity = sum(item.quantity for item in order.items.all())
+#         total_items = order.items.count()
+#         logo_path = settings.STATIC_ROOT / 'img/logo.png'
+        
+#         # Подготовка контекста для шаблона
+#         context = {
+#             'order': order,
+#             'total_quantity': total_quantity,
+#             'total_items': total_items,
+#             'logo_path': logo_path,
+#         }
+        
+#         # Функция для генерации PDF в отдельном треде (с целью предотвратить зависание)
+#         html_pdf_content = None
+#         pdf_content = BytesIO()
+        
+#         def generate_pdf_in_thread():
+#             nonlocal html_pdf_content
+#             html_pdf_content = render_to_string('orders/order/pdf.html', context)
+#             HTML(string=html_pdf_content, base_url=settings.STATIC_URL).write_pdf(
+#                 target=pdf_content,
+#                 stylesheets=[CSS(settings.STATIC_ROOT / 'css/pdf.css')]
+#             )
+        
+#         # Начало измерения времени
+#         start_time = time.time()
+        
+#         # Запуск генерации в треде с таймаутом 30 секунд (настройте по необходимости)
+#         thread = Thread(target=generate_pdf_in_thread)
+#         thread.start()
+#         thread.join(timeout=30)  # Таймаут: если превысил 30 сек, считаем неудачей
+        
+#         if thread.is_alive():
+#             logger.warning(f"PDF generation for order {order_id} timed out, retrying...")
+#             raise self.retry(countdown=60, exc=Exception("PDF generation timeout"))
+        
+#         logger.info(f"PDF generation for order {order_id} took {time.time() - start_time:.2f} seconds")
+        
+#         # Получение PDF из BytesIO
+#         pdf = pdf_content.getvalue()
+        
+#         # Формирование и отправка email
+#         subject = f'Заказ № {order.id} в интернет-магазине Cozy.su'
+#         email = EmailMessage(
+#             subject=subject,
+#             body='Спасибо за ваш заказ! В скором времени мы с вами свяжемся.',
+#             from_email=settings.DEFAULT_FROM_EMAIL,
+#             to=[order.email],
+#             bcc=[settings.ADMIN_EMAIL]
+#         )
+#         email.attach(f'Ваш Заказ № {order.id}.pdf', pdf, 'application/pdf')
+        
+#         # Отправка письма
+#         result = email.send()
+#         logger.info(f"Email for order {order_id} sent successfully.")
+#         return result
+        
+#     except Exception as e:
+#         logger.error(f"Error in handle_order_created for order {order_id}: {str(e)}")
+#         # Повтор задачи при ошибке
+#         raise self.retry()
+
+
+
+# новый 3 - рабочий но в теле html
 from celery import shared_task
 from django.core.mail import send_mail
 from .models import Order
@@ -243,6 +334,8 @@ import logging
 import time
 from threading import Thread
 from io import BytesIO
+import base64
+from django.contrib.staticfiles.storage import staticfiles_storage
 
 logger = logging.getLogger(__name__)
 
@@ -259,12 +352,19 @@ def handle_order_created(self, order_id):
         total_items = order.items.count()
         logo_path = settings.STATIC_ROOT / 'img/logo.png'
         
-        # Подготовка контекста для шаблона
+        # Генерация logo_b64 для HTML-тела email (если файл существует)
+        logo_b64 = None
+        if logo_path.exists():
+            with open(logo_path, 'rb') as f:
+                logo_b64 = base64.b64encode(f.read()).decode('utf-8')
+        
+        # Подготовка контекста для шаблона (общий для PDF и email)
         context = {
             'order': order,
             'total_quantity': total_quantity,
             'total_items': total_items,
-            'logo_path': logo_path,
+            'logo_path': logo_path,  # Для PDF (как было)
+            'logo_b64': logo_b64,    # Для HTML-тела email
         }
         
         # Функция для генерации PDF в отдельном треде (с целью предотвратить зависание)
@@ -296,15 +396,19 @@ def handle_order_created(self, order_id):
         # Получение PDF из BytesIO
         pdf = pdf_content.getvalue()
         
-        # Формирование и отправка email
-        subject = f'Заказ № {order.id} в интернет-магазине Cozy.su'
+        # Генерация HTML-тела для email (с помощью того же контекста)
+        html_email_body = render_to_string('orders/order/email.html', context)
+        
+        # Формирование и отправка email с HTML-телом и PDF-аттачем
+        subject = f'Заказ № {order.id} в интернет-магазине cozy-opt.ru'
         email = EmailMessage(
             subject=subject,
-            body='Спасибо за ваш заказ! В скором времени мы с вами свяжемся.',
+            body=html_email_body,  # HTML-тело вместо простого текста
             from_email=settings.DEFAULT_FROM_EMAIL,
             to=[order.email],
             bcc=[settings.ADMIN_EMAIL]
         )
+        email.content_subtype = 'html'  # Указываем, что тело - HTML
         email.attach(f'Ваш Заказ № {order.id}.pdf', pdf, 'application/pdf')
         
         # Отправка письма

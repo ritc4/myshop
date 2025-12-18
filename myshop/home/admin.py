@@ -158,6 +158,7 @@ class ProductAdmin(admin.ModelAdmin):
     list_editable = ['is_hidden','mesto']
     actions = ['hide_products', 'show_products','duplicate_product','change_category','bulk_update_prices'] 
     list_display_links=['get_image','title',]
+    ordering = ['created']
 
 
     def display_description(self, obj):

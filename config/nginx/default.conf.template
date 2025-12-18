@@ -1,24 +1,35 @@
+# Добавлена зона для rate limiting на Flower (10 запросов в минуту на IP, burst 5)
+limit_req_zone $binary_remote_addr zone=flower:10m rate=50r/m;
+# Новая зона для rate limiting админки (например, 5 запросов в минуту с burst=3)
+limit_req_zone $binary_remote_addr zone=admin_zone:10m rate=5r/m;
+
 # Входной поток для uWSGI
 upstream uwsgi_app {
     server unix:/app/myshop/uwsgi_app.sock;
     }
 
 server {
-    listen 80 default_server;
-    server_name www.cozy.su cozy.su;
-    return 301 https://$host$request_uri;
-    }
+    listen 80;
+    server_name *.cozy-opt.ru cozy-opt.ru;
 
-server {
-    listen 443 ssl default_server;
-    ssl_certificate /run/secrets/myshop.crt;
-    ssl_certificate_key /run/secrets/myshop.key;
-    server_name www.cozy.su cozy.su;
-    client_max_body_size 200M; 
+    # Новая защищённая зона для Django Admin
+    location /rws!-cozy-admin/ {
+        # Включаем HTTP Basic Authentication
+        auth_basic "Django Admin Login";
+        auth_basic_user_file /etc/nginx/.htpasswd;
+        # Применяем rate limiting (burst=3 означает до 3 запросов сверх лимита в очереди)
+        limit_req zone=admin_zone burst=5 nodelay;
+
+        # Прокси к Django через uWSGI
+        include /etc/nginx/uwsgi_params;
+        uwsgi_pass uwsgi_app;
+        client_max_body_size 50M;  # Как в общем location (для загрузки файлов)
+    }
 
     location / {
         include /etc/nginx/uwsgi_params;
-        uwsgi_pass uwsgi_app;
+        uwsgi_pass uwsgi_app; 
+        client_max_body_size 50M;
     }
 
     location /static/ {
@@ -28,7 +39,7 @@ server {
     location /media/ {
         alias /app/myshop/media/;
         # Запрещаем исполнение скриптов и потенциально вредоносных файлов (даже если валидаторы в Django пройдены)
-        location ~ \.(php|pl|cgi|py|exe|bat|sh)$ {
+        location ~ \.(php|pl|cgi|py|exe|bat|sh|jsp|asp|aspx)$ {
             deny all;
             return 403; 
         }
@@ -41,29 +52,59 @@ server {
 
 
     # Прокси для RabbitMQ Management UI (добавлено для продакшена)
-    location /rabbitmq/ {
-        proxy_pass http://rabbitmq:15672/;  # Проксируем на RabbitMQ внутри Docker
+#    location /rabbitmq/ {
+#        proxy_pass http://rabbitmq:15672/;  # Проксируем на RabbitMQ внутри Docker
+#        proxy_set_header Host $host;
+#        proxy_set_header X-Real-IP $remote_addr;
+#        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+#        proxy_set_header X-Forwarded-Proto $scheme;
+#        # Опционально: добавь аутентификацию, если нужно (например, basic auth для безопасности)
+#        # auth_basic "Flower Access";
+#        # auth_basic_user_file /etc/nginx/.htpasswd;
+#    }
+
+        location /rws!-flower-admin/api/ {
+        # Нет аутентификации здесь, так как API незащищен
+        # Оставьте ограничение запросов, если нужно (уберите или скорректируйте)
+        limit_req zone=flower burst=50 nodelay;
+        proxy_pass http://flower:5555/rws!-flower-admin/api/;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
-        # Опционально: добавь аутентификацию, если нужно (например, basic auth для безопасности)
-        # auth_basic "Flower Access";
-        # auth_basic_user_file /etc/nginx/.htpasswd;
+        auth_basic "Flower Access";
+        auth_basic_user_file /etc/nginx/.htpasswd;
     }
 
-    location /flower/ {
-        proxy_pass http://flower:5555/flower/;  # Проксируем на Flower внутри Docker (порт 5555)
+        location /rws!-flower-admin/workers {
+        # Исключение auth (но только если API пермиссивно)
+        limit_req zone=flower burst=50 nodelay;  # Уберите, если ограничивает
+        proxy_pass http://flower:5555/rws!-flower-admin/workers;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        auth_basic "Flower Access";
+        auth_basic_user_file /etc/nginx/.htpasswd;
+    }
+
+
+    location /rws!-flower-admin/ {
+        # Добавлено rate limiting для защиты от bruteforce: 10 req/min, burst до 5 с nodelay
+        limit_req zone=flower burst=200 nodelay;
+        proxy_pass http://flower:5555/rws!-flower-admin/;  # Проксируем на Flower внутри Docker (порт 5555)
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
         # Опционально: добавь аутентификацию, если нужно (например, basic auth для безопасности)
-        # auth_basic "Flower Access";
-        # auth_basic_user_file /etc/nginx/.htpasswd;
+        auth_basic "Flower Access";
+        auth_basic_user_file /etc/nginx/.htpasswd;
     }
-        location /flower/static/ {
-        proxy_pass http://flower:5555/flower/static/;
+        location /rws!-flower-admin/static/ {
+        # Добавлено rate limiting для защиты от bruteforce: 10 req/min, burst до 5 с nodelay
+        limit_req zone=flower burst=100 nodelay;
+        proxy_pass http://flower:5555/rws!-flower-admin/static/;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -71,4 +112,3 @@ server {
     }
 
 }
-

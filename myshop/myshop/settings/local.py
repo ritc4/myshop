@@ -54,6 +54,18 @@ DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
 
 
 
+# # Настройки сессий для корзины (долгое хранение, безопасное)
+# SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'  # Хранение в Redis-кэше + БД (производительнее, чем 'db')
+# SESSION_COOKIE_AGE = 604800  # 7 дней — корзина не теряется, если пользователь неактивен (компромисс; другие используют 14 дней)
+# SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # Корзина сохраняется после закрытия браузера (удобно для мобильных)
+# SESSION_COOKIE_HTTPONLY = True  # Защита от XSS (стандартная практика)
+# SESSION_SAVE_EVERY_REQUEST = False  # Не сохраняем на каждый запрос (экономит БД; сессия обновляется только при изменениях в cart.py)
+
+# # Дополнительно для безопасности (вы уже имеете CSRF_COOKIE_SECURE)
+# SESSION_COOKIE_SAMESITE = 'Lax'  # Предотвращает CSRF в кросс-доменах
+
+
+
 # Админский email для уведомлений (используется в задачах, например, для BCC)
 ADMIN_EMAIL = config('ADMIN_EMAIL', default='ccozy@yandex.ru')
 

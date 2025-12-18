@@ -80,12 +80,9 @@ services:
       - static_volume:/app/myshop/static
       - media_volume:/app/myshop/media
       - uwsgi_socket:/app/myshop/
+      - ./secrets/.htpasswd:/etc/nginx/.htpasswd:ro
     ports:
-      - "80:80"
-      - "443:443"
-    secrets:
-      - myshop.crt
-      - myshop.key
+      - 8000:80
     depends_on:
       web:
         condition: service_started
@@ -95,13 +92,14 @@ services:
     image: r162809ws/myshop-web:${TAG:-latest}
     user: "33:33"
     env_file: .env
-    command: celery -A myshop flower --url-prefix=/flower --hostname=flower@%h
+    command: celery -A myshop flower --url-prefix=/rws!-flower-admin --hostname=flower@%h
     volumes:
       - media_volume:/app/myshop/media
     environment:
       - DJANGO_SETTINGS_MODULE=myshop.settings.prod
       - PYTHONPATH=/app/myshop
       - FLOWER_UNAUTHENTICATED_API=true
+      # - FLOWER_BASIC_AUTH=${FLOWER_BASIC_AUTH_USER}:${FLOWER_BASIC_AUTH_PASSWORD}
     depends_on:
       celery:
         condition: service_started
@@ -109,7 +107,7 @@ services:
         condition: service_healthy
     restart: always
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5555/flower/"]
+      test: ["CMD", "curl", "-f", "http://localhost:5555/rws!-flower-admin/"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -121,9 +119,3 @@ volumes:
   redis_data:
   rabbitmq_data:
   uwsgi_socket:
-
-secrets:
-  myshop.crt:
-    file: ./ssl/myshop.crt  # Путь к cert на хосте (в папке cozy)
-  myshop.key:
-    file: ./ssl/myshop.key  # Путь к key на хосте и сюда

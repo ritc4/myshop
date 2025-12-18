@@ -12,7 +12,6 @@ from django.core.validators import FileExtensionValidator, MinValueValidator
 from django.core.exceptions import ValidationError
 from PIL import Image
 import io
-from django.utils.text import slugify
 
 
 

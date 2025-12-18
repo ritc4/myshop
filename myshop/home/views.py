@@ -128,7 +128,7 @@ class ProductListView(ListView):
         elif sort_by == "-min_price":
             products = products.order_by("-min_price")
         else:
-            products = products.order_by("-created")
+            products = products.order_by("created")
 
         return products
 
@@ -490,6 +490,120 @@ class ReviewsView(LoginRequiredMixin, FormView, ListView):
 
 
 
+# class Search(ListView):
+#     model = Product
+#     template_name = "home/search.html"
+#     context_object_name = "products"
+#     paginate_by = 30
+
+#     def get_queryset(self):
+#         search_query = self.request.GET.get("search", "").strip()
+#         if search_query:
+#             # Полнотекстовый поиск: используем annotate для search_vector, затем filter (избегаем @@, чтобы избежать SyntaxError в некоторых средах)
+#             products = (
+#                 Product.objects.annotate(
+#                     search=SearchVector(
+#                         "title", "category__name", "description", "article_number"
+#                     )
+#                 )
+#                 .filter(search=SearchQuery(search_query), is_hidden=False)
+#                 .annotate(
+#                     min_price=Min(
+#                         "product_prices__price"
+#                     )  # Аннотация min_price всегда, если есть поиск (для сортировки)
+#                 )
+#                 .prefetch_related(
+#                     "product_prices__size",  # Загружаем цены и размеры заранее (без дополнительных запросов)
+#                     "images",  # Загружаем изображения
+#                 )
+#                 .select_related("category")
+#             )  # Загружаем категорию
+
+#             # Сортировка (только если есть товары)
+#             sort_by = self.request.GET.get("sort", "created")
+#             if sort_by == "min_price":
+#                 products = products.order_by("min_price")
+#             elif sort_by == "-min_price":
+#                 products = products.order_by("-min_price")
+#             else:
+#                 products = products.order_by("-created")  # По умолчанию -created
+#         else:
+#             # Если поиск не задан, пустой QuerySet (главная страница)
+#             products = Product.objects.none()
+
+#         return products
+
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+
+#         search_query = self.request.GET.get("search", "").strip()
+#         products = context["products"]  # Page.object_list (список объектов)
+
+#         if search_query:
+#             context["category"] = f'Результаты поиска по "{search_query}"'
+#             context["get_children_cat"] = []
+#             context["breadcrumbs"] = [
+#                 {"name": f'Результаты поиска по "{search_query}"', "url": None},
+#             ]
+
+#             if not products:
+#                 context["no_results"] = True
+#                 context["no_results_message"] = (
+#                     f'К сожалению, по Вашему запросу "{search_query}" ничего не найдено.'
+#                 )
+#             else:
+#                 context["no_results"] = False
+#         else:
+#             context["category"] = "Каталог"
+#             context["get_children_cat"] = Category.objects.filter(parent=None)
+#             context["breadcrumbs"] = [
+#                 {"name": "Каталог", "url": "/"},
+#             ]
+
+#         # Категории для боковой панели
+#         context["get_descendants_cat"] = Category.objects.filter(
+#             parent__isnull=False, parent__parent=None
+#         )
+#         context["get_root_cat"] = None
+
+#         # Строим size_price_map из уже загруженных данных (prefetch_related), без дополнительных запросов
+#         if products:
+#             size_price_map = {
+#                 product.id: [
+#                     (pp.size.title, pp.price) for pp in product.product_prices.all()
+#                 ]
+#                 for product in products
+#             }
+
+#             context["cart_product_form"] = [
+#                 (
+#                     product,
+#                     CartAddProductForm(
+#                         product=product, sizes=size_price_map.get(product.id, [])
+#                     ),
+#                 )
+#                 for product in products
+#             ]
+#         else:
+#             context["cart_product_form"] = []
+
+#         # per_page
+#         if products:
+#             context["per_page"] = self.get_paginate_by(context["products"])
+#         else:
+#             context["per_page"] = self.paginate_by
+
+#         return context
+
+#     def get_paginate_by(self, queryset):
+#         per_page = self.request.GET.get("per_page", self.paginate_by)
+#         if isinstance(per_page, str) and per_page.isdigit():
+#             return int(per_page)
+#         return self.paginate_by
+
+
+
+
 class Search(ListView):
     model = Product
     template_name = "home/search.html"
@@ -538,6 +652,7 @@ class Search(ListView):
 
         search_query = self.request.GET.get("search", "").strip()
         products = context["products"]  # Page.object_list (список объектов)
+        context['search'] = search_query
 
         if search_query:
             context["category"] = f'Результаты поиска по "{search_query}"'
@@ -592,6 +707,30 @@ class Search(ListView):
             context["per_page"] = self.get_paginate_by(context["products"])
         else:
             context["per_page"] = self.paginate_by
+        
+        # Новая логика для ограниченной пагинации (по примеру из ProductListView)
+        paginator = context["paginator"]  # Получаем пагинатор из ListView
+        page = context["page_obj"]  # Текущая страница
+        pages_to_show = 5  # Количество страниц для показа (текущая + вокруг неё; измените на нужное, например, 7)
+
+        # Вычисляем диапазон: текущая страница в центре, если возможно
+        half = pages_to_show // 2
+        start_page = max(1, page.number - half)
+        end_page = min(paginator.num_pages, page.number + half)
+
+        # Корректируем, если диапазон меньше желаемого (например, в начале/конце)
+        if end_page - start_page < pages_to_show - 1:
+            if start_page == 1:
+                end_page = min(paginator.num_pages, start_page + pages_to_show - 1)
+            elif end_page == paginator.num_pages:
+                start_page = max(1, end_page - pages_to_show + 1)
+
+        # Передаём ограниченный диапазон в контекст
+        context["page_range"] = range(start_page, end_page + 1)
+
+        # Флаги для показа "Первой" и "Последней" с "..." (если диапазон обрезан)
+        # context["show_first"] = start_page > 1
+        # context["show_last"] = end_page < paginator.num_pages
 
         return context
 
