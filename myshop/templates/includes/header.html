@@ -1,5 +1,6 @@
 {% load custom_filters %}
 {% load static %}
+
 <header class="header">
   <div class="header-top bg-black py-1">
     <div class="container-fluid">
@@ -116,41 +117,165 @@
       </div>
     </div>
   </div>
-  <!--end ./header-middle -->
-  <div class="header-bottom">
-    <div class="container-fluid p-0">
-      <div class="row m-0">
-        <div class="col-12 p-0">
-          <div class="menu-container">
-            <div class="menu">
-              {% load mptt_tags %}
-              <ul>
-                <li><a href="{% url 'home:home' %}">Главная</a></li>
-                <li><a href="{% url 'home:delivery' %}">Доставка</a></li>
-                <li><a href="{% url 'cart:cart_detail' %}">Корзина</a></li>
-                {% recursetree categories %}
-                <li>
-                  <a href="{{ node.get_absolute_url }}">{{ node.name }}</a>                  
-                  <ul class="children">
-                      {% for child in node.get_children %}
-                        <li>
-                        <a href="{{ child.get_absolute_url }}">{{ child.name }}</a>
-                        </li>
-                      {% endfor %}
-                  </ul>                 
-                </li>
-                {% endrecursetree %}
-                <li><a href="{% url 'home:news' %}">Новости</a></li>
-                <li><a href="{% url 'home:size_table' %}">Размерная таблица</a></li>
-                <li><a href="{% url 'home:reviews' %}">Отзывы</a></li>
-                <li><a href="{% url 'home:contacts' %}">Контакты</a></li>
-              </ul>
+<!--end ./header-middle -->
+<div class="header-bottom">
+  <div class="container-fluid p-0">
+    <div class="row m-0">
+      <div class="col-12 p-0">
+        <!-- Горизонтальная навигационная панель с Bootstrap navbar -->
+        <nav class="navbar navbar-expand-lg bg-light" role="navigation">  <!-- bg-light для фона, можно адаптировать под тему (e.g., bg-white или gradient) -->
+          <div class="container-fluid p-0">
+            <!-- Тогглер для мобильных (burger button) -->
+            <button class="navbar-toggler ms-auto me-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar" aria-expanded="false" aria-label="Toggle navigation">
+              <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <!-- Версия для десктопа (lg+): улучшенный navbar с иконками, эффектами -->
+            <div class="collapse navbar-collapse d-none d-lg-block" id="navbarNav">
+              <div class="menu-container header-menu w-100">
+                <ul class="navbar-nav nav justify-content-center align-items-center">
+                  <!-- Пункты меню для desktop с иконками и эффектами -->
+                  <li class="nav-item me-3">
+                    <a class="nav-link d-flex align-items-center" href="{% url 'home:home' %}">
+                      <i class="bi bi-house-fill me-2"></i> Главная
+                    </a>
+                  </li>
+                  <li class="nav-item me-3">
+                    <a class="nav-link d-flex align-items-center" href="{% url 'home:delivery' %}">
+                      <i class="bi bi-truck me-2"></i> Доставка
+                    </a>
+                  </li>
+                  <li class="nav-item me-3">
+                    <a class="nav-link d-flex align-items-center" href="{% url 'cart:cart_detail' %}">
+                      <i class="bi bi-cart-fill me-2"></i> Корзина
+                    </a>
+                  </li>
+  
+                  <!-- Версия для десктопа: обновленный dropdown "Каталог" -->
+                  <li class="nav-item dropdown me-3">
+                    <a class="nav-link dropdown-toggle d-flex align-items-center" href="javascript:void(0)" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                      <i class="bi bi-grid-fill me-2"></i> Каталог
+                    </a>
+                    {% load mptt_tags %}
+                    <ul class="dropdown-menu p-0 header-dropdown-menu modern-dropdown" aria-labelledby="navbarDropdown">
+                      <li class="px-3 py-2">
+                        <ul class="list-unstyled mb-0" id="categories-tree">
+                          {% recursetree categories %}
+                            <li class="mb-1">
+                              <div class="d-flex align-items-center justify-content-between">
+                                <a 
+                                  href="{{ node.get_absolute_url }}" 
+                                  class="d-flex align-items-center text-decoration-none flex-grow-1 p-2 rounded hover-link"
+                                >
+                                  {{ node.name }}
+                                </a>
+                                {% if not node.is_leaf_node %}
+                                  <button 
+                                    class="btn btn-link ms-auto p-0 d-flex align-items-center text-dark"
+                                    data-bs-toggle="collapse" 
+                                    data-bs-target="#header-collapse-{{ node.id }}" 
+                                    aria-expanded="false"
+                                    aria-controls="header-collapse-{{ node.id }}"
+                                    onclick="event.stopPropagation();"
+                                  >
+                                    <i class="bi bi-chevron-right"></i>
+                                  </button>
+                                {% endif %}
+                              </div>
+                              {% if not node.is_leaf_node %}
+                                <ul class="children collapse list-unstyled ms-3" id="header-collapse-{{ node.id }}">
+                                  {{ children }}
+                                </ul>
+                              {% endif %}
+                            </li>
+                          {% endrecursetree %}
+                        </ul>
+                      </li>
+                    </ul>
+                  </li>
+  
+                  <li class="nav-item me-3">
+                    <a class="nav-link d-flex align-items-center" href="{% url 'home:news' %}">
+                      <i class="bi bi-newspaper me-2"></i> Новости
+                    </a>
+                  </li>
+                  <li class="nav-item me-3">
+                    <a class="nav-link d-flex align-items-center" href="{% url 'home:size_table' %}">
+                      <i class="bi bi-table me-2"></i> Размерная таблица
+                    </a>
+                  </li>
+                  <li class="nav-item me-3">
+                    <a class="nav-link d-flex align-items-center" href="{% url 'home:reviews' %}">
+                      <i class="bi bi-star-fill me-2"></i> Отзывы
+                    </a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link d-flex align-items-center" href="{% url 'home:contacts' %}">
+                      <i class="bi bi-telephone-fill me-2"></i> Контакты
+                    </a>
+                  </li>
+                </ul>
+              </div>
             </div>
+          </div>
+        </nav>
+        
+        <!-- Off-canvas меню для мобильных (до lg) — без изменений -->
+        <div class="offcanvas offcanvas-start bg-dark text-white" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="offcanvasNavbarLabel">Меню</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            <ul class="navbar-nav nav flex-column">
+              <!-- Пункты меню для мобильной версии с иконками -->
+              <li class="nav-item mb-2">
+                <a class="nav-link text-white" href="{% url 'home:home' %}">
+                  <i class="bi bi-house-fill me-2"></i> Главная
+                </a>
+              </li>
+              <li class="nav-item mb-2">
+                <a class="nav-link text-white" href="{% url 'home:delivery' %}">
+                  <i class="bi bi-truck me-2"></i> Доставка
+                </a>
+              </li>
+              <li class="nav-item mb-2">
+                <a class="nav-link text-white" href="{% url 'cart:cart_detail' %}">
+                  <i class="bi bi-cart-fill me-2"></i> Корзина
+                </a>
+              </li>
+              <li class="nav-item mb-2">
+                <a class="nav-link text-white" href="{% url 'home:search' %}">
+                  <i class="bi bi-search me-2"></i> Каталог
+                </a>
+              </li>
+              <li class="nav-item mb-2">
+                <a class="nav-link text-white" href="{% url 'home:news' %}">
+                  <i class="bi bi-newspaper me-2"></i> Новости
+                </a>
+              </li>
+              <li class="nav-item mb-2">
+                <a class="nav-link text-white" href="{% url 'home:size_table' %}">
+                  <i class="bi bi-table me-2"></i> Размерная таблица
+                </a>
+              </li>
+              <li class="nav-item mb-2">
+                <a class="nav-link text-white" href="{% url 'home:reviews' %}">
+                  <i class="bi bi-star-fill me-2"></i> Отзывы
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link text-white" href="{% url 'home:contacts' %}">
+                  <i class="bi bi-telephone-fill me-2"></i> Контакты
+                </a>
+              </li>
+            </ul>
           </div>
         </div>
       </div>
     </div>
   </div>
+</div>
 
   <!-- Toast-контейнер для уведомлений (Bootstrap) -->
 <div class="toast-container position-fixed top-0 end-0 p-3">

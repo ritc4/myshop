@@ -159,6 +159,9 @@ class ProductListView(ListView):
         context["get_root_cat"] = root_category
         context["breadcrumbs"] = self.category.get_ancestors(include_self=True)
 
+        # НОВОЕ: Список ID категорий для раскрытия (предки + текущая, чтобы развернуть её детей, если есть)
+        context["expanded_nodes"] = self.category.get_ancestors(include_self=True).values_list('pk', flat=True)
+
         # Получаем все размеры и цены для всех продуктов
         products = context["products"]
         product_ids = [product.id for product in products]
@@ -215,7 +218,7 @@ class ProductListView(ListView):
         return context
 
     def get_paginate_by(self, request):
-        per_page = self.request.GET.get(
+        per_page = self.request.GET.get( 
             "per_page", self.paginate_by
         )  # Получаем значение per_page из GET-запроса
         if isinstance(per_page, str) and per_page.isdigit():
@@ -674,6 +677,19 @@ class Search(ListView):
             context["breadcrumbs"] = [
                 {"name": "Каталог", "url": "/"},
             ]
+
+        # Категории для боковой панели: передаём все категории для дерева (аналогично ProductListView, но без фильтра по tree_id, так как нет self.category)
+        # Если дерево слишком большое, можно оптимизировать: Category.objects.filter(parent=None) только корни, но тогда recursetree не покажет детей (нужно изменить логику)
+        context["categories"] = Category.objects.all()  # Полные дерево для recursetree (эффективно с MPTT)
+
+        # НОВОЕ: Список ID категорий для раскрытия
+        # В Search нет self.category, поэтому вместо предков текущей категории используем пустой список (ничего не раскрываем по умолчанию).
+        # Если хотите раскрыть категории найденных товаров (сложно: продукты из разных деревьев), можно дополнить: 
+        # found_category_ids = set(products.values_list('category', flat=True).distinct())
+        # context["expanded_nodes"] = Category.objects.filter(pk__in=found_category_ids).get_ancestors(include_self=True).values_list('pk', flat=True).distinct()
+        # Но это раскрывает слишком много и требует дополнительного запроса.
+        context["expanded_nodes"] = []  # Ничего не раскрываем (аналог ProductListView, но адаптированный)
+
 
         # Категории для боковой панели
         context["get_descendants_cat"] = Category.objects.filter(

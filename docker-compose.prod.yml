@@ -23,7 +23,7 @@ services:
       timeout: 10s
       retries: 5 
   rabbitmq:
-    image: rabbitmq:management
+    image: rabbitmq:3.13-management
     restart: always
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
@@ -55,7 +55,7 @@ services:
   celery:
     image: r162809ws/myshop-web:${TAG:-latest}
     user: "33:33"
-    command: celery -A myshop worker -l info --hostname=celery@%h
+    command: celery -A myshop worker -E -l info
     volumes:
       - static_volume:/app/myshop/static
       - media_volume:/app/myshop/media
@@ -80,7 +80,6 @@ services:
       - static_volume:/app/myshop/static
       - media_volume:/app/myshop/media
       - uwsgi_socket:/app/myshop/
-      - ./secrets/.htpasswd:/etc/nginx/.htpasswd:ro
     ports:
       - 8000:80
     depends_on:
@@ -92,14 +91,13 @@ services:
     image: r162809ws/myshop-web:${TAG:-latest}
     user: "33:33"
     env_file: .env
-    command: celery -A myshop flower --url-prefix=/rws!-flower-admin --hostname=flower@%h
+    command: celery -A myshop flower --basic_auth="${FLOWER_BASIC_AUTH_USER}:${FLOWER_BASIC_AUTH_PASSWORD}" --url_prefix=/rws!-flower-admin
     volumes:
       - media_volume:/app/myshop/media
     environment:
       - DJANGO_SETTINGS_MODULE=myshop.settings.prod
       - PYTHONPATH=/app/myshop
-      - FLOWER_UNAUTHENTICATED_API=true
-      # - FLOWER_BASIC_AUTH=${FLOWER_BASIC_AUTH_USER}:${FLOWER_BASIC_AUTH_PASSWORD}
+      - FLOWER_UNAUTHENTICATED_API=false
     depends_on:
       celery:
         condition: service_started
@@ -107,7 +105,7 @@ services:
         condition: service_healthy
     restart: always
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5555/rws!-flower-admin/"]
+      test: ["CMD", "curl", "-u", "${FLOWER_BASIC_AUTH_USER}:${FLOWER_BASIC_AUTH_PASSWORD}", "-f", "http://localhost:5555/rws!-flower-admin/dashboard"]
       interval: 30s
       timeout: 10s
       retries: 5

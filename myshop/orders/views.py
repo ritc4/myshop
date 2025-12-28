@@ -515,20 +515,20 @@ import weasyprint
 from django.conf import settings
 from django.templatetags.static import static
 from .tasks import handle_order_created
+from django.urls import reverse
 
 
 def order_create(request):
     categories = Category.objects.all()
     cart = Cart(request)
-    # get_root_catalog = categories.first().get_absolute_url()
-    # Добавляем проверку: если категорий нет, устанавливаем fallback на главную страницу
-    first_category = categories.first()
-    if first_category:
-        get_root_catalog = first_category.get_absolute_url()
+    
+    if categories.exists():
+        catalog = reverse('home:search')
     else:
-        get_root_catalog = "/"  # Или reverse('home:index') если у тебя есть именованный URL для главной
+        catalog = reverse('home:home')
+        
     politica = Politica_firm.objects.first()
-    uslovia = Uslovie_firm.objects.first()
+    uslovia = Uslovie_firm.objects.first() 
 
     # Итерируем по корзине заранее для очистки и сбора removed_items
     list(cart)  # Вызывает __iter__, удаляет несуществующие товары и заполняет removed_items
@@ -536,7 +536,7 @@ def order_create(request):
 
     # Проверка на наличие товаров в корзине
     if not cart or not any(item["quantity"] > 0 for item in cart):
-        return redirect(get_root_catalog)
+        return redirect(catalog)
 
     breadcrumbs = [{"name": "Оформление заказа", "slug": "/orders/"}]
 
