@@ -1,4 +1,3 @@
-
 /*==========================sidebar sidebar-menu======================*/
 
 /* Стили для предотвращения выхода текста за рамки контейнера */
@@ -13,19 +12,25 @@
   min-width: 0;
   hyphens: auto;
   color: black;
-  transition: color 0.2s ease-in-out, background-color 0.2s ease-in-out; /* Плавный переход для hover */
+  transition: all 0.3s ease; /* Обновлённый transition */
+  padding: 8px 12px; /* Добавляем отступы для лучшего hover эффекта */
+
+  display: block; /* Чтобы hover работал на всю ширину */
+  text-decoration: none; /* Убираем подчеркивание */
 }
 
-/* Hover для ссылок (выделение при наведении) */
+/* Hover для ссылок с новыми эффектами (ТОЛЬКО ДЛЯ ТЕКСТА КАТЕГОРИЙ) */
 #categories-tree a:hover {
-  color: dodgerblue !important; /* Синий цвет для текста */
+  color: #007bff !important; /* Синий акцент на hover */
+  background-color: rgba(0, 123, 255, 0.05); /* Легкий фон */
+  transform: translateY(-2px); /* Легкий lift-эффект */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Тень для глубины */
 }
 
 /* Анимация стрелки через aria-expanded (поворот на 90deg при раскрытии) */
 [aria-expanded="true"] .bi-chevron-right {
   transform: rotate(90deg);
 }
-
 
 /* Плавный переход для стрелки */
 .bi-chevron-right {
@@ -42,149 +47,137 @@
   border-bottom: none; /* Убираем разделитель для последней категории */
 }
 
-/* Стили для активных элементов */
+/* Стили для активных элементов с улучшенными эффектами */
 #categories-tree .active {
-  color: dodgerblue;
-  background-color: rgba(0, 123, 255, 0.1);
-  padding: 4px 8px;
+  color: #007bff;
+  padding: 8px 12px;
+  background-color: rgba(0, 123, 255, 0.1); /* Фон для активного элемента */
+
+  transition: all 0.3s ease;
 }
 
-/* Опционально: для hover эффекта на active (повышенная яркость при наведении) */
+/* Hover эффект для активных элементов */
 #categories-tree .active:hover {
   background-color: rgba(0, 123, 255, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Стили для кнопки (минимальные, чтобы она не выделялась) */
+/* Стили для кнопки (БЕЗ hover эффектов) */
 #categories-tree button {
   border: none;
-  padding: 0;
+  padding: 8px 12px;
   margin: 0;
   color: black;
-  transition: color 0.2s ease-in-out; /* Для плавного изменения цвета */
+  transition: color 0.2s ease-in-out; /* Только цвет */
+  background: transparent;
+
+  display: flex;
+  align-items: center;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
 }
 
-/* Hover для кнопки (стрелки) — опционально, чтобы стрелка тоже слегка выделялась */
+/* Hover для кнопки (ТОЛЬКО изменение цвета стрелки) */
 #categories-tree button:hover {
-  color: dodgerblue; /* Синий для стрелки при hover */
+  color: #007bff; /* Только цвет текста, без других эффектов */
+  /* transform, box-shadow и background-color удалены */
+}
+
+/* Убираем hover эффекты для кнопок при наведении */
+#categories-tree button:hover {
+  background-color: transparent !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Стили для контейнера кнопки */
+#categories-tree .dropdown-toggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+/* Дополнительные стили для иконок стрелок */
+#categories-tree .bi-chevron-right {
+  margin-left: auto; /* Выравнивание стрелки вправо */
+  transition: transform 0.2s ease-in-out; /* Только трансформация */
+}
+
+/* Улучшенные стили для вложенных списков */
+#categories-tree ul {
+  margin-left: 15px; /* Отступ для вложенных категорий */
+  padding-left: 0;
+}
+
+#categories-tree ul li {
+  border-bottom: 1px solid #f8f9fa; /* Более светлый разделитель для вложенных */
+}
+
+#categories-tree ul li:last-child {
+  border-bottom: none;
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 768px) {
+  #categories-tree a {
+    padding: 10px 15px; /* Увеличиваем отступы для мобильных */
+  }
+  
+  /* Уменьшаем эффекты для мобильных */
+  #categories-tree a:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  #categories-tree button {
+    padding: 10px 15px;
+  }
 }
 
 
 /*==========================mega-menu-sidebar======================*/
 
-.menu-container {
-  background: white;
-  border-top: 2px solid black;
-  border-bottom: 2px solid black;
-
-}
 
 
-.dropdown-toggle::after {
-  margin-left: 0.75rem;
-  transform: translateX(5px); /* Сдвигает стрелку чуть правее */
-}
-
-/* Общие стили для navbar */
-.navbar-nav.nav {
-  /* Убираем лишние классы, если нужно: justify-content-center align-items-center остаётся, но добавим контроль */
-  display: flex; /* Подтверждаем flex для ряда */
-  align-items: stretch; /* Растягиваем все nav-items до полной высоты контейнера (равная высота) */
-  /* justify-content-center можно оставить для центрирования по горизонтали */
-}
-
-/* Фиксированная высота и центрирование для всех nav-items */
-.navbar-nav .nav-item {
-  display: flex; /* Делаем nav-item flex-контейнером для вертикального центрирования содержимого */
-  align-items: center; /* Центрируем содержимое (nav-link) по вертикали внутри nav-item */
-  min-height: 50px; /* Минимальная высота для consistency — все пункты будут не ниже этого (корректируйте под дизайн, e.g., 48px для компактности) */
-  height: auto; /* Разрешаем auto-рост, но ограничиваем min-height для равенства */
-}
-
-/* Обновлённые стили для nav-link (внутри nav-item) */
-.navbar-nav .nav-link {
+.nav-item .nav-link {
   transition: all 0.3s ease;
-  padding: 12px 16px; /* Оставить или увеличить левого/правого для лучшей кликабельности */
-  display: flex; /* Если ещё нет — flex для иконка+текст */
-  align-items: center; /* Выравниваем иконку с текстом по базовой линии */
-  justify-content: start; /* Или center, если нужно центрировать весь content внутри nav-link */
-  flex-grow: 1; /* Позволяет ссылке занимать всю ширину nav-item, предотвращая смещение */
 }
-  .navbar-nav .nav-link:hover {
+  .nav-item .nav-link:hover {
     color: #007bff !important; /* Синий акцент на hover (адаптируйте под тему) */
     background-color: rgba(0, 123, 255, 0.05); /* Легкий фон */
     transform: translateY(-2px); /* Легкий lift-эффект */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Тень для глубины */
   }
 
-  /* Специфика для dropdown (Каталог): чтобы не отклоняться */
-.navbar-nav .nav-item.dropdown .nav-link {
-  min-height: inherit; /* Наследуем min-height от parent nav-item */
-}
+
+
+
+
+
+
   
-  /* Dropdown для "Каталог": более стильный */
-  .header-dropdown-menu.modern-dropdown {
-    min-width: 300px; /* Ширина для компактности */
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15); /* Тень для модного вида */
-    border: none; /* Убираем стандартную рамку */
-    background-color: #fff;
-    padding: 1rem 0;
-  }
-  /* Ссылки внутри dropdown */
-  .header-dropdown-menu .hover-link {
-    transition: background-color 0.2s ease;
-    color: #333;
-  }
-  .header-dropdown-menu .hover-link:hover {
-    background-color: #f8f9fa; /* Светлый hover внутри */
-  }
-  /* Субменю: vertical и collapsed */
-  .header-dropdown-menu .children {
-    padding-left: 20px;
-    margin-top: 0.5rem;
-  }
-  .header-dropdown-menu .children a {
-    padding: 0.5rem;
-  }
+/*==========================Custom with contact form======================*/
 
-
-  .offcanvas {
-    transition: transform 0.3s ease-in-out; /* Плавный slide-in */
-  }
-  .offcanvas-body .nav-link {
-    transition: background-color 0.2s ease; /* Плавный hover */
-    padding: 12px 16px; /* Увеличенный padding для тапа */
-  }
-  .offcanvas-body .nav-link:hover {
-    background-color: rgba(255, 255, 255, 0.1); /* Легкий hover-эффект */
-  }
-
-
-
-
-/* Медиа-запрос для десктопа (lg+ от 992px+) */
-@media (min-width: 992px) {
-
+/* Ограничиваем ширину только для конкретных полей по их имени */
+input[name="first_name"],
+input[name="email"], 
+input[name="phone"],
+textarea[name="content"] {
+    max-width: 400px !important;
+    width: 100% !important;
 }
 
-/* Мобильная версия адаптация (max-width: 991px) */
-@media (max-width: 991px) {
-  /* Сам navbar — чёрный фон */
-  .navbar {
-    background-color: black !important;
-  }
-  
-  /* Тогглер (кнопка burger) — белый фон */
-  .navbar-toggler {
-    background-color: white !important;
-    border-color: black !important; /* Опционально: чёрная рамка для акцента, чтобы не сливалась */
-  }
-
-  /* Иконка toggler — чёрная, чтобы контрастировала с белой кнопкой */
-  .navbar-toggler-icon {
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(0,0,0,1)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='m4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
-  }
-  
+textarea[name="content"] {
+    max-width: 600px !important;
 }
+
+/* Поле captcha останется без ограничений */
+
+
+
 
 
 

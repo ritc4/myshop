@@ -1,6 +1,5 @@
 {% load custom_filters %}
 {% load static %}
-
 <header class="header">
   <div class="header-top bg-black py-1">
     <div class="container-fluid">
@@ -103,13 +102,13 @@
               aria-controls="offcanvasCart">
               <i class="bi bi-cart4"></i>
               <span class="badge text-bg-light cart-badge rounded-circle">
-                <div class="cart" id="cart-item-count">
+                <span class="cart" id="cart-item-count">
                   {% with total_items=cart|length %}
                     {% if total_items > 0 %}
                         {{ total_items|russian_pluralize:"товар,товара,товаров" }} 
                     {% endif %}
                   {% endwith %}
-                 </div>  
+                </span>  
               </span>
             </button>
           </div>
@@ -117,185 +116,55 @@
       </div>
     </div>
   </div>
-<!--end ./header-middle -->
-<div class="header-bottom">
-  <div class="container-fluid p-0">
-    <div class="row m-0">
-      <div class="col-12 p-0">
-        <!-- Горизонтальная навигационная панель с Bootstrap navbar -->
-        <nav class="navbar navbar-expand-lg bg-light" role="navigation">
-          <div class="container-fluid p-0">
-            <!-- Тогглер для мобильных (burger button) -->
-            <button class="navbar-toggler ms-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar" aria-expanded="false" aria-label="Toggle navigation">
-              <span class="navbar-toggler-icon"></span>
-            </button>
-            
-            <!-- Версия для десктопа (lg+): улучшенный navbar с иконками, эффектами -->
-            <div class="collapse navbar-collapse d-none d-lg-block" id="navbarNav">
-              <div class="menu-container header-menu w-100">
-                <ul class="navbar-nav nav justify-content-center align-items-center">
-                  <!-- Пункты меню для desktop с иконками и эффектами -->
-                  <li class="nav-item me-3">
-                    <a class="nav-link d-flex align-items-center" href="{% url 'home:home' %}">
-                      <i class="bi bi-house-fill me-2"></i> Главная
-                    </a>
-                  </li>
-                  <li class="nav-item me-3">
-                    <a class="nav-link d-flex align-items-center" href="{% url 'home:delivery' %}">
-                      <i class="bi bi-truck me-2"></i> Доставка
-                    </a>
-                  </li>
-                  <li class="nav-item me-3">
-                    <a class="nav-link d-flex align-items-center" href="{% url 'cart:cart_detail' %}">
-                      <i class="bi bi-cart-fill me-2"></i> Корзина
-                    </a>
-                  </li>
-  
-                  <!-- Изменено: "Каталог" теперь кнопка, открывающая оффканвас -->
-                  <li class="nav-item me-3">
-                    <button class="btn btn-link nav-link d-flex align-items-center p-0 border-0 bg-transparent text-decoration-none" data-bs-toggle="offcanvas" data-bs-target="#catalogOffcanvas" aria-controls="catalogOffcanvas" aria-expanded="false" aria-label="Открыть каталог категорий">
-                      <i class="bi bi-grid-fill me-2"></i> Каталог
-                    </button>
-                    <!-- Удален дропдаун с категориями из десктопа (теперь он в оффканвасе) -->
-                  </li>
-  
-                  <li class="nav-item me-3">
-                    <a class="nav-link d-flex align-items-center" href="{% url 'home:news' %}">
-                      <i class="bi bi-newspaper me-2"></i> Новости
-                    </a>
-                  </li>
-                  <li class="nav-item me-3">
-                    <a class="nav-link d-flex align-items-center" href="{% url 'home:size_table' %}">
-                      <i class="bi bi-table me-2"></i> Размерная таблица
-                    </a>
-                  </li>
-                  <li class="nav-item me-3">
-                    <a class="nav-link d-flex align-items-center" href="{% url 'home:reviews' %}">
-                      <i class="bi bi-star-fill me-2"></i> Отзывы
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a class="nav-link d-flex align-items-center" href="{% url 'home:contacts' %}">
-                      <i class="bi bi-telephone-fill me-2"></i> Контакты
-                    </a>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </nav>
-        
-        <!-- Off-canvas меню для мобильных (до lg) — без изменений -->
-        <div class="offcanvas offcanvas-start bg-dark text-white" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
-          <div class="offcanvas-header">
-            <h5 class="offcanvas-title" id="offcanvasNavbarLabel">Меню</h5>
-            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-          </div>
-          <div class="offcanvas-body">
-            <ul class="navbar-nav nav flex-column">
-              <!-- Пункты меню для мобильной версии с иконками -->
-              <li class="nav-item mb-2">
-                <a class="nav-link text-white" href="{% url 'home:home' %}">
-                  <i class="bi bi-house-fill me-2"></i> Главная
-                </a>
-              </li>
-              <li class="nav-item mb-2">
-                <a class="nav-link text-white" href="{% url 'home:delivery' %}">
-                  <i class="bi bi-truck me-2"></i> Доставка
-                </a>
-              </li>
-              <li class="nav-item mb-2">
-                <a class="nav-link text-white" href="{% url 'cart:cart_detail' %}">
-                  <i class="bi bi-cart-fill me-2"></i> Корзина
-                </a>
-              </li>
-              <!-- Изменено: В мобильной версии "Каталог" теперь тоже открывает оффканвас с категориями -->
-              <li class="nav-item mb-2">
-                <button class="btn btn-link nav-link text-white" data-bs-toggle="offcanvas" data-bs-target="#catalogOffcanvas" aria-controls="catalogOffcanvas" aria-expanded="false" aria-label="Открыть каталог категорий">
-                  <i class="bi bi-grid-fill me-2"></i> Каталог
-                </button>
-              </li>
-              <li class="nav-item mb-2">
-                <a class="nav-link text-white" href="{% url 'home:news' %}">
-                  <i class="bi bi-newspaper me-2"></i> Новости
-                </a>
-              </li>
-              <li class="nav-item mb-2">
-                <a class="nav-link text-white" href="{% url 'home:size_table' %}">
-                  <i class="bi bi-table me-2"></i> Размерная таблица
-                </a>
-              </li>
-              <li class="nav-item mb-2">
-                <a class="nav-link text-white" href="{% url 'home:reviews' %}">
-                  <i class="bi bi-star-fill me-2"></i> Отзывы
-                </a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link text-white" href="{% url 'home:contacts' %}">
-                  <i class="bi bi-telephone-fill me-2"></i> Контакты
-                </a>
-              </li>
-            </ul>
-          </div>
-        </div>
-        
-        <!-- Новый оффканвас для каталога категорий -->
-        <div class="offcanvas offcanvas-start bg-light text-dark" tabindex="-1" id="catalogOffcanvas" aria-labelledby="catalogOffcanvasLabel">
-          <div class="offcanvas-header">
-            <h5 class="offcanvas-title" id="catalogOffcanvasLabel">Каталог</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-          </div>
-          <div class="offcanvas-body">
-            {% load mptt_tags %}
-            <!-- Дерево категорий, перенесенное из десктопного дропдауна -->
-            <ul class="list-unstyled" id="categories-tree">
-              {% recursetree categories %}
-                <li class="mb-2">
-                  <div class="d-flex align-items-center justify-content-between">
-                    <a 
-                      href="{{ node.get_absolute_url }}" 
-                      class="d-flex align-items-center text-decoration-none flex-grow-1 p-2 rounded hover-link text-dark"
-                    >
-                      {{ node.name }}
-                    </a>
-                    {% if not node.is_leaf_node %}
-                      <button 
-                        class="btn btn-link ms-auto p-0 d-flex align-items-center"
-                        data-bs-toggle="collapse" 
-                        data-bs-target="#offcanvas-collapse-{{ node.id }}" 
-                        aria-expanded="false"
-                        aria-controls="offcanvas-collapse-{{ node.id }}"
-                        onclick="event.stopPropagation();"
-                      >
-                        <i class="bi bi-chevron-right"></i> 
-                      </button>
-                    {% endif %}
-                  </div>
-                  {% if not node.is_leaf_node %}
-                    <ul class="children collapse list-unstyled ms-3" id="offcanvas-collapse-{{ node.id }}">
-                      {{ children }}
-                    </ul>
-                  {% endif %}
+  <!--end ./header-middle -->
+  <div class="header-bottom">
+    <div class="container-fluid p-0">
+      <div class="row m-0">
+        <div class="col-12 p-0">
+          <div class="menu-container">
+            <div class="menu">
+              {% load mptt_tags %}
+              <ul>
+                <li><a href="{% url 'home:home' %}"><i class="bi bi-house-fill me-2"></i>Главная</a></li>
+                <li><a href="{% url 'home:delivery' %}"><i class="bi bi-truck me-2"></i>Доставка</a></li>
+                <li><a href="{% url 'cart:cart_detail' %}"><i class="bi bi-cart-fill me-2"></i>Корзина</a></li>
+                  <!-- Новая вкладка "Каталог" с dropdown категориями -->
+                <li class="menu-dropdown-icon">
+                  <a href="{% url 'home:search' %}" class="catalog-link"><i class="bi bi-grid-fill me-2"></i>Каталог</a>
+                  <ul>
+                    {% recursetree categories %}
+                      <li>
+                        <a href="{{ node.get_absolute_url }}">{{ node.name }}</a>
+                        {% if node.get_children %}
+                        <ul class="children">
+                          {{ children }}
+                        </ul>
+                        {% endif %}
+                      </li>
+                    {% endrecursetree %}
+                  </ul>
                 </li>
-              {% endrecursetree %}
-            </ul>
+                <li><a href="{% url 'home:news' %}"><i class="bi bi-newspaper me-2"></i>Новости</a></li>
+                <li><a href="{% url 'home:size_table' %}"><i class="bi bi-table me-2"></i>Размерная таблица</a></li>
+                <li><a href="{% url 'home:reviews' %}"><i class="bi bi-star-fill me-2"></i>Отзывы</a></li>
+                <li><a href="{% url 'home:contacts' %}"><i class="bi bi-telephone-fill me-2"></i>Контакты</a></li>
+              </ul>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
-</div>
-
 
   <!-- Toast-контейнер для уведомлений (Bootstrap) -->
-<div class="toast-container position-fixed top-0 end-0 p-3">
-  <div id="cart-toast" class="toast align-items-center border-0" role="alert" aria-live="assertive" aria-atomic="true">
-    <div class="d-flex">
-      <div class="toast-body" id="toast-message"></div>
-      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Закрыть"></button>
+  <div class="toast-container position-fixed top-0 end-0 p-3">
+    <div id="cart-toast" class="toast align-items-center border-0" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="d-flex">
+        <div class="toast-body" id="toast-message"></div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Закрыть"></button>
+      </div>
     </div>
   </div>
-</div>
 </header>
 <!--end ./header-bottom --> 
 

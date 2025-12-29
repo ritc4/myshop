@@ -20,7 +20,7 @@ body {
 }
 
 a {
-    color: #333;
+    color: #000000; /* Изменено на чёрный для consistency */
 }
 
 .description {
@@ -46,9 +46,10 @@ Screen style's
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
 
 .menu-container {
-    /* width: 80%; */
     margin: 0;
-    background: #e9e9e9;
+    background: #ffffff; /* Белый фон */
+    border-top: 2px solid #000000; /* Чёрная полоска сверху для выделения главного меню */
+    border-bottom: 2px solid #000000; /* Чёрная полоска снизу для выделения главного меню */
 }
 
 .menu-mobile {
@@ -76,8 +77,22 @@ Screen style's
     cursor: pointer;
     float: right;
     padding: 1.5em 2em;
-    background: #fff;
-    color: #333;
+    background: #ffffff; /* Белый фон для consistency */
+    color: #000000; /* Чёрный цвет */
+}
+
+/* Сброс list-style для ВСЕХ ul внутри .menu на любом уровне вложенности */
+.menu * ul {
+    list-style-type: none !important;
+    list-style: none !important;
+    list-style-image: none !important;
+}
+
+/* Сброс list-style для ВСЕХ li внутри .menu на любом уровне (на всякий случай, если браузер пытается применить на li) */
+.menu * li {
+    list-style-type: none !important;
+    list-style: none !important;
+    list-style-image: none !important;
 }
 
 .menu > ul {
@@ -104,25 +119,48 @@ Screen style's
 
 .menu > ul > li {
     float: left;
-    background: #e9e9e9;
+    background: #ffffff; /* Белый фон для главного меню */
     padding: 0;
     margin: 0;
+    transition: all .3s ease; /* Обновлённый transition для всех свойств */
 }
 
 .menu > ul > li a {
     text-decoration: none;
-    padding: 1em 1em;
+    padding: 1em 1.5em; /* Увеличили отступы для лучшего hover эффекта */
     display: block;
+    color: #000000; /* Чёрный текст */
+    transition: all .3s ease; /* Плавные переходы для всех свойств */
+    border-radius: 4px; /* Скругление углов */
+    margin: 2px; /* Отступ для визуального разделения */
+}
+
+/* HOVER ЭФФЕКТЫ ДЛЯ ГЛАВНОГО МЕНЮ (аналогичные sidebar-menu) */
+.menu > ul > li a:hover {
+    color: #007bff !important; /* Синий акцент на hover */
+    background-color: rgba(0, 123, 255, 0.05); /* Легкий фон */
+    transform: translateY(-2px); /* Легкий lift-эффект */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Тень для глубины */
+}
+
+/* Эффекты для иконок в главном меню */
+.menu > ul > li a i {
+    transition: all .3s ease;
+}
+
+.menu > ul > li a:hover i {
+    color: #007bff;
+    transform: scale(1.1);
 }
 
 .menu > ul > li:hover {
-    background: #f0f0f0;
+    background: transparent; /* Убираем старый фон, так как эффекты теперь на ссылках */
 }
 
 .menu > ul > li > ul {
-    display: none;
+    display: none; /* Скрыто по умолчанию */
     width: 100%;
-    background: #f0f0f0;
+    background: #ffffff; /* Белый фон для дропдауна */
     padding: 20px;
     position: absolute;
     z-index: 99;
@@ -130,6 +168,13 @@ Screen style's
     margin: 0;
     list-style: none;
     box-sizing: border-box;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.menu > ul > li:hover > ul {
+    display: block; /* Показывается при hover на главную категорию */
 }
 
 .menu > ul > li > ul:before,
@@ -149,22 +194,48 @@ Screen style's
     width: 25%;
     background: none;
     float: left;
+    transition: all .3s ease; /* Обновлённый transition */
 }
 
 .menu > ul > li > ul > li a {
-    color: #777;
-    padding: .2em 0;
+    color: #000000; /* Чёрный текст в дропдаунах */
+    padding: .8em 1em; /* Увеличили отступы */
     width: 95%;
     display: block;
-    border-bottom: 1px solid #ccc;
+    border-bottom: 1px solid #f0f0f0; /* Более светлый разделитель */
+    border-radius: 3px;
+    margin: 2px 0;
+    transition: all .3s ease;
+}
+
+/* HOVER ЭФФЕКТЫ ДЛЯ ПУНКТОВ DROPDOWN МЕНЮ */
+.menu > ul > li > ul > li a:hover {
+    color: #007bff !important;
+    background-color: rgba(0, 123, 255, 0.05);
+    transform: translateX(5px); /* Сдвиг вправо вместо подъёма */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    border-bottom-color: #e0e0e0;
+}
+
+/* Добавляем border-bottom для ЛЮБОГО li с подкатегориями внутри дропдауна */
+.menu > ul > li > ul li:has(> ul) > a {
+    border-bottom: 1px solid #e0e0e0 !important;
+}
+
+.menu > ul > li > ul > li:hover {
+    background: transparent; /* Убираем старый фон */
 }
 
 .menu > ul > li > ul > li > ul {
-    display: block;
+    display: none; /* Скрыто по умолчанию - подкатегории */
     padding: 0;
     margin: 10px 0 0;
     list-style: none;
     box-sizing: border-box;
+}
+
+.menu > ul > li > ul > li:hover > ul {
+    display: block; /* Показывается при hover на категорию в дропдауне */
 }
 
 .menu > ul > li > ul > li > ul:before,
@@ -180,36 +251,91 @@ Screen style's
 .menu > ul > li > ul > li > ul > li {
     float: left;
     width: 100%;
-    padding: 10px 0;
+    padding: 8px 0;
     margin: 0;
-    font-size: .8em;
+    font-size: .9em;
+    transition: all .3s ease;
 }
 
 .menu > ul > li > ul > li > ul > li a {
     border: 0;
+    color: #000000; /* Чёрный текст для вложенных элементов */
+    padding: .6em 1em;
+    border-radius: 3px;
+}
+
+/* HOVER ЭФФЕКТЫ ДЛЯ ВЛОЖЕННЫХ ЭЛЕМЕНТОВ */
+.menu > ul > li > ul > li > ul > li a:hover {
+    color: #007bff !important;
+    background-color: rgba(0, 123, 255, 0.03);
+    transform: translateX(3px);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.menu > ul > li > ul > li > ul > li:hover {
+    background: transparent;
 }
 
 .menu > ul > li > ul.normal-sub {
-    width: 200px;
+    display: none; /* Скрыто по умолчанию для нормальных субменю */
+    width: 250px; /* Немного увеличили ширину */
     left: auto;
-    padding: 10px 20px;
+    padding: 15px;
+    background: #ffffff; /* Белый фон для нормальных субменю */
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.menu > ul > li:hover > ul.normal-sub {
+    display: block; /* Показывается при hover на главную категорию */
 }
 
 .menu > ul > li > ul.normal-sub > li {
     width: 100%;
-
 }
 
 .menu > ul > li > ul.normal-sub > li a {
     border: 0;
-    /* padding: 1em 0; */
-    transition: all .3s;
-    color: black;
+    padding: .8em 0;
+    transition: all .3s ease;
+    color: #000000; /* Чёрный текст */
+    border-radius: 3px;
+    margin: 2px 0;
 }
 
+/* HOVER ЭФФЕКТЫ ДЛЯ NORMAL-SUB */
 .menu > ul > li > ul.normal-sub > li a:hover {
-    color: dodgerblue;
+    color: #007bff !important;
+    background-color: rgba(0, 123, 255, 0.05);
+    transform: translateX(5px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    padding-left: 10px;
 }
+
+.menu > ul > li > ul.normal-sub > li:hover {
+    background: transparent;
+}
+
+.menu > ul > li > ul.normal-sub > li > ul {
+    display: none; /* Если есть вложенные в normal-sub, скрыть их */
+}
+
+.menu > ul > li > ul.normal-sub > li:hover > ul {
+    display: block; /* Показать при hover на li в normal-sub */
+}
+
+/* Активный пункт меню */
+.menu > ul > li a.active {
+    color: #007bff;
+    background-color: rgba(0, 123, 255, 0.1);
+    font-weight: 600;
+}
+
+.menu > ul > li a.active:hover {
+    background-color: rgba(0, 123, 255, 0.2);
+}
+
 
 
 /* ––––––––––––––––––––––––––––––––––––––––––––––––––
@@ -222,6 +348,10 @@ Mobile style's
     }
     .menu-mobile {
         display: block;
+        text-decoration: none;
+        color: white;
+        padding: 15px;
+        background-color: black;
     }
     .menu-dropdown-icon:before {
         display: block;
@@ -235,31 +365,99 @@ Mobile style's
         display: block;
     }
     .menu > ul > li a {
-        padding: 1.5em;
+        padding: 1.2em 1.5em;
         width: 100%;
         display: block;
     }
+    
+    /* Адаптированные hover эффекты для мобильных */
+    .menu > ul > li a:hover {
+        transform: translateY(-1px); /* Меньший подъём на мобильных */
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .menu > ul > li:hover {
+        background: transparent;
+    }
     .menu > ul > li > ul {
         position: relative;
+        display: none; /* Скрыто на мобильных */
+        width: 100%;
+        padding: 10px;
+        box-shadow: none;
+        border: none;
+        border-top: 1px solid #f0f0f0;
+    }
+    .menu > ul > li:hover > ul {
+        display: block; /* Показывается при hover/тапе на мобиле */
     }
     .menu > ul > li > ul.normal-sub {
         width: 100%;
+        display: none; /* Скрыто */
+    }
+    .menu > ul > li:hover > ul.normal-sub {
+        display: block;
     }
     .menu > ul > li > ul > li {
         float: none;
         width: 100%;
-        margin-top: 20px;
+        margin-top: 10px;
     }
     .menu > ul > li > ul > li:first-child {
         margin: 0;
     }
+    .menu > ul > li > ul > li:hover {
+        background: transparent;
+    }
+    
+    /* Адаптированные hover эффекты для dropdown на мобильных */
+    .menu > ul > li > ul > li a:hover {
+        transform: translateX(3px); /* Меньший сдвиг на мобильных */
+    }
+    
     .menu > ul > li > ul > li > ul {
         position: relative;
+        display: none; /* Скрыто */
+    }
+    .menu > ul > li > ul > li:hover > ul {
+        display: block;
     }
     .menu > ul > li > ul > li > ul > li {
         float: none;
     }
+    .menu > ul > li > ul > li > ul > li:hover {
+        background: transparent;
+    }
+    .menu > ul > li > ul.normal-sub > li:hover {
+        background: transparent;
+    }
+    .menu > ul > li > ul.normal-sub > li > ul {
+        display: none; /* Скрыто в normal-sub на мобиле */
+    }
+    .menu > ul > li > ul.normal-sub > li:hover > ul {
+        display: block;
+    }
     .menu .show-on-mobile {
         display: block;
     }
-} 
+    
+    /* Скрываем подменю каталога на мобильных */
+    .menu-dropdown-icon > ul {
+        display: none !important;
+    }
+    
+    /* Убираем стрелку для каталога */
+    .menu-dropdown-icon:after {
+        display: none !important;
+    }
+    
+    /* Делаем ссылку каталога кликабельной */
+    .menu-dropdown-icon > a {
+        pointer-events: auto !important;
+    }
+    
+    /* Скрываем иконку dropdown для каталога на мобильных */
+    li:has(> a.catalog-link).menu-dropdown-icon:before {
+        display: none !important;
+    }
+}
