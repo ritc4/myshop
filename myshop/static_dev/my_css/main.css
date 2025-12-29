@@ -18,14 +18,14 @@
 
 /* Hover для ссылок (выделение при наведении) */
 #categories-tree a:hover {
-  color: dodgerblue; /* Синий цвет для текста */
-  background-color: rgba(0, 123, 255, 0.1); /* Светло-серый фон */
+  color: dodgerblue !important; /* Синий цвет для текста */
 }
 
 /* Анимация стрелки через aria-expanded (поворот на 90deg при раскрытии) */
 [aria-expanded="true"] .bi-chevron-right {
   transform: rotate(90deg);
 }
+
 
 /* Плавный переход для стрелки */
 .bi-chevron-right {
@@ -160,27 +160,30 @@
 
 
 
+
 /* Медиа-запрос для десктопа (lg+ от 992px+) */
 @media (min-width: 992px) {
-  .dropdown-menu.header-dropdown-menu {
-    position: absolute !important;
-    top: calc(100% + 2px) !important;  /* Ровно под нижним краем кнопки */
-    left: 50% !important;  /* Центрируем по горизонтали относительно кнопки */
-    transform: translateX(-50%) !important;  /* Сдвигаем меню на половину его ширины влево для истинного центрирования */
-    width: 500px !important;  /* Фиксированная ширина вместо 50vw (корректируйте под дизайн, e.g., 250-400px для нормального размера) */
-    /* Убираем right: 0 !important; — оно конкурировало с центрированием */
-    margin-top: 0 !important;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
-    z-index: 1000 !important;
-  }
+
 }
 
-/* На мобильных и планшетах (ниже 992px) оставляем по умолчанию (компактное, внутри collapse) */
+/* Мобильная версия адаптация (max-width: 991px) */
 @media (max-width: 991px) {
-  .header-dropdown-menu {
-    /* Нет изменений — Bootstrap сам управляет компактностью */
-    /* Можно добавить специфические стили, если нужно, но обычно не требуется */
+  /* Сам navbar — чёрный фон */
+  .navbar {
+    background-color: black !important;
   }
+  
+  /* Тогглер (кнопка burger) — белый фон */
+  .navbar-toggler {
+    background-color: white !important;
+    border-color: black !important; /* Опционально: чёрная рамка для акцента, чтобы не сливалась */
+  }
+
+  /* Иконка toggler — чёрная, чтобы контрастировала с белой кнопкой */
+  .navbar-toggler-icon {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(0,0,0,1)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='m4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") !important;
+  }
+  
 }
 
 

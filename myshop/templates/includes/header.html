@@ -123,10 +123,10 @@
     <div class="row m-0">
       <div class="col-12 p-0">
         <!-- Горизонтальная навигационная панель с Bootstrap navbar -->
-        <nav class="navbar navbar-expand-lg bg-light" role="navigation">  <!-- bg-light для фона, можно адаптировать под тему (e.g., bg-white или gradient) -->
+        <nav class="navbar navbar-expand-lg bg-light" role="navigation">
           <div class="container-fluid p-0">
             <!-- Тогглер для мобильных (burger button) -->
-            <button class="navbar-toggler ms-auto me-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar" aria-expanded="false" aria-label="Toggle navigation">
+            <button class="navbar-toggler ms-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar" aria-expanded="false" aria-label="Toggle navigation">
               <span class="navbar-toggler-icon"></span>
             </button>
             
@@ -151,47 +151,12 @@
                     </a>
                   </li>
   
-                  <!-- Версия для десктопа: обновленный dropdown "Каталог" -->
-                  <li class="nav-item dropdown me-3">
-                    <a class="nav-link dropdown-toggle d-flex align-items-center" href="javascript:void(0)" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  <!-- Изменено: "Каталог" теперь кнопка, открывающая оффканвас -->
+                  <li class="nav-item me-3">
+                    <button class="btn btn-link nav-link d-flex align-items-center p-0 border-0 bg-transparent text-decoration-none" data-bs-toggle="offcanvas" data-bs-target="#catalogOffcanvas" aria-controls="catalogOffcanvas" aria-expanded="false" aria-label="Открыть каталог категорий">
                       <i class="bi bi-grid-fill me-2"></i> Каталог
-                    </a>
-                    {% load mptt_tags %}
-                    <ul class="dropdown-menu p-0 header-dropdown-menu modern-dropdown" aria-labelledby="navbarDropdown">
-                      <li class="px-3 py-2">
-                        <ul class="list-unstyled mb-0" id="categories-tree">
-                          {% recursetree categories %}
-                            <li class="mb-1">
-                              <div class="d-flex align-items-center justify-content-between">
-                                <a 
-                                  href="{{ node.get_absolute_url }}" 
-                                  class="d-flex align-items-center text-decoration-none flex-grow-1 p-2 rounded hover-link"
-                                >
-                                  {{ node.name }}
-                                </a>
-                                {% if not node.is_leaf_node %}
-                                  <button 
-                                    class="btn btn-link ms-auto p-0 d-flex align-items-center text-dark"
-                                    data-bs-toggle="collapse" 
-                                    data-bs-target="#header-collapse-{{ node.id }}" 
-                                    aria-expanded="false"
-                                    aria-controls="header-collapse-{{ node.id }}"
-                                    onclick="event.stopPropagation();"
-                                  >
-                                    <i class="bi bi-chevron-right"></i>
-                                  </button>
-                                {% endif %}
-                              </div>
-                              {% if not node.is_leaf_node %}
-                                <ul class="children collapse list-unstyled ms-3" id="header-collapse-{{ node.id }}">
-                                  {{ children }}
-                                </ul>
-                              {% endif %}
-                            </li>
-                          {% endrecursetree %}
-                        </ul>
-                      </li>
-                    </ul>
+                    </button>
+                    <!-- Удален дропдаун с категориями из десктопа (теперь он в оффканвасе) -->
                   </li>
   
                   <li class="nav-item me-3">
@@ -244,10 +209,11 @@
                   <i class="bi bi-cart-fill me-2"></i> Корзина
                 </a>
               </li>
+              <!-- Изменено: В мобильной версии "Каталог" теперь тоже открывает оффканвас с категориями -->
               <li class="nav-item mb-2">
-                <a class="nav-link text-white" href="{% url 'home:search' %}">
-                  <i class="bi bi-search me-2"></i> Каталог
-                </a>
+                <button class="btn btn-link nav-link text-white" data-bs-toggle="offcanvas" data-bs-target="#catalogOffcanvas" aria-controls="catalogOffcanvas" aria-expanded="false" aria-label="Открыть каталог категорий">
+                  <i class="bi bi-grid-fill me-2"></i> Каталог
+                </button>
               </li>
               <li class="nav-item mb-2">
                 <a class="nav-link text-white" href="{% url 'home:news' %}">
@@ -272,10 +238,54 @@
             </ul>
           </div>
         </div>
+        
+        <!-- Новый оффканвас для каталога категорий -->
+        <div class="offcanvas offcanvas-start bg-light text-dark" tabindex="-1" id="catalogOffcanvas" aria-labelledby="catalogOffcanvasLabel">
+          <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="catalogOffcanvasLabel">Каталог</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+          </div>
+          <div class="offcanvas-body">
+            {% load mptt_tags %}
+            <!-- Дерево категорий, перенесенное из десктопного дропдауна -->
+            <ul class="list-unstyled" id="categories-tree">
+              {% recursetree categories %}
+                <li class="mb-2">
+                  <div class="d-flex align-items-center justify-content-between">
+                    <a 
+                      href="{{ node.get_absolute_url }}" 
+                      class="d-flex align-items-center text-decoration-none flex-grow-1 p-2 rounded hover-link text-dark"
+                    >
+                      {{ node.name }}
+                    </a>
+                    {% if not node.is_leaf_node %}
+                      <button 
+                        class="btn btn-link ms-auto p-0 d-flex align-items-center"
+                        data-bs-toggle="collapse" 
+                        data-bs-target="#offcanvas-collapse-{{ node.id }}" 
+                        aria-expanded="false"
+                        aria-controls="offcanvas-collapse-{{ node.id }}"
+                        onclick="event.stopPropagation();"
+                      >
+                        <i class="bi bi-chevron-right"></i> 
+                      </button>
+                    {% endif %}
+                  </div>
+                  {% if not node.is_leaf_node %}
+                    <ul class="children collapse list-unstyled ms-3" id="offcanvas-collapse-{{ node.id }}">
+                      {{ children }}
+                    </ul>
+                  {% endif %}
+                </li>
+              {% endrecursetree %}
+            </ul>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </div>
+
 
   <!-- Toast-контейнер для уведомлений (Bootstrap) -->
 <div class="toast-container position-fixed top-0 end-0 p-3">
