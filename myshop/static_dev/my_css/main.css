@@ -13,7 +13,7 @@
   hyphens: auto;
   color: black;
   transition: all 0.3s ease; /* Обновлённый transition */
-  padding: 8px 12px; /* Добавляем отступы для лучшего hover эффекта */
+  padding: 3px 12px; /* Добавляем отступы для лучшего hover эффекта */
 
   display: block; /* Чтобы hover работал на всю ширину */
   text-decoration: none; /* Убираем подчеркивание */
@@ -39,7 +39,7 @@
 
 /* Отступы и разделители между категориями */
 #categories-tree > li {
-  padding: 5px 0; /* Вертикальный отступ между категориями */
+  padding: 2px 0; /* Вертикальный отступ между категориями */
   border-bottom: 1px solid #f0f0f0; /* Тонкий разделитель */
 }
 
@@ -50,7 +50,7 @@
 /* Стили для активных элементов с улучшенными эффектами */
 #categories-tree .active {
   color: #007bff;
-  padding: 8px 12px;
+  padding: 3px 12px;
   background-color: rgba(0, 123, 255, 0.1); /* Фон для активного элемента */
 
   transition: all 0.3s ease;
@@ -108,7 +108,7 @@
 
 /* Улучшенные стили для вложенных списков */
 #categories-tree ul {
-  margin-left: 15px; /* Отступ для вложенных категорий */
+  margin-left: 10px; /* Отступ для вложенных категорий */
   padding-left: 0;
 }
 

@@ -1,3 +1,186 @@
+/*==========================sidebar sidebar-menu======================*/
+
+/* Стили для предотвращения выхода текста за рамки контейнера */
+#categories-tree a {
+  max-width: 100%;
+  width: 100%;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
+  white-space: normal;
+  flex-shrink: 1;
+  min-width: 0;
+  hyphens: auto;
+  color: black;
+  transition: all 0.3s ease; /* Обновлённый transition */
+  padding: 3px 12px; /* Добавляем отступы для лучшего hover эффекта */
+
+  display: block; /* Чтобы hover работал на всю ширину */
+  text-decoration: none; /* Убираем подчеркивание */
+}
+
+/* Hover для ссылок с новыми эффектами (ТОЛЬКО ДЛЯ ТЕКСТА КАТЕГОРИЙ) */
+#categories-tree a:hover {
+  color: #007bff !important; /* Синий акцент на hover */
+  background-color: rgba(0, 123, 255, 0.05); /* Легкий фон */
+  transform: translateY(-2px); /* Легкий lift-эффект */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Тень для глубины */
+}
+
+/* Анимация стрелки через aria-expanded (поворот на 90deg при раскрытии) */
+[aria-expanded="true"] .bi-chevron-right {
+  transform: rotate(90deg);
+}
+
+/* Плавный переход для стрелки */
+.bi-chevron-right {
+  transition: transform 0.2s ease-in-out;
+}
+
+/* Отступы и разделители между категориями */
+#categories-tree > li {
+  padding: 2px 0; /* Вертикальный отступ между категориями */
+  border-bottom: 1px solid #f0f0f0; /* Тонкий разделитель */
+}
+
+#categories-tree > li:last-child {
+  border-bottom: none; /* Убираем разделитель для последней категории */
+}
+
+/* Стили для активных элементов с улучшенными эффектами */
+#categories-tree .active {
+  color: #007bff;
+  padding: 3px 12px;
+  background-color: rgba(0, 123, 255, 0.1); /* Фон для активного элемента */
+
+  transition: all 0.3s ease;
+}
+
+/* Hover эффект для активных элементов */
+#categories-tree .active:hover {
+  background-color: rgba(0, 123, 255, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Стили для кнопки (БЕЗ hover эффектов) */
+#categories-tree button {
+  border: none;
+  padding: 8px 12px;
+  margin: 0;
+  color: black;
+  transition: color 0.2s ease-in-out; /* Только цвет */
+  background: transparent;
+
+  display: flex;
+  align-items: center;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+}
+
+/* Hover для кнопки (ТОЛЬКО изменение цвета стрелки) */
+#categories-tree button:hover {
+  color: #007bff; /* Только цвет текста, без других эффектов */
+  /* transform, box-shadow и background-color удалены */
+}
+
+/* Убираем hover эффекты для кнопок при наведении */
+#categories-tree button:hover {
+  background-color: transparent !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Стили для контейнера кнопки */
+#categories-tree .dropdown-toggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+/* Дополнительные стили для иконок стрелок */
+#categories-tree .bi-chevron-right {
+  margin-left: auto; /* Выравнивание стрелки вправо */
+  transition: transform 0.2s ease-in-out; /* Только трансформация */
+}
+
+/* Улучшенные стили для вложенных списков */
+#categories-tree ul {
+  margin-left: 10px; /* Отступ для вложенных категорий */
+  padding-left: 0;
+}
+
+#categories-tree ul li {
+  border-bottom: 1px solid #f8f9fa; /* Более светлый разделитель для вложенных */
+}
+
+#categories-tree ul li:last-child {
+  border-bottom: none;
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 768px) {
+  #categories-tree a {
+    padding: 10px 15px; /* Увеличиваем отступы для мобильных */
+  }
+  
+  /* Уменьшаем эффекты для мобильных */
+  #categories-tree a:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  #categories-tree button {
+    padding: 10px 15px;
+  }
+}
+
+
+/*==========================mega-menu-sidebar======================*/
+
+
+
+.nav-item .nav-link {
+  transition: all 0.3s ease;
+}
+  .nav-item .nav-link:hover {
+    color: #007bff !important; /* Синий акцент на hover (адаптируйте под тему) */
+    background-color: rgba(0, 123, 255, 0.05); /* Легкий фон */
+    transform: translateY(-2px); /* Легкий lift-эффект */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Тень для глубины */
+  }
+
+
+
+
+
+
+
+  
+/*==========================Custom with contact form======================*/
+
+/* Ограничиваем ширину только для конкретных полей по их имени */
+input[name="first_name"],
+input[name="email"], 
+input[name="phone"],
+textarea[name="content"] {
+    max-width: 400px !important;
+    width: 100% !important;
+}
+
+textarea[name="content"] {
+    max-width: 600px !important;
+}
+
+/* Поле captcha останется без ограничений */
+
+
+
+
+
+
 /*==========================Home Page======================*/
 
 img {
@@ -773,10 +956,13 @@ section{
 .product-img-td a{
   text-decoration: none;
   display: block; 
+  color: black;
 }
 
 .product-img-td a:hover{
-  text-decoration: underline;
+  color: dodgerblue;
+  text-decoration: none;
+  transition: color 0.2s ease-in-out; /* Для плавного изменения цвета */`
 }
 
 
@@ -882,6 +1068,20 @@ textarea{
 /* .table td {
   overflow-wrap: anywhere;
 } */
+
+
+.card-link {
+  text-decoration: none; /* Убирает подчеркивание */
+  color: inherit;        /* Наследует цвет текста от родителя */
+  display: block;        /* Занимает всю площадь карточки */
+}
+
+.card-link:hover {
+  text-decoration: none; /* Убирает подчеркивание при наведении */
+  /* Добавьте любые другие стили при наведении, например, изменение цвета фона */
+  background-color: #f0f0f0;
+}
+
 
 .page-detail-order a {
   text-decoration: none;

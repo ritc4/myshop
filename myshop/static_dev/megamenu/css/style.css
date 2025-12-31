@@ -161,7 +161,7 @@ Screen style's
     display: none; /* Скрыто по умолчанию */
     width: 100%;
     background: #ffffff; /* Белый фон для дропдауна */
-    padding: 20px;
+    padding: 5px;
     position: absolute;
     z-index: 99;
     left: 0;
@@ -199,7 +199,7 @@ Screen style's
 
 .menu > ul > li > ul > li a {
     color: #000000; /* Чёрный текст в дропдаунах */
-    padding: .8em 1em; /* Увеличили отступы */
+    padding: .6em 1em; /* Увеличили отступы */
     width: 95%;
     display: block;
     border-bottom: 1px solid #f0f0f0; /* Более светлый разделитель */
@@ -229,7 +229,7 @@ Screen style's
 .menu > ul > li > ul > li > ul {
     display: none; /* Скрыто по умолчанию - подкатегории */
     padding: 0;
-    margin: 10px 0 0;
+    margin: 2px 0 0;
     list-style: none;
     box-sizing: border-box;
 }
@@ -260,7 +260,7 @@ Screen style's
 .menu > ul > li > ul > li > ul > li a {
     border: 0;
     color: #000000; /* Чёрный текст для вложенных элементов */
-    padding: .6em 1em;
+    padding: .3em 1em;
     border-radius: 3px;
 }
 
@@ -268,8 +268,12 @@ Screen style's
 .menu > ul > li > ul > li > ul > li a:hover {
     color: #007bff !important;
     background-color: rgba(0, 123, 255, 0.03);
-    transform: translateX(3px);
+    transform: translateX(2px);
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.menu > ul > li > ul > li > ul > li {
+    padding: 2px 0 !important; /* Было 8px 0 — уменьшили вдвое, чтобы не было пустоты */
 }
 
 .menu > ul > li > ul > li > ul > li:hover {
