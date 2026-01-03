@@ -277,6 +277,14 @@ class NewsListView(ListView):
     context_object_name = "news"  # Имя контекста для списка новостей
     extra_context = {"title": "Новости"}
 
+
+    def get_queryset(self):
+        """
+        Переопределяем этот метод, чтобы установить порядок выдачи новостей.
+        `-created` означает сортировку по убыванию даты создания.
+        """
+        return News.objects.all().order_by('-created')
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 

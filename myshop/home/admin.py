@@ -13,6 +13,8 @@ from django.shortcuts import render
 from django.urls import path, reverse
 from django.utils.decorators import method_decorator
 from django.utils.safestring import mark_safe
+from django.db.models import Max
+from django.shortcuts import redirect
 
 from django.contrib.admin.widgets import ForeignKeyRawIdWidget 
 from django.urls.exceptions import NoReverseMatch
@@ -158,7 +160,7 @@ class ProductAdmin(admin.ModelAdmin):
     list_editable = ['is_hidden','mesto']
     actions = ['hide_products', 'show_products','duplicate_product','change_category','bulk_update_prices'] 
     list_display_links=['get_image','title',]
-    ordering = ['created']
+    ordering = ['-created']
 
 
     def display_description(self, obj):
@@ -243,37 +245,102 @@ class ProductAdmin(admin.ModelAdmin):
 
     
 
+    # def duplicate_product(self, request, queryset):
+    #     for product in queryset:
+    #         # print(f"Дублируем продукт: {product.title}")
+    #         try:
+    #             # Получаем цены для исходного продукта
+    #             prices = product.product_prices.all()
+    #             # print(f"Количество цен для исходного продукта {product.title}: {prices.count()}")
+
+    #             # Создаем новый продукт
+    #             new_product = product
+    #             new_product.pk = None  # Сбрасываем первичный ключ
+    #             new_product.title = f"{product.title}"
+    #             new_product.slug = self.generate_unique_slug(product.title, self.generate_unique_article_number(product.article_number))
+    #             new_product.article_number = self.generate_unique_article_number(product.article_number)
+    #             new_product.save()
+    #             # print(f"Создан новый продукт: {new_product.title} с slug: {new_product.slug} и article_number: {new_product.article_number}")
+
+    #             # Копируем цены из исходного продукта
+    #             for price in prices:
+    #                 # print(f"Копируем цену: {price.price} для размера: {price.size.title}")
+    #                 new_price = ProductPrice()  # Создаем новый объект цены
+    #                 new_price.price = price.price  # Копируем цену
+    #                 new_price.size = price.size  # Копируем размер
+    #                 new_price.zacup_price = price.zacup_price  # Копируем zacup_price
+    #                 new_price.old_price = price.old_price  # Копируем old_price
+    #                 new_price.product = new_product  # Привязываем цену к новому продукту
+    #                 new_price.save()  # Сохраняем новый объект
+    #                 # print(f"Создана новая цена: {new_price.price} для продукта: {new_product.title} с размером: {new_price.size.title}")
+
+    #         except Exception as e:
+    #             print(f"Ошибка при дублировании продукта {product.title}: {e}")
+
+    # def generate_unique_slug(self, title, article_number):
+    #     base_slug = slugify(f"{title}-{article_number}")  # Создаем базовый slug
+    #     unique_slug = base_slug
+    #     counter = 1
+    #     while Product.objects.filter(slug=unique_slug).exists():  # Проверяем на уникальность
+    #         unique_slug = f"{base_slug}-{counter}"  # Добавляем счетчик, если slug уже существует
+    #         counter += 1
+    #     return unique_slug
+
+    # def generate_unique_article_number(self, article_number):
+    #     # Преобразуем article_number в строку, чтобы избежать проблем с нечисловыми значениями
+    #     base_article_number = int(article_number)  # Приводим к числу
+    #     unique_article_number = base_article_number
+    #     counter = 1
+    #     while Product.objects.filter(article_number=unique_article_number).exists():  # Проверяем на уникальность
+    #         unique_article_number = base_article_number + counter  # Добавляем счетчик как число
+    #         counter += 1
+    #     return unique_article_number
+
+    # duplicate_product.short_description = "Скопировать выбранные товары"
+
+
+
     def duplicate_product(self, request, queryset):
         for product in queryset:
-            # print(f"Дублируем продукт: {product.title}")
             try:
                 # Получаем цены для исходного продукта
                 prices = product.product_prices.all()
-                # print(f"Количество цен для исходного продукта {product.title}: {prices.count()}")
 
                 # Создаем новый продукт
                 new_product = product
                 new_product.pk = None  # Сбрасываем первичный ключ
                 new_product.title = f"{product.title}"
-                new_product.slug = self.generate_unique_slug(product.title, self.generate_unique_article_number(product.article_number))
-                new_product.article_number = self.generate_unique_article_number(product.article_number)
+
+                # Получаем следующий уникальный номер артикула
+                new_article_number = self.generate_unique_article_number()
+                new_product.article_number = new_article_number
+
+                new_product.slug = self.generate_unique_slug(product.title, new_article_number)
                 new_product.save()
-                # print(f"Создан новый продукт: {new_product.title} с slug: {new_product.slug} и article_number: {new_product.article_number}")
 
                 # Копируем цены из исходного продукта
                 for price in prices:
-                    # print(f"Копируем цену: {price.price} для размера: {price.size.title}")
-                    new_price = ProductPrice()  # Создаем новый объект цены
-                    new_price.price = price.price  # Копируем цену
-                    new_price.size = price.size  # Копируем размер
-                    new_price.zacup_price = price.zacup_price  # Копируем zacup_price
-                    new_price.old_price = price.old_price  # Копируем old_price
-                    new_price.product = new_product  # Привязываем цену к новому продукту
-                    new_price.save()  # Сохраняем новый объект
-                    # print(f"Создана новая цена: {new_price.price} для продукта: {new_product.title} с размером: {new_price.size.title}")
+                    new_price = ProductPrice.objects.create(
+                        price=price.price,
+                        size=price.size,
+                        zacup_price=price.zacup_price,
+                        old_price=price.old_price,
+                        product=new_product
+                    )
+
+                self.message_user(request, f"Продукт {product.title} успешно скопирован в {new_product.title}.", level=messages.SUCCESS)
+
+
+                # После успешного дублирования перенаправляем на страницу изменений нового продукта,
+                # используя ID НОВОГО продукта
+                url = f'/rws!-cozy-admin/home/product/{new_product.id}/change/' # Замените 'your_app' на имя вашего приложения
+                return redirect(url)
 
             except Exception as e:
-                print(f"Ошибка при дублировании продукта {product.title}: {e}")
+                self.message_user(request, f"Ошибка при дублировании продукта {product.title}: {e}", level=messages.ERROR)
+
+
+    duplicate_product.short_description = "Скопировать выбранные товары"
 
     def generate_unique_slug(self, title, article_number):
         base_slug = slugify(f"{title}-{article_number}")  # Создаем базовый slug
@@ -284,17 +351,15 @@ class ProductAdmin(admin.ModelAdmin):
             counter += 1
         return unique_slug
 
-    def generate_unique_article_number(self, article_number):
-        # Преобразуем article_number в строку, чтобы избежать проблем с нечисловыми значениями
-        base_article_number = int(article_number)  # Приводим к числу
-        unique_article_number = base_article_number
-        counter = 1
-        while Product.objects.filter(article_number=unique_article_number).exists():  # Проверяем на уникальность
-            unique_article_number = base_article_number + counter  # Добавляем счетчик как число
-            counter += 1
-        return unique_article_number
+    def generate_unique_article_number(self):
+        """Генерирует уникальный article_number на основе последнего в базе данных."""
+        last_article_number = Product.objects.aggregate(Max('article_number'))['article_number__max']
+        if last_article_number is None:
+            return 1  # Если нет ни одного продукта, начинаем с 1
+        else:
+            return last_article_number + 1
 
-    duplicate_product.short_description = "Скопировать выбранные товары"
+
 
 
     def hide_products(self, request, queryset):

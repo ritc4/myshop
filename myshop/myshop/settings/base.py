@@ -129,6 +129,8 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'cart.context_processors.cart',
                 'home.context_processors.categories_processor',
+                'home.context_processors.email',
+                'home.context_processors.admin_phone',
             ],
         },
     },
@@ -137,6 +139,9 @@ TEMPLATES = [
 WSGI_APPLICATION = 'myshop.wsgi.application'
 
 
+# Админский email для уведомлений (используется в задачах, например, для BCC)
+ADMIN_EMAIL = config('ADMIN_EMAIL', default='ccozy@yandex.ru')
+ADMIN_PHONE = config('ADMIN_PHONE', default='')
 
 
 # Password validation

@@ -5,17 +5,17 @@
 
 {% block content %}
 
-<div id="carousel" class="carousel slide" data-bs-ride="carousel">
+<div id="carousel" class="carousel slide bg-white" data-bs-ride="carousel">
   <div class="carousel-inner">
     {% if slider_image %}
       {% for i in slider_image %}
         <div class="carousel-item {% if forloop.first %}active{% endif %}">
-          <img src="{{ i.image.url }}" class="d-block w-100" alt="Slide {{ forloop.counter }}"/>
+          <img src="{{ i.image.url }}" class="d-block mx-auto" alt="Slide {{ forloop.counter }}"/>
         </div>
       {% endfor %}
     {% else %}
       <div class="carousel-item active">
-        <img src="{% static 'img/no_image.png' %}" class="d-block w-100" alt="Default Image" />
+        <img src="{% static 'img/no_image.png' %}" class="d-block mx-auto" alt="Default Image" />
       </div>
     {% endif %}
   </div>
@@ -160,16 +160,12 @@
 
 <section class="about-us" id="about">
   <div class="container-fluid">
-    <div class="row mb-5">
-      <div class="col-12">
-        <h2 class="section-title">
-          <span>О нас</span>
-        </h2>
-      </div>
-    </div>
     <div class="row">
       <div class="col-12">
-        <p>Оптовая компания Cozy предлагает сотрудничество в сфере реализации товаров для дома и одежды для всей семьи, сделанной в Турции, России и Китае. Мы предлагаем самые низкие цены в Интернете.</p>
+        <h2 class="section-title">
+            <span>О нас</span>
+        </h2>
+        <p>Оптовая компания Cozy предлагает сотрудничество в сфере реализации качественной одежды, сделанной в Турции, России и Китае. Мы предлагаем самые низкие цены в Интернете на модную одежду. Основное направление Cozy -  одежда для активного отдыха: спортивные костюмы, толстовки, футболки, майки и т.д. Самые модные новинки сезона {% now "Y" %} только у нас!</p>
       </div>
     </div>
   </div>

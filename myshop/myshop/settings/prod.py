@@ -37,8 +37,7 @@ EMAIL_PORT = 465
 EMAIL_USE_SSL = True
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
 
-# Админский email для уведомлений (используется в задачах, например, для BCC)
-ADMIN_EMAIL = config('ADMIN_EMAIL', default='ccozy@yandex.ru')
+
 
 
 # В prod.py (после импорта из base)

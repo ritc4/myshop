@@ -289,7 +289,7 @@ class ImageSliderHome(models.Model):
     )
     
     def __str__(self):
-        return f"{self.image}"
+        return f"{self.image}" 
 
 
     class Meta:

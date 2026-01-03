@@ -402,6 +402,8 @@ section{
   margin: 0;
 }
 
+
+
         
 /*==========================Header media======================*/
 @media (max-width: 575.98px) {
@@ -655,10 +657,9 @@ section{
 
 
 .about-us p {
-  font-weight: bold;
   overflow: hidden;
   color: black;
-  font-size: 25px;
+  font-size: 18px;
 }
 
 /*==========================Catalog category product======================*/
@@ -1177,5 +1178,5 @@ textarea{
 .notification-alert.alert-success {
   background-color: #d4edda;
   border: 1px solid #c3e6cb;
-  color: #155724;
+  color: #155724; 
 }
