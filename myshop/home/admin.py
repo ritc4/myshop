@@ -153,13 +153,13 @@ class BulkUpdatePricesForm(forms.Form):
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     inlines = [ProductImageInline, ProductPriceInline]  # Подключаем инлайн для изображений
-    list_display = ('get_image','title', 'article_number','stock','display_description','display_price','display_zacup_price','display_old_price', 'unit','is_hidden','category','mesto')  # Отображение полей продукта в админке
+    list_display = ('get_image', 'title', 'article_number', 'stock', 'display_description', 'display_price', 'display_zacup_price', 'display_old_price', 'mesto', 'is_hidden', 'category', 'unit')  # Отображение полей продукта в админке
     list_filter = ('is_hidden','category','created','updated','mesto')
     prepopulated_fields = {'slug':('title','article_number',)}
     search_fields = ['title','article_number','description',]  # Позволяет искать продукты по названию
     list_editable = ['is_hidden','mesto']
     actions = ['hide_products', 'show_products','duplicate_product','change_category','bulk_update_prices'] 
-    list_display_links=['get_image','title',]
+    list_display_links = ['get_image','title',]
     ordering = ['-created']
 
 
@@ -352,12 +352,14 @@ class ProductAdmin(admin.ModelAdmin):
         return unique_slug
 
     def generate_unique_article_number(self):
-        """Генерирует уникальный article_number на основе последнего в базе данных."""
-        last_article_number = Product.objects.aggregate(Max('article_number'))['article_number__max']
-        if last_article_number is None:
-            return 1  # Если нет ни одного продукта, начинаем с 1
+        """Генерирует новый article_number, основываясь на последнем добавленном товаре по дате добавления."""
+        # Получаем последний товар по дате добавления
+        last_product = Product.objects.order_by('-created').first()
+
+        if last_product and last_product.article_number:
+            return last_product.article_number + 1
         else:
-            return last_article_number + 1
+            return 1  # если товаров нет, начинаем с 1
 
 
 

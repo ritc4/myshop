@@ -128,7 +128,7 @@ class ProductListView(ListView):
         elif sort_by == "-min_price":
             products = products.order_by("-min_price")
         else:
-            products = products.order_by("created")
+            products = products.order_by("-created")
 
         return products
 

@@ -136,7 +136,7 @@ class Product(models.Model):
     stock = models.IntegerField(default=100, validators=[MinValueValidator(0)],verbose_name='Остаток',db_index=True)  # Остаток товара в штуках
     unit = models.CharField(max_length=10, default='шт',verbose_name='Единица измерения',db_index=True)  # Единица измерения, по умолчанию 'шт'
     is_hidden = models.BooleanField(default=False,verbose_name='Скрыть товар',db_index=True)  # Поле для скрытия товара
-    mesto = models.CharField(max_length=20,blank=True,null=True,verbose_name='Место',db_index=True)
+    mesto = models.CharField(max_length=100,blank=True,null=True,verbose_name='Место',db_index=True)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     slug = models.SlugField(max_length=200, unique=True)  # Поле slug
@@ -289,7 +289,7 @@ class ImageSliderHome(models.Model):
     )
     
     def __str__(self):
-        return f"{self.image}" 
+        return f"{self.image}"
 
 
     class Meta:
