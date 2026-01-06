@@ -51,39 +51,49 @@ document.querySelectorAll('.closecart').forEach(item =>{
 
 
 
-/* Показываем дополнительный блок доставки товара*/
-$(document).ready(function () {
-  // Функция для переключения дополнительных полей доставки
-  window.toggleAdditionalCol = function() { // Определяем функцию в глобальной области видимости
-    var $select = $('#shipmethod'); // Получаем элемент select
-    var $postalCodeCol = $('#postalCodeCol'); // Получаем блок postal_code
-    var $passportNumberCol = $('#passportNumberCol'); // Получаем блок passport_number
-    var $postalCodeInput = $('#postal_code'); // Получаем поле ввода postal_code
-    var $passportNumberInput = $('#passport_number'); // Получаем поле ввода passport_number
 
-    // Получаем текст выбранного метода доставки
-    var selectedText = $select.find('option:selected').text();
 
-    // Проверяем, выбран ли способ доставки "Почта"
-    if (selectedText === "Почта") { 
-      $postalCodeCol.show(); // Показываем блок postal_code
-      $passportNumberCol.hide(); // Скрываем блок passport_number
-      $postalCodeInput.attr('required', 'required'); // Устанавливаем поле postal_code обязательным
-      $passportNumberInput.removeAttr('required'); // Убираем обязательность для passport_number
-    } else {
-      $postalCodeCol.hide(); // Скрываем блок postal_code
-      $passportNumberCol.hide(); // Скрываем блок passport_number
-      $postalCodeInput.removeAttr('required'); // Убираем обязательность для postal_code
-      $passportNumberInput.removeAttr('required'); // Убираем обязательность для passport_number
-    }
-  };
+// /* Показываем дополнительный блок доставки товара*/ ещё один рабочий
+// function toggleAdditionalCol() {
+//   var selectedValue = $('#shipmethod').val(); // string или число
 
-  // Вызываем функцию при загрузке страницы
-  toggleAdditionalCol(); // Вызываем функцию при загрузке страницы
+//   if (selectedValue === "2") {
+//     // Почта - показываем почтовый индекс, скрываем паспорт
+//     $('#postalCodeCol').show();
+//     $('#passportNumberCol').hide();
+//     $('#postal_code').attr('required', 'required');
+//     $('#passport_number').removeAttr('required');
+//   } else if (selectedValue === "3") {
+//     // ТК Энергия - показываем паспорт, скрываем почтовый индекс
+//     $('#passportNumberCol').show();
+//     $('#postalCodeCol').hide();
+//     $('#passport_number').attr('required', 'required');
+//     $('#postal_code').removeAttr('required');
+//   } else {
+//     // Остальные случаи — скрыть оба
+//     $('#postalCodeCol, #passportNumberCol').hide();
+//     $('#postal_code, #passport_number').removeAttr('required');
+//   }
+// }
 
-  // Обработчик изменения для select метода доставки
-  $('#shipmethod').change(toggleAdditionalCol); // Обновляем поля при изменении метода доставки
-});
+// /* Показываем дополнительный блок доставки товара*/ ещё один рабочий
+function toggleAdditionalCol() {
+  var selectedValue = $('#shipmethod').val();
+
+  if (selectedValue === "2") {
+    $('#postalCodeCol').show();
+    $('#passportNumberCol').hide();
+    $('#postal_code').attr('required', 'required');
+    $('#passport_number').removeAttr('required');
+  } else {
+    $('#postalCodeCol, #passportNumberCol').hide();
+    $('#postal_code, #passport_number').removeAttr('required');
+  }
+}
+
+
+
+
 
 
 

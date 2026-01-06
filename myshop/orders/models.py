@@ -21,7 +21,7 @@ class DeliveryMethod(models.Model):
 
 
 
-class Order(models.Model):
+class Order(models.Model): 
 
     STATUS_CHOICES = [
         ('new', 'Новый'),
@@ -53,6 +53,8 @@ class Order(models.Model):
     postal_code = models.CharField(
         max_length=6,
         verbose_name="Почтовый индекс",
+        blank=True,
+        null=True,
         validators=[
             RegexValidator(
                 regex=r'^\d{6}$',  # Регулярное выражение для ровно 6 цифр
