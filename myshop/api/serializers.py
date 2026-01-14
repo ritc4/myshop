@@ -265,9 +265,9 @@ class OrderItemSerializer(serializers.ModelSerializer):
     def get_zacup_price(self, obj):
         # Обеспечиваем, что всегда возвращается число (float), а не None
         if obj.zacup_price_snapshot is not None:
-            return float(obj.zacup_price_snapshot)  # Возвращаем как float для API (например, 650.0)
+            return int(obj.zacup_price_snapshot)  # Возвращаем как float для API (например, 650.0)
         elif obj.product_price and obj.product_price.zacup_price is not None:
-            return float(obj.product_price.zacup_price)
+            return int(obj.product_price.zacup_price)
         return 0.0  # Default к 0.0 если нет цены
 
     def get_product_total_cost(self, obj):
@@ -303,7 +303,12 @@ class OrderItemSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'product_price_id', 'product_title', 'product_article', 'size_title',
             'price', 'quantity','zacup_price', 'product_mesto', 'product_images',
-            'product_total_cost', 'product_total_zacup_price'  # Добавлено новое поле
+            'product_total_cost', 'product_total_zacup_price',
+            # склад
+            'picked_quantity',
+            'picked_zacup_price',
+            'picked_comment',
+            'is_picked',  
         ]
         read_only_fields = [
             'id', 'product_title', 'product_article', 'size_title', 'zacup_price',
@@ -320,14 +325,19 @@ class OrderItemSerializer(serializers.ModelSerializer):
                 # Другие проверки: availability, stock и т.д.
             except ProductPrice.DoesNotExist:
                 raise serializers.ValidationError("Цена для данного товара и размера не найдена.")
-        return data
+        return data 
 
 class OrderSerializer(serializers.ModelSerializer):
-    items = OrderItemSerializer(many=True, required=False)  # Вложенные items для чтения/обновления
+    items = OrderItemSerializer(many=True, required=False, read_only=True)  # Вложенные items для чтения/обновления
     delivery_method_title = serializers.CharField(source='delivery_method.title', read_only=True)
     discount_title = serializers.SerializerMethodField()  # Убрали дублирование (было CharField); оставили как метод для гибкости
     status = serializers.SerializerMethodField()
     get_total_zakup_cost = serializers.SerializerMethodField()  # Добавлено для расчета общей закупной стоимости
+
+    # read‑only поля для отображения посредника
+    assigned_to_id = serializers.IntegerField(source='assigned_to.id', read_only=True)
+    assigned_to_username = serializers.CharField(source='assigned_to.username', read_only=True)
+    assigned_to_full_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
@@ -336,10 +346,26 @@ class OrderSerializer(serializers.ModelSerializer):
             'passport_number', 'comment', 'my_comment', 'created', 'updated', 'paid', 'zamena_product',
             'strahovat_gruz', 'soglasie_na_obrabotku_danyh', 'soglasie_na_uslovie_sotrudnichestva',
             'status', 'delivery_method_title', 'price_delivery', 'discount_title',
-            'items', 'get_total_cost', 'get_total_zakup_cost'  # Добавлено поле
+            'items', 'get_total_cost', 'get_total_zakup_cost','assigned_to_id',
+            'assigned_to_username',
+            'assigned_to_full_name',
         ]
         read_only_fields = ['id', 'created', 'updated', 'get_total_cost', 'get_total_zakup_cost']  # Добавлено в read_only, так как вычисляется динамически
 
+
+    def get_assigned_to_full_name(self, obj):
+        """
+        Собираем красивое ФИО посредника.
+        Если first_name/last_name пустые — возвращаем username.
+        Если assigned_to = None — возвращаем None.
+        """
+        if not obj.assigned_to:
+            return None
+        full = f"{obj.assigned_to.first_name} {obj.assigned_to.last_name}".strip()
+        return full or obj.assigned_to.username
+    
+    
+    
     def get_discount_title(self, obj):
         if obj.discount:
             if obj.discount.discount_type == 'amount':
@@ -391,3 +417,17 @@ class OrderSerializer(serializers.ModelSerializer):
 
     def get_status(self, obj):
         return obj.get_status_display()
+    
+
+
+
+class OrderItemPickingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrderItem
+        fields = [
+            'id',
+            'picked_quantity',
+            'picked_zacup_price',
+            'picked_comment',
+            'is_picked',
+        ] 

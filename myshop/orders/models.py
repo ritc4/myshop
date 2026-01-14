@@ -6,6 +6,7 @@ from django.core.validators import RegexValidator
 from django.urls import reverse_lazy
 from django.core.validators import MinValueValidator
 from django.core.exceptions import ValidationError
+from django.conf import settings
 
 
 class DeliveryMethod(models.Model):
@@ -84,14 +85,17 @@ class Order(models.Model):
     delivery_method = models.ForeignKey(DeliveryMethod,blank=False,on_delete=models.SET_NULL, null=True, verbose_name="Способ доставки", db_index=True,limit_choices_to={'is_hidden': False})
     price_delivery = models.DecimalField(max_digits=10,decimal_places=0,blank=True,null=True, verbose_name="Цена доставки", db_index=True)
     discount = models.ForeignKey('Discount', on_delete=models.SET_NULL, blank=True, null=True, verbose_name="Скидка", db_index=True,limit_choices_to={'is_hidden': False})
+    # НОВОЕ ПОЛЕ: кому назначен заказ (сборщик/посредник)
+    assigned_to = models.ForeignKey(settings.AUTH_USER_MODEL,related_name='assigned_orders',null=True,blank=True,on_delete=models.SET_NULL,verbose_name="Назначено (посредник/сборщик)",db_index=True,)
 
 
     class Meta:
         verbose_name = 'Заказ'
         verbose_name_plural = 'Заказы'
-        ordering = ['-created'] 
+        ordering = ['-created']
         indexes = [
-            models.Index(fields=['-created']), 
+            models.Index(fields=['-created']),
+            models.Index(fields=['status', 'assigned_to']),
         ]
     
     def __str__(self):
@@ -165,6 +169,13 @@ class OrderItem(models.Model):
     is_price_custom = models.BooleanField(default=False, verbose_name="Редактировать цену")
 
 
+    # что фактически собрали, информация по сборке товара от склада
+    picked_quantity = models.PositiveIntegerField(blank=True, null=True,verbose_name="Фактическое количество (склад)", db_index=True)
+    picked_zacup_price = models.DecimalField(max_digits=10, decimal_places=0,blank=True, null=True,verbose_name="Фактическая цена (склад)", db_index=True)
+    picked_comment = models.CharField(max_length=255,blank=True,null=True,verbose_name="Комментарий склада",db_index=True,)
+    is_picked = models.BooleanField(default=False,verbose_name="Позиция собрана (склад)", db_index=True)
+
+
     def save(self, *args, **kwargs):
         if self.product_price and not self.is_price_custom:
             self.price = self.product_price.price
@@ -178,8 +189,19 @@ class OrderItem(models.Model):
         super().save(*args, **kwargs)
 
         
+    # def __str__(self):
+    #     return f"{self.product_price.product.title, self.product_price.product.id if self.product_price else 'Товар удалён или в архиве'}" 
+
+
     def __str__(self):
-        return f"{self.product_price.product.title if self.product_price else 'Товар удалён или в архиве'}" 
+        try:
+            title = self.product_price.product.title
+            product_id = self.product_price.product.id
+            return f"ID: {product_id}, Название: {title}"
+        except AttributeError:
+            return "Товар удалён или в архиве"
+
+
 
     def get_cost(self):
         if self.price is not None and self.quantity is not None:
@@ -202,6 +224,7 @@ class OrderItem(models.Model):
         verbose_name = 'Заказанный товар'
         verbose_name_plural = 'Заказанные товары'
         unique_together = ['order', 'product_price']
+        ordering = ['id']
         indexes = [
             models.Index(fields=['order', 'product_price'], name='orderitem_order_prodprice_idx'),
             models.Index(fields=['product_snapshot']),

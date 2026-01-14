@@ -1,6 +1,6 @@
 from rest_framework import generics
 from rest_framework.filters import SearchFilter, OrderingFilter
-from .serializers import ProductSerializer, CategorySerializer, OrderSerializer
+from .serializers import ProductSerializer, CategorySerializer, OrderSerializer, OrderItemPickingSerializer
 from .pagination import StandardPagination
 from home.models import Product, Category, ProductPrice, Size, ProductImage  # Добавлен ProductImage
 from orders.models import Order, OrderItem  # Добавлен OrderItem для работы с snapshots в заказах
@@ -14,6 +14,11 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import MultiPartParser, JSONParser, FormParser  # Добавлено для обработки файлов
 import json
 from .permissions import IsAdminOrAuthenticatedReadOnly, OrderPermission
+from rest_framework import status as drf_status
+from django.contrib.auth import get_user_model
+
+
+User = get_user_model()
 
 class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = CategorySerializer
@@ -51,12 +56,65 @@ class OrderViewSet(viewsets.ModelViewSet):
     search_fields = ['id', 'first_name_last_name', 'address', 'status', 'email', 'phone']
     ordering = ['-created']
 
+    # def get_queryset(self):
+    #     qs = super().get_queryset()
+    #     user = self.request.user
+    #     if not user.is_staff:
+    #         qs = qs.filter(email=user.email)  # Фильтр для не-админов: только свои заказы
+    #     return qs
+
+
+    # def get_queryset(self):
+    #     qs = super().get_queryset()
+    #     user = self.request.user
+    #     status_param = self.request.query_params.get('status')
+
+    #     # Админ: все заказы
+    #     if user.is_staff:
+    #         if status_param:
+    #             qs = qs.filter(status=status_param)
+    #         return qs
+
+    #     # Сборщик: по умолчанию только 'obrabotka'
+    #     if getattr(user, 'is_picker', False):
+    #         return qs.filter(status='obrabotka')
+
+
+    #     # Обычный пользователь: только свои заказы
+    #     qs = qs.filter(email=user.email)
+    #     if status_param:
+    #         qs = qs.filter(status=status_param)
+    #     return qs
+
+
+
     def get_queryset(self):
         qs = super().get_queryset()
         user = self.request.user
-        if not user.is_staff:
-            qs = qs.filter(email=user.email)  # Фильтр для не-админов: только свои заказы
+        status_param = self.request.query_params.get('status')
+
+        # Админ: все заказы
+        if user.is_staff:
+            if status_param:
+                qs = qs.filter(status=status_param)
+            return qs
+
+        # Сборщик: только свои назначенные заказы, обычно со статусом 'obrabotka'
+        if getattr(user, 'is_picker', False):
+            qs = qs.filter(assigned_to=user)
+            if status_param:
+                qs = qs.filter(status=status_param)
+            else:
+                qs = qs.filter(status='obrabotka')  # по умолчанию только "в обработке"
+            return qs
+
+        # Обычный пользователь: только свои заказы по email
+        qs = qs.filter(email=user.email)
+        if status_param:
+            qs = qs.filter(status=status_param)
         return qs
+    
+    
 
     def get_serializer_context(self):
         # Удалена логика order_snapshots: snapshots теперь в полях OrderItem
@@ -308,3 +366,160 @@ class DeleteOrderView(APIView):
             return Response({"message": "Заказ удален"}, status=status.HTTP_204_NO_CONTENT)
         except Exception as e:
             return Response({"error": f"Ошибка при удалении заказа: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+class UpdateOrderItemPickingView(APIView):
+    """
+    Обновление складских полей по одной позиции заказа.
+    Доступ: админ или посредник (is_picker).
+    Также учитывается OrderPermission: сборщик видит только 'obrabotka'. 
+    """
+    permission_classes = [IsAuthenticated]  # базовая проверка 
+
+    def post(self, request, order_id, item_id):
+        # Сначала достаём заказ с учётом вашей логики доступа
+        order = get_object_or_404(Order.objects.all(), pk=order_id)
+
+        # Дополнительно прогоняем через OrderPermission, как в вьюсете
+        perm = OrderPermission()
+        if not perm.has_permission(request, self) or not perm.has_object_permission(request, self, order):
+            return Response(
+                {"detail": "Недостаточно прав для доступа к заказу."},
+                status=drf_status.HTTP_403_FORBIDDEN
+            )
+
+        user = request.user
+        # Разрешаем изменять только админу или посреднику
+        if not (user.is_staff or getattr(user, 'is_picker', False)):
+            return Response(
+                {"detail": "Недостаточно прав для изменения позиций заказа."},
+                status=drf_status.HTTP_403_FORBIDDEN
+            )
+
+        # Ищем нужную позицию в этом заказе
+        try:
+            item = order.items.get(pk=item_id)
+        except OrderItem.DoesNotExist:
+            return Response(
+                {"detail": "Позиция не найдена в этом заказе."},
+                status=drf_status.HTTP_404_NOT_FOUND
+            )
+
+        serializer = OrderItemPickingSerializer(
+            item,
+            data=request.data,
+            partial=True,  # можно передавать только нужные поля
+        )
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=drf_status.HTTP_200_OK)
+        return Response(serializer.errors, status=drf_status.HTTP_400_BAD_REQUEST)
+    
+
+
+
+class AssignOrderToPickerView(APIView):
+    """
+    Назначить заказ конкретному сборщику (picker).
+    Доступ: только staff / admin.
+    POST /api/v1/order//assign/
+    Body: {"picker_id": 7}
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, order_id):
+        user = request.user
+
+        # только staff/admin
+        if not user.is_staff:
+            return Response(
+                {"detail": "Нет прав назначать заказы."},
+                status=drf_status.HTTP_403_FORBIDDEN
+            )
+
+        # находим заказ
+        order = get_object_or_404(Order.objects.all(), pk=order_id)
+
+        picker_id = request.data.get('picker_id')
+        if not picker_id:
+            return Response(
+                {"detail": "Нужно передать picker_id."},
+                status=drf_status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            picker = User.objects.get(pk=picker_id, is_picker=True)
+        except User.DoesNotExist:
+            return Response(
+                {"detail": "Сборщик с таким id не найден или не является сборщиком."},
+                status=drf_status.HTTP_400_BAD_REQUEST
+            )
+
+        order.assigned_to = picker
+        # по желанию: сразу переводим в статус 'obrabotka'
+        if order.status == 'new':
+            order.status = 'obrabotka'
+        # order.save(update_fields=['assigned_to', 'status'])
+        order.save(update_fields=['assigned_to'])
+
+        return Response(
+            {"detail": f"Заказ назначен пользователю {picker.username}."},
+            status=drf_status.HTTP_200_OK
+        )
+    
+
+
+class TakeOrderView(APIView):
+    """
+    Сборщик сам берет себе свободный заказ.
+    POST /api/v1/order//take/
+    Доступ: только is_picker, плюс проверка OrderPermission.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, order_id):
+        user = request.user
+
+        # только сборщик
+        if not getattr(user, 'is_picker', False):
+            return Response(
+                {"detail": "Только посредник/сборщик может брать заказы в работу."},
+                status=drf_status.HTTP_403_FORBIDDEN
+            )
+
+        # достаём заказ
+        order = get_object_or_404(Order.objects.all(), pk=order_id)
+
+        # проверяем доступ к заказу через твой OrderPermission
+        perm = OrderPermission()
+        if not perm.has_permission(request, self) or not perm.has_object_permission(request, self, order):
+            return Response(
+                {"detail": "Недостаточно прав для доступа к заказу."},
+                status=drf_status.HTTP_403_FORBIDDEN
+            )
+
+        # заказ уже назначен другому пользователю
+        if order.assigned_to is not None and order.assigned_to_id != user.id:
+            return Response(
+                {"detail": "Заказ уже назначен другому пользователю."},
+                status=drf_status.HTTP_400_BAD_REQUEST
+            )
+
+        # по бизнес‑логике: какие статусы можно брать
+        if order.status not in ['new', 'obrabotka']:
+            return Response(
+                {"detail": f"Нельзя взять заказ со статусом '{order.status}'."},
+                status=drf_status.HTTP_400_BAD_REQUEST
+            )
+
+        # назначаем на текущего пользователя
+        order.assigned_to = user
+        if order.status == 'new':
+            order.status = 'obrabotka'
+        order.save(update_fields=['assigned_to', 'status'])
+
+        return Response(
+            {"detail": "Заказ взят в работу."},
+            status=drf_status.HTTP_200_OK
+        )

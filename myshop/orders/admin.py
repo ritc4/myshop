@@ -53,9 +53,9 @@ class OrderItemInlineForm(forms.ModelForm):
 class OrderItemInline(admin.TabularInline):
     model = OrderItem
     form = OrderItemInlineForm
-    raw_id_fields = ['product_price']
+    raw_id_fields = ['product_price'] 
     extra = 1
-    fields = ['product_image', 'product_price', 'product_article_number', 'size_title', 'product_mesto', 'product_zacup_price','get_total_zacup_price', 'quantity', 'price', 'is_price_custom', 'get_cost']
+    fields = ['product_image', 'product_price', 'product_article_number', 'size_title', 'product_mesto', 'product_zacup_price','get_total_zacup_price', 'quantity', 'price', 'is_price_custom', 'get_cost', 'is_picked', 'picked_quantity', 'picked_zacup_price', 'picked_comment']
     readonly_fields = ['product_image', 'product_article_number', 'size_title', 'product_mesto', 'product_zacup_price', 'get_total_zacup_price', 'get_cost']
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
@@ -90,7 +90,13 @@ class OrderItemInline(admin.TabularInline):
             images = obj.product_price.product.images.all()  # prefetch кэш
             if images:
                 image_url = images[0].image.url
-                return mark_safe(f'<img src="{image_url}" width="50" height="50" />')
+                # return mark_safe(f'<img src="{image_url}" width="50" height="50" />')
+                # Создаем тег <a>, который оборачивает <img>
+                # href="image_url" открывает большое изображение в новой вкладке (по умолчанию для <a>)
+                # или можно использовать атрибут target="_blank"
+                return mark_safe(f'<a href="{image_url}" target="_blank"><img src="{image_url}" width="50" alt="Фото товара" /></a>')
+                # Для открытия в модальном окне (нужен JS) можно добавить data-href и класс
+                # return mark_safe(f'<a href="#" data-href="{image_url}" class="open-modal"><img src="{image_url}" width="50" height="50" alt="Фото товара" /></a>')
         return 'Фото отсутствует'
     product_image.short_description = 'Фото товара'
 
@@ -164,11 +170,13 @@ class OrderAdmin(admin.ModelAdmin):
         'postal_code',   
         'get_total_cost',
         'get_total_zakup_cost',
+        'sklad_fact_zacup_price',
+        'assigned_to', 
         order_pdf, 
     ]
     
     list_editable = ['paid', 'status']
-    readonly_fields = ['get_total_zakup_cost', 'get_total_cost']
+    readonly_fields = ['get_total_zakup_cost', 'get_total_cost', 'sklad_fact_zacup_price']
     list_filter = ['paid', 'created', 'updated'] 
     inlines = [OrderItemInline]
     search_fields = ['items__article_snapshot', 'items__product_price__product__article_number', 'first_name_last_name', 'email', 'phone', 'city']  # Обновлено: добавлен поиск по article_snapshot
@@ -201,6 +209,57 @@ class OrderAdmin(admin.ModelAdmin):
         )
         return total_cost
     get_total_zakup_cost.short_description = 'Общая закупочная стоимость'  # Заголовок для отображения
+
+
+    # def sklad_fact_zacup_price(self, obj):
+    #     total_cost = sum(
+    #         (item.picked_zacup_price or 0) * (item.picked_quantity or 0)
+    #         for item in obj.items.all()
+    #     )
+    #     return total_cost
+
+    # sklad_fact_zacup_price.short_description = 'Закупочная цена (факт склад)'
+
+
+
+    def sklad_fact_zacup_price(self, obj): 
+        """
+        Если позиция собрана (is_picked=True) — считаем по данным склада,
+        иначе — по основным (snapshot/актуальная цена и quantity).
+        """
+        total_cost = 0
+
+        for item in obj.items.all():
+            # базовая закупочная цена (как в get_total_zakup_cost)
+            base_zacup = (
+                item.zacup_price_snapshot
+                if item.zacup_price_snapshot is not None
+                else (
+                    item.product_price.zacup_price
+                    if item.product_price and item.product_price.zacup_price is not None
+                    else 0
+                )
+            )
+            base_qty = item.quantity or 0
+
+            if item.is_picked:
+                # если позиция собрана — используем складские данные, если они заполнены
+                fact_zacup = item.picked_zacup_price if item.picked_zacup_price is not None else base_zacup
+                fact_qty = item.picked_quantity if item.picked_quantity is not None else base_qty
+            else:
+                # если не собрана — считаем по основным
+                fact_zacup = base_zacup
+                fact_qty = base_qty
+
+            total_cost += fact_zacup * fact_qty
+
+        return total_cost
+
+    sklad_fact_zacup_price.short_description = 'Закупочная цена (факт)'
+
+
+
+
 
     def get_search_results(self, request, queryset, search_term):
         if search_term:
@@ -286,6 +345,7 @@ class OrderItemAdmin(admin.ModelAdmin):
             return obj.product_price.product.title
         return 'Нет товара'
     product_title.short_description = 'Товар'
+
 
     def size_title(self, obj):
         # Приоритет: size_snapshot, fallback к product_price

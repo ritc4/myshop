@@ -43,6 +43,8 @@ class User(AbstractUser):
     phone = models.CharField(
         max_length=20,
         verbose_name="Телефон",
+        blank=True,
+        null=True,
         validators=[
             RegexValidator(
                 regex=r'^(?:\+7|8)\s*\(?\d{3}\)?\s*\d{3}-\d{2}-\d{2}$|^(?:\+7|8)\d{10}$',  # Исправлено: убран комментарий и запятая, добавлен $
@@ -51,18 +53,27 @@ class User(AbstractUser):
         ]
     )
     
-    region = models.CharField(max_length=250, verbose_name="Регион")
-    city = models.CharField(max_length=100, verbose_name="Город")
-    address = models.CharField(max_length=250, verbose_name="Адрес")
+    region = models.CharField(max_length=250, verbose_name="Регион", blank=True, null=True)
+    city = models.CharField(max_length=100, verbose_name="Город", blank=True, null=True)
+    address = models.CharField(max_length=250, verbose_name="Адрес", blank=True, null=True)
     postal_code = models.CharField(
         max_length=6,
         verbose_name="Почтовый индекс",
+        blank=True,
+        null=True,
         validators=[
             RegexValidator(
                 regex=r'^\d{6}$',  # Исправлено: добавлен $
                 message='Индекс должен состоять только из 6 цифр.'
             )
         ]
+    )
+
+    # новый флаг
+    is_picker = models.BooleanField(
+        default=False,
+        verbose_name="Посредник",
+        help_text="Если включено, пользователь видит все заказы со статусом 'В обработке'."
     )
     
     # Обновлённый путь: без расширения (imagekit добавит .webp)
@@ -90,7 +101,7 @@ class User(AbstractUser):
             'optimize': True  # Оптимизация
         }
     )
-    delivery_method = models.ForeignKey(DeliveryMethod, blank=False, on_delete=models.SET_NULL, null=True, verbose_name="Способ доставки")
+    delivery_method = models.ForeignKey(DeliveryMethod, blank=True, on_delete=models.SET_NULL, null=True, verbose_name="Способ доставки")
 
     class Meta:
         verbose_name = 'Пользователь'

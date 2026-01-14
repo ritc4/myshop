@@ -116,7 +116,7 @@ class ProfileUserForm(forms.ModelForm):
             'autocomplete': 'username'  # Добавляем autocomplete
         })
     )
-    email = forms.EmailField(
+    email = forms.EmailField( 
         disabled=True,
         label='E-mail',
         widget=forms.TextInput(attrs={
@@ -182,6 +182,21 @@ class ProfileUserForm(forms.ModelForm):
                 'name': 'delivery_method',  # Добавляем name
             }),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Делаем нужные поля обязательными на форме
+        required_fields = [
+            'first_name',
+            'phone',
+            'region',
+            'city',
+            'address',
+            'postal_code',
+            'delivery_method',
+        ]
+        for field_name in required_fields:
+            self.fields[field_name].required = True
 
 
 class UserPasswordChangeForm(PasswordChangeForm):

@@ -1,4 +1,4 @@
-from django.urls import include,path
+from django.urls import include, path
 from .views import (
     ProductViewSet, 
     CategoryViewSet,
@@ -10,7 +10,10 @@ from .views import (
     UpdateCategoryView,
     DeleteCategoryView,
     UpdateOrderView,
-    DeleteOrderView
+    DeleteOrderView,
+    UpdateOrderItemPickingView,
+    AssignOrderToPickerView,
+    TakeOrderView,
     )
 from rest_framework.authtoken.views import obtain_auth_token
 
@@ -46,4 +49,13 @@ urlpatterns = [
         path('order/<int:pk>/update/', UpdateOrderView.as_view(), name='update_order'),
         path('order/<int:pk>/delete/', DeleteOrderView.as_view(), name='delete_order'),
 
-        ]
+        # Назначить заказ сборщику (только staff/admin)
+        path('order/<int:order_id>/assign/', AssignOrderToPickerView.as_view(), name='order-assign-to-picker',),
+
+        # обновление одной позиции заказа (для посредника/админа)
+        path('order/<int:order_id>/items/<int:item_id>/picking/', UpdateOrderItemPickingView.as_view(), name='order-item-picking-update'),
+
+        # Сборщик сам берет свободный заказ
+        path('order/<int:order_id>/take/', TakeOrderView.as_view(), name='order-take',),
+
+        ] 

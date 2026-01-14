@@ -161,6 +161,8 @@ class ProductAdmin(admin.ModelAdmin):
     actions = ['hide_products', 'show_products','duplicate_product','change_category','bulk_update_prices'] 
     list_display_links = ['get_image','title',]
     ordering = ['-created']
+    list_per_page = 50
+    show_full_result_count = False
 
 
     def display_description(self, obj):
@@ -381,7 +383,8 @@ class ProductAdmin(admin.ModelAdmin):
         if images:
             first_image = images[0]
             if first_image.image and first_image.image.file:  # Проверка на наличие файла
-                return mark_safe(f"<img src='{first_image.image.url}' width='50'>")
+                # return mark_safe(f"<img src='{first_image.image.url}' width='50'>")
+                return mark_safe(f'<a href="{first_image.image.url}" target="_blank"><img src="{first_image.image.url}" width="50" alt="Фото товара" /></a>')
         return 'Нет фото'
     get_image.short_description = 'Фото товара'
 
