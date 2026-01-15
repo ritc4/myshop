@@ -224,7 +224,7 @@ class OrderItem(models.Model):
         verbose_name = 'Заказанный товар'
         verbose_name_plural = 'Заказанные товары'
         unique_together = ['order', 'product_price']
-        ordering = ['id']
+        ordering = ['article_snapshot', 'size_snapshot', 'id']
         indexes = [
             models.Index(fields=['order', 'product_price'], name='orderitem_order_prodprice_idx'),
             models.Index(fields=['product_snapshot']),
