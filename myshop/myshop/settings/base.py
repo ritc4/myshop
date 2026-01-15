@@ -211,6 +211,8 @@ INTERNAL_IPS = ['127.0.0.1']
 FILE_UPLOAD_MAX_MEMORY_SIZE = 200 * 1024 * 1024  # 100 МБ (для отдельных файлов)
 DATA_UPLOAD_MAX_MEMORY_SIZE = 200 * 1024 * 1024  # 100 МБ (общий размер POST-данных)
 FILE_UPLOAD_MAX_NUMBER_FILES = 10  # Максимум файлов в одном запросе (для отзывов с изображениями)
+# Количество полей в одном запросе (по умолчанию 1000)
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000
 
 
 
